@@ -4,7 +4,7 @@ test('typing, replacing, deleting and indenting preserve the caret mid-code',asy
  const original='const name = "Ada";\nexport function Welcome() {\n  return <h1 className="welcome">Hello, {name}</h1>;\n}';
  const save=fresh();save.phase='exercise';save.settings.reducedMotion=true;save.settings.mute=true;save.answers['0-0']={code:original};
  await page.addInitScript(([key,value])=>{if(window===window.top&&!localStorage.getItem(key))localStorage.setItem(key,value);},[KEY,JSON.stringify(save)]);
- await page.goto('/');await page.getByRole('button',{name:'Use computer'}).click();
+ await page.goto('/');await page.locator('[data-surface="crt-glass"]').click();
  const editor=page.getByRole('textbox',{name:'Your React code'});
  const saved=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)!).answers['0-0'].code,KEY);
  await page.locator('.cm-line').first().click();await editor.press('Home');
@@ -17,5 +17,5 @@ test('typing, replacing, deleting and indenting preserve the caret mid-code',asy
  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();await page.getByRole('menuitem',{name:'Redo Ctrl+Y'}).click();await expect.poll(saved).toBe(original.replace('Ada','Captain Ada'));
  await page.locator('.cm-line').nth(2).click();await editor.press('Home');await editor.press('Tab');
  await expect.poll(saved).toBe(original.replace('Ada','Captain Ada').replace('  return','    return'));
- const final=await saved();await page.reload();await page.getByRole('button',{name:'Use computer'}).click();await expect(editor).toHaveText(final,{useInnerText:true});
+ const final=await saved();await page.reload();await page.locator('[data-surface="crt-glass"]').click();await expect(editor).toHaveText(final,{useInnerText:true});
 });
