@@ -1,0 +1,6 @@
+dist
+node_modules
+src/sandbox/runtime.generated.js
+test-results
+playwright-report
+package-lock.json

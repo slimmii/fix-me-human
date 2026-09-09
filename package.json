@@ -9,7 +9,9 @@
     "test": "vitest run",
     "test:browser": "playwright test",
     "predev": "node scripts/build-runtime.mjs",
-    "prebuild": "node scripts/build-runtime.mjs"
+    "prebuild": "node scripts/build-runtime.mjs",
+    "format": "prettier --write src tests *.ts",
+    "format:check": "prettier --check src tests *.ts"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
@@ -36,6 +38,7 @@
     "@types/three": "^0.180.0",
     "@vitejs/plugin-react": "^5.0.3",
     "esbuild": "^0.28.2",
+    "prettier": "^3.9.6",
     "typescript": "~5.9.2",
     "vite": "^7.1.7",
     "vitest": "^3.2.4"

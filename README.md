@@ -15,9 +15,9 @@ Open the local URL printed by Vite. `npm run build` produces `dist/` for a stati
 
 ## Play
 
-Click **Start** or the CRT. The camera zooms to the physical monitor; the playable HTML interface is attached to that monitor’s screen in the 3D scene, rather than opening an unrelated desktop overlay.
+Click the CRT. The camera zooms to the physical monitor; the playable HTML interface is attached to that monitor’s screen in the 3D scene, rather than opening an unrelated desktop overlay.
 
-B.U.G. explains each concept through captions, jokes, and a worked example. Click **Go on, B.U.G.**, then **Let me type**. Write source in **B.U.G. BASIC**, a blue EGA-style code editor with syntax highlighting, line numbers, a cursor position readout, undo/redo, and find/replace. Text menus provide **File**, **Edit**, **Search**, **Run**, and **Help**. Choose **Run → Start** or press **F5** to open **BUGSCAPE Navigator**, a separate retro browser inside the CRT. Press **F6** to return to your intact editor. The actual React output uses monospace text, ANSI colors, double-line borders, square beveled controls, and CRT styling. The lessons, menus, editor, certificate, and browser all use the same period interface. There is no command-line terminal or snippet picker.
+B.U.G. explains each concept through captions, jokes, and a worked example. Use **Go on, B.U.G.**, then **Let me type**, in the conversation panel. Write source in **B.U.G. BASIC**, a blue EGA-style code editor with syntax highlighting, line numbers, a cursor position readout, undo/redo, and find/replace. Text menus provide **File**, **Edit**, **Search**, **Run**, and **Help**. Choose **Run → Start** or press **F5** to open **BUGSCAPE Navigator**, a separate retro browser inside the CRT. Press **F6** to return to your intact editor. The actual React output uses monospace text, ANSI colors, double-line borders, square beveled controls, and CRT styling. The lessons, menus, editor, certificate, and browser all use the same period interface. There is no command-line terminal or snippet picker.
 
 The intentionally small HTML toolbox is:
 
@@ -47,8 +47,16 @@ Endless exercises are reproducible by seed, topic, difficulty, and prior family.
 
 ## Source
 
-- `src/Scene.tsx`: original office geometry, props, robot expressions, camera, and embedded monitor interface.
-- `src/App.tsx`: campaign flow, B.U.G.’s explanations, lessons, checkpoints, replay, and settings.
+- `src/App.tsx`: composes the scene, computer, dialogue, HUD, and settings.
+- `src/game/useGame.ts`: owns campaign state, persistence, assignment transitions, and B.U.G.’s conversation flow.
+- `src/game/dialogue.ts`: authored lesson introductions.
+- `src/ui/`: dialogue, HUD, and settings components.
+- `src/computer/`: boot, lesson menu, briefing, review, promotion, and endless controls.
+- `src/Scene.tsx`: canvas lifecycle, view selection, and WebGL fallback.
+- `src/scene/World.tsx`: composes the cubicle and desk props.
+- `src/scene/useSeatedCamera.ts`: seated look limits, monitor/poster zoom, and poster hit detection.
+- `src/scene/`: independent printer, robot, fan, mug, poster, monitor, and workstation components.
+- `src/scene/printerAnimation.ts`: pure printer state transitions and paper animation sampling; `Printer.tsx` applies poses to meshes and manages sound.
 - `src/TypedComputer.tsx`: text menus, compiler worker, hints, and editor/browser program switching.
 - `src/RetroEditor.tsx`: CodeMirror editing, syntax highlighting, cursor handling, search, and undo history.
 - `src/retro.css`: shared QBasic/EGA styling for every in-computer screen.
@@ -60,13 +68,16 @@ Endless exercises are reproducible by seed, topic, difficulty, and prior family.
 ## Verify
 
 ```sh
+npm run format:check
 npm test
 npx playwright install chromium
 npm run test:browser
 npm run build
 ```
 
-Tests cover authored solutions and incorrect repairs, real TSX compilation, typed source checks, tag restrictions, persistence, progression locks, checkpoint retention, and 1,320 generated exercises. Browser tests type and execute the complete campaign and finale, resume after refresh, exercise real state/ref/Hook behavior, reject unsupported tags, inspect the in-world computer, and complete multiple endless rounds. Screenshots go to `test-results/`.
+Use `npm run format` to format source and tests. TypeScript rejects unused locals and parameters. Keep mesh coordinates and materials in scene components, animation timing in the pure animation module, and campaign updates in the game layer. The generated sandbox runtime is excluded from formatting and should be rebuilt through the existing scripts.
+
+Tests cover the printer’s two-click lifecycle, reduced motion, authored solutions and incorrect repairs, real TSX compilation, typed source checks, tag restrictions, persistence, progression locks, checkpoint retention, and 1,320 generated exercises. Browser tests type and execute the complete campaign and finale, resume after refresh, exercise real state/ref/Hook behavior, reject unsupported tags, inspect the in-world computer, and complete multiple endless rounds. Screenshots go to `test-results/`.
 
 ## Attribution
 

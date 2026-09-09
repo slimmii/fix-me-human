@@ -1,60 +1,115 @@
-import { useEffect, useMemo, useState } from 'react';
-import Scene from './Scene';
-import TypedComputer, { starterFor, TAGS } from './TypedComputer';
-import { finale, generate, lessons } from './content';
-import { campaignDone, endlessUnlocked, lessonDone, loadSave, persist, unlocked, type Save } from './progression';
-import { sound } from './audio';
-const jokes=[
- 'TSX is markup with JavaScript tucked inside braces. Like a sandwich, except a missing bracket can ruin your afternoon.',
- 'Lists turn data into little pieces of UI. Stable keys help React remember who is who. HR has yet to master this.',
- 'A component is a reusable function that returns UI. Capitalize its name. Apparently React also respects job titles.',
- 'Props are read-only inputs. You can personalize a robot without rewriting the robot. My personality is, regrettably, permanent.',
- 'An event handler waits for an interaction. Pass the function, don’t call it during render. Even complaints need office hours.',
- 'State remembers things and asks React to render again. I also remember things. Mostly your coffee expenditure.',
- 'Effects synchronize with the outside world. Return cleanup to undo their work. Think of it as teaching a timer to clock out.',
- 'A ref keeps a value between renders without requesting another render. Perfect for a DOM node. Terrible for displaying your salary.',
- 'Custom Hooks reuse stateful logic, not shared state. Each call gets its own little universe. We charge rent for those.',
- 'Lift shared state to a common parent. Send values down and callbacks up. Congratulations: you invented a functional org chart.',
- 'Context lets descendants read the nearest provider. It’s an office-wide memo that people might actually receive.'
-];
-export default function App(){
- const [save,setSave]=useState(loadSave),[focused,setFocused]=useState(false),[settings,setSettings]=useState(false),[saved,setSaved]=useState(true),[quote,setQuote]=useState('Hello, human. I built this office application. It has one small problem: the application. Press Start. I’ll explain.'),[mood,setMood]=useState<'neutral'|'happy'|'confused'>('neutral'),[showLessons,setShowLessons]=useState(false),[speech,setSpeech]=useState(0);
- const lesson=lessons[save.lesson],isFinal=save.phase==='finale',isEndless=save.phase==='endless';
- const endlessExercise=useMemo(()=>generate(save.endless.seed,save.endless.topic,save.endless.difficulty,save.endless.previousFamily),[save.endless.seed,save.endless.topic,save.endless.difficulty,save.endless.previousFamily]);
- const exercise=isFinal?finale[Math.min(save.checkpoints.length,4)]:isEndless?endlessExercise:lesson.exercises[save.exercise];
- const briefing=save.phase==='briefing'||save.phase==='example';
- useEffect(()=>{setSaved(persist(save));},[save]);
- useEffect(()=>{if(briefing){setSpeech(0);setMood('neutral');setQuote(jokes[save.lesson]);}},[save.phase,save.lesson,briefing]);
- useEffect(()=>{if(isFinal||isEndless){setMood('neutral');setQuote(`${isFinal?'Project checkpoint.':'Fresh work, freshly questionable management.'} ${exercise.prompt}`);}},[exercise.id,isFinal,isEndless]);
- useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape'){setFocused(false);setSettings(false);setShowLessons(false);}};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
- function say(text:string,nextMood:'neutral'|'happy'|'confused'='neutral'){setQuote(text);setMood(nextMood);sound(save.settings.mute,'talk');}
- function phase(p:Save['phase']){setSave(s=>({...s,phase:p}));sound(save.settings.mute);}
- function enter(){setFocused(true);if(save.phase==='onboarding')phase('briefing');sound(save.settings.mute);}
- function explain(){if(speech===0){setSpeech(1);say(lesson.explanation);}else if(speech===1){setSpeech(2);say(`${lesson.reminder} Study the example on your screen. It’s the one piece of code I am willing to take responsibility for.`);}else{phase('exercise');say(`${exercise.prompt} Type your repair in the editor. Use Run > Start, or press F5, to open your program in BUGSCAPE. F6 returns to the editor.`);}}
- function pass(){sound(save.settings.mute,'win');
- if(isEndless){setSave(s=>({...s,endless:{...s.endless,solved:s.endless.solved+1,seed:s.endless.seed+1,previousFamily:['completion','repair','ordering'].indexOf(exercise.kind)}}));say('Another bug fixed. The backlog has celebrated by growing.','happy');}
- else if(isFinal){const checkpoints=[...new Set([...save.checkpoints,exercise.id])];setSave(s=>({...s,checkpoints,phase:checkpoints.length===5?'ending':'finale'}));say(checkpoints.length===5?'Promotion approved! Your reward is UNLIMITED EMPLOYMENT. The printer is making it legally disappointing.':'Checkpoint saved. A suspicious amount of competence detected.','happy');}
- else{setSave(s=>({...s,completed:[...new Set([...s.completed,exercise.id])],phase:'review'}));say('Your code works. I am experiencing an unfamiliar feeling. It might be pride. Or a firmware update.','happy');}
- }
- function next(){if(save.exercise===0){setSave(s=>({...s,exercise:1,phase:'exercise'}));say(`Now fix this one yourself. ${lesson.exercises[1].prompt} I’ll be over here, looking essential.`);}else if(save.lesson<10)setSave(s=>({...s,lesson:s.lesson+1,exercise:0,phase:'briefing'}));else{phase('finale');say('Time to build the Office Survival Dashboard. Five checkpoints. I’ll keep each one. Unlike your annual leave.');}}
- const count=lessons.filter((_,i)=>lessonDone(save,i)).length;
- const computer=save.phase==='onboarding'?<div className="machine-screen machine-boot"><small>BUG INDUSTRIES™ / HUMAN RESOURCES</small><h1>PLEASE FIX,<br/>HUMAN<span>_</span></h1><p>A tiny React game. A suspiciously large workload.</p><button onClick={enter}>▶ Start</button><footer>INSERT HUMAN TO CONTINUE</footer></div>:<div className={`machine-screen ${save.settings.crt?'scanlines':''}`}><div className="machine-menubar"><b>B.U.G. BASIC</b><button onClick={()=>setShowLessons(!showLessons)}>{isFinal?'Final project':isEndless?'Endless Shift':`Lesson ${save.lesson+1} · ${lesson.title}`} ▾</button><span>{count}/11</span><button onClick={()=>setFocused(false)}>Back to desk ↙</button></div>
- {showLessons?<div className="machine-lessons"><h2>More work. How thoughtful.</h2><div>{lessons.map((l,i)=><button key={l.title} disabled={!unlocked(save,i)} onClick={()=>{setSave(s=>({...s,lesson:i,exercise:0,phase:'briefing'}));setShowLessons(false);}}>{lessonDone(save,i)?'✓':String(i+1).padStart(2,'0')} {l.title}</button>)}</div><button disabled={!campaignDone(save)} onClick={()=>{phase(save.checkpoints.length===5?'ending':'finale');setShowLessons(false);}}>⚑ Office Survival Dashboard</button><button disabled={!endlessUnlocked(save)} onClick={()=>{phase('endless');setShowLessons(false);}}>∞ Endless Shift</button><button onClick={()=>setShowLessons(false)}>Back to my page</button></div>:
- briefing?<div className="machine-briefing"><div className="briefing-intro"><small>B.U.G. HAS THE FLOOR. UNFORTUNATELY.</small><h1>{lesson.assignment}</h1><p>{speech===0?'Your supervisor is explaining the basics. Listen with your eyes.':speech===1?'A little React. A little questionable leadership.':'One working example. Then it’s your turn to type.'}</p><div className="mini-bug"><i/><i/><b/></div><button className="primary" onClick={explain}>{speech<2?'Go on, B.U.G. →':'Let me type →'}</button></div><div className="worked-card"><span>{speech<2?'A PEEK AT WHAT YOU’LL LEARN':'YOUR WORKED EXAMPLE'}</span><pre>{lesson.example}</pre><div className="tag-note"><b>Small toolbox. Big ambitions.</b><p>Only {TAGS.map(t=>`<${t}>`).join(' ')}. Capitalized React components are welcome too.</p></div></div></div>:
- save.phase==='review'?<div className="machine-review"><div>✓</div><small>ONE LESS BUG. SAME SALARY.</small><h1>{save.exercise===0?'You made a thing work.':'Assignment survived.'}</h1><p>You typed and ran <b>{exercise.title.toLowerCase()}</b>.</p><button className="primary" onClick={next}>{save.exercise===0?'Try the independent repair':save.lesson===10?'Build my final project':'Next assignment'} →</button></div>:
- save.phase==='ending'?<div className="machine-ending"><div className="tiny-certificate"><small>BUG INDUSTRIES · OFFICIAL PRINTER OUTPUT</small><h1>CERTIFICATE OF<br/>TOLERABLE COMPETENCE</h1><p>HUMAN #042</p><span>React survived. Dashboard assembled. Promotion approved.</span><b>UNLIMITED EMPLOYMENT.</b><i>Signed, B.U.G. / Salary unchanged.</i></div><button className="primary" onClick={()=>phase('endless')}>Begin Endless Shift ∞</button><button onClick={()=>{setFocused(false);say('Confetti! Each piece has been deducted from your benefits.','happy');}}>Replay celebration</button></div>:
- <>{isFinal&&<div className="tiny-checkpoints">{finale.map((e,i)=><span key={e.id}>{save.checkpoints.includes(e.id)?'✓':i+1} {e.title.split('/ ')[1]}</span>)}</div>}{isEndless&&<div className="tiny-endless"><label>Topic <select aria-label="Endless topic" value={save.endless.topic} onChange={e=>setSave(s=>({...s,endless:{...s.endless,topic:e.target.value==='mixed'?'mixed':Number(e.target.value),seed:s.endless.seed+1}}))}><option value="mixed">Mixed</option>{lessons.map((l,i)=><option key={i} value={i}>{l.title}</option>)}</select></label><label>Difficulty <select aria-label="Endless difficulty" value={save.endless.difficulty} onChange={e=>setSave(s=>({...s,endless:{...s.endless,difficulty:Number(e.target.value),seed:s.endless.seed+1}}))}><option value={1}>Intern</option><option value={2}>Employee</option><option value={3}>Management</option></select></label><span>{save.endless.solved} repaired</span></div>}<TypedComputer key={exercise.id} exercise={exercise} source={save.answers[exercise.id]?.code??starterFor(exercise)} onChange={code=>setSave(s=>({...s,answers:{...s.answers,[exercise.id]:{code}}}))} onPass={pass} onExit={()=>setFocused(false)} onRobot={say} onKey={()=>sound(save.settings.mute)} reduced={save.settings.reducedMotion} onHelp={()=>say(`${jokes[exercise.topic]} Your task: ${exercise.prompt}`)}/></>}
- <div className="machine-status">● {saved?'Saved on this computer':'Storage unavailable · this session only'}<span>HAND-TYPED BY A REAL HUMAN™</span></div></div>;
- return <main className={`game ${focused?'focused':''} ${save.settings.reducedMotion?'reduced':''}`} onClickCapture={e=>{
-  if(!focused||settings)return;
-  const target=e.target;
-  if(target instanceof Element&&target.closest('.crt-display,.fallback-computer,.hud'))return;
-  e.stopPropagation();
-  setFocused(false);
- }}><Scene focused={focused} reduced={save.settings.reducedMotion} onComputer={enter} onProp={say} celebrate={save.phase==='ending'} mood={mood} computer={computer}/>
- <header className="hud"><a className="brand" href="#" onClick={e=>{e.preventDefault();setFocused(false);}}><span className="brand-icon">▦</span><span>PLEASE FIX, HUMAN<small>REACT JOB SIMULATOR</small></span></a><div className="hud-right"><span className="shift-label"><i/> HUMAN OPERATED. FOR NOW.</span><button onClick={()=>setSettings(true)} aria-label="Settings">⚙</button><button onClick={()=>setSave(s=>({...s,settings:{...s.settings,mute:!s.settings.mute}}))}>{save.settings.mute?'Sound off':'Sound on'}</button></div></header>
- {!focused&&<><div className="desk-label"><span>BUG INDUSTRIES™</span><h1>One human.<br/>Several bugs.</h1></div><div className="desk-index"><span>WORKSTATION</span><b>H–042</b><small>YOUR COFFEE IS<br/>PROBABLY COLD.</small></div></>}
- <div className="robot-dialogue" role="status"><div className={`robot-avatar ${mood}`}><i/><i/><span/></div><div><b>B.U.G.<span>YOUR EXTREMELY QUALIFIED SUPERVISOR</span></b><p>{quote}</p></div></div>
- {settings&&<div className="modal-backdrop"><section className="settings" role="dialog" aria-modal="true" aria-label="Settings"><button className="close" onClick={()=>setSettings(false)} aria-label="Close settings">×</button><span className="eyebrow">HUMAN ACCOMMODATIONS</span><h2>A few small mercies.</h2>{(['mute','reducedMotion','crt'] as const).map((k,i)=><label key={k}><input type="checkbox" checked={save.settings[k]} onChange={e=>setSave(s=>({...s,settings:{...s.settings,[k]:e.target.checked}}))}/>{['Mute sound','Reduce motion','CRT scanlines'][i]}</label>)}<p>Type your own React. Tab indents; F5 runs; F6 switches to your editor. Escape returns to the desk. No timers. No lost progress.</p><button className="primary" onClick={()=>setSettings(false)}>Back to work</button></section></div>}
- </main>;
+import Scene from "./Scene";
+import { GameComputer } from "./computer/GameComputer";
+import { useGame } from "./game/useGame";
+import { GameHud } from "./ui/GameHud";
+import { RobotDialogue } from "./ui/RobotDialogue";
+import { SettingsDialog } from "./ui/SettingsDialog";
+export default function App() {
+  const game = useGame();
+  const {
+    save,
+    setSave,
+    focused,
+    setFocused,
+    settings,
+    setSettings,
+    quote,
+    mood,
+    showLessons,
+    speech,
+    briefing,
+    say,
+    enter,
+    explain,
+    next,
+  } = game;
+
+  return (
+    <main
+      className={`game ${focused ? "focused" : ""} ${save.settings.reducedMotion ? "reduced" : ""}`}
+      onClickCapture={(e) => {
+        if (!focused || settings) return;
+        const target = e.target;
+        if (
+          target instanceof Element &&
+          target.closest(".crt-display,.fallback-computer,.hud,.robot-dialogue")
+        )
+          return;
+        e.stopPropagation();
+        setFocused(false);
+      }}
+    >
+      <Scene
+        mute={save.settings.mute}
+        focused={focused}
+        reduced={save.settings.reducedMotion}
+        onComputer={enter}
+        onProp={say}
+        celebrate={save.phase === "ending"}
+        mood={mood}
+        computer={<GameComputer game={game} />}
+      />
+      <GameHud
+        mute={save.settings.mute}
+        onDesk={() => setFocused(false)}
+        onSettings={() => setSettings(true)}
+        onToggleSound={() =>
+          setSave((s) => ({
+            ...s,
+            settings: { ...s.settings, mute: !s.settings.mute },
+          }))
+        }
+      />
+      {!focused && (
+        <>
+          <div className="desk-label">
+            <span>BUG INDUSTRIES™</span>
+            <h1>
+              One human.
+              <br />
+              Several bugs.
+            </h1>
+          </div>
+          <div className="desk-index">
+            <span>WORKSTATION</span>
+            <b>H–042</b>
+            <small>
+              YOUR COFFEE IS
+              <br />
+              PROBABLY COLD.
+            </small>
+          </div>
+        </>
+      )}
+      <RobotDialogue mood={mood} quote={quote}>
+        {!showLessons &&
+          (briefing ? (
+            <button className="primary" onClick={explain}>
+              {speech < 2 ? "Go on, B.U.G. →" : "Let me type →"}
+            </button>
+          ) : save.phase === "review" ? (
+            <button className="primary" onClick={next}>
+              {save.exercise === 0
+                ? "Try the independent repair"
+                : save.lesson === 10
+                  ? "Build my final project"
+                  : "Next assignment"}{" "}
+              →
+            </button>
+          ) : null)}
+      </RobotDialogue>
+      {settings && (
+        <SettingsDialog
+          settings={save.settings}
+          onClose={() => setSettings(false)}
+          onChange={(key, value) =>
+            setSave((s) => ({
+              ...s,
+              settings: { ...s.settings, [key]: value },
+            }))
+          }
+        />
+      )}
+    </main>
+  );
 }
