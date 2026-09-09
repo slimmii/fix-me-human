@@ -1,44 +1,47 @@
 import { expect, it } from "vitest";
-import { lessons, finale, sourceFor } from "../src/content";
 import { compileCode } from "../src/typed-engine";
-const all = [...lessons.flatMap((l) => l.exercises), ...finale];
-for (const exercise of all)
-  it(`typed ${exercise.id}: accepts real source and rejects the known repair mistakes`, () => {
-    const answers = Object.fromEntries(
-      exercise.slots.map((s) => [s.name, s.answer]),
-    );
-    const code = sourceFor(exercise, answers),
-      result = compileCode(code, exercise);
+import { assignment } from "./fixtures/curriculum";
+const valid = [
+  assignment.solution,
+  "export function Welcome(){ return <h1>Hello B.U.G.</h1>; }",
+  "export const App = () => <h1>Hello B.U.G.</h1>;",
+  "const App = () => <h1>Hello B.U.G.</h1>; export default App;",
+  "const App = () => <h1>Hello B.U.G.</h1>; export { App };",
+  "function App(){return <h1>Hello B.U.G.</h1>} export { App as default };",
+];
+for (const source of valid)
+  it(`accepts component export: ${source}`, () => {
+    const result = compileCode(source, assignment);
     expect(result.errors).toEqual([]);
-    expect(result.checks.length).toBeGreaterThan(0);
     expect(result.checks.every((c) => c.pass)).toBe(true);
-    for (const slot of exercise.slots) {
-      const wrong = slot.choices.find((c) => c.id !== slot.answer)!;
-      const broken = compileCode(
-        sourceFor(exercise, { ...answers, [slot.name]: wrong.id }),
-        exercise,
-      );
-      expect(
-        broken.errors.length > 0 || broken.checks.some((c) => !c.pass),
-      ).toBe(true);
-    }
   });
-it("limits HTML tags, remote imports, and navigation attributes", () => {
-  for (const code of [
+it("rejects missing and lowercase exports, non-functions, comments, and a bad default before a good named export", () => {
+  for (const source of [
+    "",
+    "// export function App(){ return <h1>Hello B.U.G.</h1> }",
+    "function App(){return <h1>Hello B.U.G.</h1>}",
+    "export default function app(){return <h1>Hello B.U.G.</h1>}",
+    "export default 42;",
+    "export default 42; export function App(){return <h1>Hello B.U.G.</h1>}",
+  ])
+    expect(compileCode(source, assignment).checks.some((c) => !c.pass)).toBe(
+      true,
+    );
+});
+it("rejects syntax errors and preserves the sandbox toolbox", () => {
+  for (const source of [
+    "export default function App(){return <h1>broken}",
     "export default function App(){return <script>bad</script>}",
     'import x from "https://example.com/x"; export default function App(){return <p/>}',
     'export default function App(){return <iframe src="https://example.com"/>}',
     'export default function App(){return <div dangerouslySetInnerHTML={{__html:"bad"}}/>}',
+    'export default function App(){fetch("/secret");return <p/>}',
+    "export default function App(){while(true){} return <p/>}",
   ])
-    expect(compileCode(code, all[0]).errors.length).toBeGreaterThan(0);
+    expect(compileCode(source, assignment).errors.length).toBeGreaterThan(0);
 });
-it("accepts formatting changes instead of comparing complete source strings", () => {
-  const e = lessons[1].exercises[0];
-  const source = sourceFor(
-    e,
-    Object.fromEntries(e.slots.map((s) => [s.name, s.answer])),
-  )
-    .replaceAll("s =>", "s=>")
-    .replaceAll("\n", " ");
-  expect(compileCode(source, e).checks.every((c) => c.pass)).toBe(true);
+it("fails closed for an unregistered source rule", () => {
+  const invalid = structuredClone(assignment);
+  invalid.validation.source[0].type = "missing" as never;
+  expect(compileCode(assignment.solution, invalid).checks[0].pass).toBe(false);
 });

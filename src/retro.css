@@ -1,9 +1,11 @@
 /* EGA text-mode applications; only the physical CRT glass has rounded edges. */
 .machine-screen {
+  --terminal-font-size: 14px;
+  --terminal-line-height: 20px;
   background: #000080 !important;
   color: #aaaaaa !important;
   font-family: "Courier New", monospace !important;
-  font-size: 16px;
+  font-size: var(--terminal-font-size);
 }
 .machine-screen *,
 .machine-screen button,
@@ -309,7 +311,8 @@
 .qbasic-menu-anchor {
   position: relative;
 }
-.qbasic-menu .qbasic-menu-anchor > button {
+.qbasic-menu .qbasic-menu-anchor > button,
+.qbasic-menu > button {
   padding: 6px 19px;
   background: transparent;
   color: #000000;
@@ -318,7 +321,8 @@
   height: 32px;
 }
 .qbasic-menu .qbasic-menu-anchor > button[aria-expanded="true"],
-.qbasic-menu .qbasic-menu-anchor > button:focus {
+.qbasic-menu .qbasic-menu-anchor > button:focus,
+.qbasic-menu > button:focus {
   background: #000080 !important;
   color: #ffffff;
 }
@@ -605,4 +609,613 @@
   box-shadow:
     inset 0 0 13px 4px #00002066,
     inset 0 0 3px 1px #bbccee44;
+}
+
+/* Authored lesson pages keep navigation outside the scrolling reading area. */
+.lesson-reader {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.lesson-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  min-width: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.lesson-content > small {
+  color: #55ffff;
+  font-size: 13px;
+}
+.lesson-content > h1 {
+  color: #ffff55;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  margin: 18px 0 22px;
+}
+.lesson-content > h1:focus {
+  outline: none;
+}
+.lesson-markdown {
+  max-width: 850px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #dddddd;
+}
+.lesson-markdown p {
+  margin: 14px 0;
+}
+.lesson-markdown strong {
+  color: #ffffff;
+}
+.lesson-markdown code {
+  color: #ffff55;
+}
+.lesson-markdown pre {
+  padding: 16px 20px;
+  border: 3px double #aaaaaa;
+  background: #000055;
+  overflow-x: auto;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.lesson-markdown blockquote {
+  border-left: 3px solid #55ffff;
+  padding: 0 18px;
+  margin: 20px 0;
+  color: #55ffff;
+}
+.lesson-markdown li {
+  margin: 6px 0;
+}
+.lesson-markdown a {
+  color: #55ffff;
+}
+.lesson-markdown button {
+  margin: 5px 12px 5px 0;
+}
+.lesson-navigation {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid #5555aa;
+  padding: 12px 32px;
+}
+.lesson-navigation > span {
+  color: #55ffff;
+  margin-right: auto;
+  font-size: 15px;
+}
+.lesson-success {
+  color: #55ff55;
+  font-weight: bold;
+}
+.assignment-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.assignment-workspace[hidden] {
+  display: none;
+}
+.assignment-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px;
+  color: #55ffff;
+}
+.assignment-tools > span {
+  margin-right: auto;
+  font-size: 14px;
+}
+.assignment-tools button {
+  font-size: 13px;
+  padding: 4px 10px;
+}
+
+.lesson-reading-area {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.lesson-content {
+  padding: 26px 40px 28px 48px;
+}
+.lesson-scroll::-webkit-scrollbar {
+  display: none;
+}
+.lesson-scrollbar {
+  display: flex;
+  flex-direction: column;
+  width: 26px;
+  flex-shrink: 0;
+  margin: 10px 12px 10px 0;
+  border: 1px solid #aaaaaa;
+  background: #000055;
+}
+.machine-screen .lesson-scrollbar button {
+  padding: 0;
+  width: 24px;
+  height: 25px;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 21px;
+  color: #000080;
+}
+.lesson-scroll-track {
+  position: relative;
+  flex: 1;
+  min-height: 30px;
+  touch-action: none;
+  background: repeating-conic-gradient(#aaaaaa 0% 25%, #000080 0% 50%) 0 0 / 4px
+    4px;
+}
+.lesson-scroll-track:focus-visible {
+  outline: 2px solid #ffff55;
+  outline-offset: 2px;
+}
+.lesson-scroll-thumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000080;
+  background: #aaaaaa;
+  border: 2px outset #ffffff;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  font-size: 20px;
+}
+.lesson-scroll-thumb:active {
+  cursor: grabbing;
+  border-style: inset;
+}
+.lesson-scrollbar.is-inactive {
+  opacity: 0.45;
+}
+.lesson-reading-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 5px 32px;
+  color: #55ffff;
+  background: #000055;
+  font-size: 13px;
+}
+.lesson-reading-status > span:last-child {
+  color: #ffff55;
+}
+
+/* Help uses the full terminal workspace and the lesson reader controls. */
+.editor-panes,
+.editor-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.editor-main {
+  flex-direction: column;
+}
+.editor-help {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: #000080;
+}
+.editor-help header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 28px;
+  background: #aaa;
+  color: #000080;
+  font-size: 14px;
+}
+.editor-help header button {
+  padding: 0 6px;
+  font-size: 20px;
+  border: 0;
+}
+.qbasic-work[hidden] {
+  display: none;
+}
+.qbasic-source {
+  margin-top: 6px;
+}
+.qbasic-file {
+  justify-content: flex-start;
+  gap: 14px;
+  height: 33px;
+}
+.qbasic-file > span:last-child {
+  margin-left: auto;
+  color: #55aaaa;
+}
+.qbasic-file b {
+  padding: 5px 24px;
+  font-weight: bold;
+}
+
+/* A single text-cell size keeps code, menus, and dialogs in the same DOS UI. */
+.machine-screen
+  :is(
+    .qbasic-work,
+    .qbasic-menu button,
+    .qbasic-dropdown button,
+    .qbasic-dropdown button span,
+    .qbasic-program,
+    .qbasic-file,
+    .qbasic-ruler,
+    .qbasic-status,
+    .qbasic-status button,
+    .qbasic-status > span,
+    .machine-status,
+    .editor-help header,
+    .lesson-content > small,
+    .lesson-content > h1,
+    .lesson-markdown,
+    .lesson-markdown pre,
+    .lesson-navigation,
+    .lesson-navigation > span,
+    .lesson-navigation button,
+    .lesson-reading-status,
+    .retro-browser-title,
+    .retro-browser-title button,
+    .retro-browser-tools,
+    .retro-browser-tools button,
+    .retro-browser-tools small,
+    .retro-url,
+    .retro-browser-status,
+    .retro-browser-status button,
+    .cm-panels,
+    .cm-panels button,
+    .cm-panels input,
+    .cm-panels label
+  ) {
+  font-size: var(--terminal-font-size);
+  line-height: var(--terminal-line-height);
+}
+.qbasic-menu,
+.qbasic-menu .qbasic-menu-anchor > button,
+.qbasic-menu > button {
+  height: 28px;
+}
+.qbasic-menu .qbasic-menu-anchor > button,
+.qbasic-menu > button {
+  padding: 4px 16px;
+  font-weight: normal;
+}
+.qbasic-dropdown {
+  top: 28px;
+}
+.qbasic-file {
+  height: 28px;
+}
+.qbasic-file b {
+  padding: 2px 16px;
+}
+.machine-screen .cm-search input[type="checkbox"] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid #000080;
+  border-radius: 0;
+  background: #aaaaaa;
+  vertical-align: middle;
+}
+.machine-screen .cm-search input[type="checkbox"]:checked {
+  background: #000080;
+  box-shadow: inset 0 0 0 3px #aaaaaa;
+}
+.machine-screen .cm-search input:focus-visible {
+  outline: 1px solid #ffff55;
+}
+
+/* Native scrolling with persistent square EGA tracks, thumbs, and arrow buttons. */
+.machine-screen * {
+  scrollbar-color: #aaaaaa #000055;
+  scrollbar-width: auto;
+}
+@supports selector(::-webkit-scrollbar) {
+  .machine-screen * {
+    scrollbar-color: auto;
+  }
+}
+.machine-screen ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+.machine-screen ::-webkit-scrollbar-track {
+  background: repeating-conic-gradient(#aaaaaa 0% 25%, #000080 0% 50%) 0 0 / 4px
+    4px;
+}
+.machine-screen ::-webkit-scrollbar-thumb {
+  min-width: 20px;
+  min-height: 20px;
+  border: 2px outset #eeeeee;
+  border-radius: 0;
+  background: #aaaaaa;
+}
+.machine-screen ::-webkit-scrollbar-thumb:active {
+  border-style: inset;
+  background: #ffffff;
+}
+.machine-screen ::-webkit-scrollbar-corner,
+.machine-screen ::-webkit-scrollbar-button {
+  width: 16px;
+  height: 16px;
+  border: 2px outset #eeeeee;
+  background-color: #aaaaaa;
+}
+.machine-screen ::-webkit-scrollbar-button {
+  display: block;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 8px 8px;
+}
+.machine-screen ::-webkit-scrollbar-button:start:increment,
+.machine-screen ::-webkit-scrollbar-button:end:decrement {
+  display: none;
+}
+.machine-screen ::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 6L4 2L8 6Z'/%3E%3C/svg%3E");
+}
+.machine-screen ::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 2L4 6L8 2Z'/%3E%3C/svg%3E");
+}
+.machine-screen ::-webkit-scrollbar-button:horizontal:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M6 0L2 4L6 8Z'/%3E%3C/svg%3E");
+}
+.machine-screen ::-webkit-scrollbar-button:horizontal:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M2 0L6 4L2 8Z'/%3E%3C/svg%3E");
+}
+.machine-screen .lesson-scroll {
+  scrollbar-width: none;
+}
+
+/* The assignment is a physical printout, separate from the monitor UI. */
+.assignment-attention.assignment-attention {
+  outline: 4px solid #ffd83d;
+  background: #ffe34d40;
+  box-shadow: 0 0 18px 7px #ffda4599;
+  animation: assignment-pulse 1.6s ease-in-out infinite;
+}
+@keyframes assignment-pulse {
+  0%,
+  100% {
+    background-color: #ffe34d26;
+    box-shadow: 0 0 8px 3px #ffda4555;
+  }
+  50% {
+    background-color: #ffe34d66;
+    box-shadow: 0 0 22px 8px #ffda45bb;
+  }
+}
+.reduced .assignment-attention {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .assignment-attention.assignment-attention {
+    animation: none;
+  }
+}
+.assignment-paper {
+  display: block;
+  width: 192px;
+  height: 256px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0;
+  box-shadow: none;
+}
+.assignment-paper:hover:not(:disabled) {
+  background: transparent;
+  transform: none;
+}
+.assignment-paper:focus-visible {
+  outline: 4px solid #d78851;
+}
+.assignment-dock {
+  position: fixed;
+  right: 24px;
+  top: 120px;
+  z-index: 30;
+}
+.assignment-dock.is-open {
+  width: min(29vw, 400px);
+  bottom: 130px;
+}
+.printed-assignment {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff8e5;
+  color: #263c33;
+  border: 1px solid #cabfa3;
+  box-shadow:
+    4px 5px 0 #d6cbb1,
+    8px 9px 30px #14291f44;
+  font-family: "Courier New", monospace;
+}
+.printed-assignment header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 22px;
+  padding: 20px 0 14px;
+  border-bottom: 2px solid #263c33;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.printed-assignment header b {
+  font-size: 10px;
+}
+.printed-assignment header button {
+  background: transparent;
+  border: 1px solid #9a9e8c;
+  color: #263c33;
+  border-radius: 0;
+  padding: 2px 9px;
+  font-size: 22px;
+  box-shadow: none;
+}
+.printed-assignment-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 22px 20px;
+  overscroll-behavior: contain;
+  scrollbar-color: #a8ab98 #fff8e5;
+}
+.printed-assignment h2 {
+  font:
+    bold 23px/1.2 "Courier New",
+    monospace;
+  letter-spacing: -1px;
+  margin: 18px 0;
+}
+.printed-assignment .lesson-markdown {
+  color: #263c33;
+  font:
+    14px/1.65 "Courier New",
+    monospace;
+}
+.printed-assignment .lesson-markdown strong,
+.printed-assignment .lesson-markdown code {
+  color: #182e24;
+}
+.printed-assignment .lesson-markdown code {
+  background: #e9e1cc;
+  padding: 1px 3px;
+}
+.printed-assignment .lesson-markdown ul {
+  padding-left: 20px;
+}
+.printed-assignment .lesson-markdown blockquote {
+  color: #566451;
+  border-color: #a2aa92;
+  padding-left: 12px;
+  margin: 18px 0;
+  font-size: 12px;
+}
+.printed-assignment footer {
+  padding: 12px 22px;
+  border-top: 1px dashed #b0b29c;
+  font-size: 10px;
+}
+@media (max-width: 800px) {
+  .assignment-dock {
+    right: 10px;
+    top: 86px;
+  }
+  .assignment-dock.is-open {
+    width: 40vw;
+    bottom: 130px;
+  }
+  .printed-assignment header {
+    margin: 0 12px;
+    padding: 12px 0;
+  }
+  .printed-assignment-content {
+    padding: 4px 12px 12px;
+  }
+  .printed-assignment .lesson-markdown {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .focused .shift-label {
+    display: none;
+  }
+}
+
+/* Settings stay above the paper and projected monitor. */
+.modal-backdrop {
+  z-index: 40;
+}
+
+.printer-button {
+  display: block;
+  width: 96px;
+  height: 128px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: none;
+}
+.printer-button:hover:not(:disabled) {
+  background: transparent;
+  transform: none;
+}
+.printer-button:focus-visible {
+  outline: 4px solid #d78851;
+}
+.printer-button:disabled {
+  cursor: wait;
+}
+
+.terminal-list {
+  list-style: none;
+  margin: 24px 0;
+  padding: 0;
+}
+.terminal-list li + li {
+  margin-top: 12px;
+}
+.machine-screen .terminal-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 3px double #aaa;
+  background: #000055;
+  color: #fff;
+  text-align: left;
+}
+.terminal-list b,
+.terminal-list small {
+  display: block;
+}
+.terminal-list small {
+  margin-top: 7px;
+  color: #55ffff;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.terminal-list button > span:last-child {
+  flex-shrink: 0;
+  color: #ffff55;
+  font-size: 14px;
+}
+.machine-screen .terminal-list button:hover,
+.machine-screen .terminal-list button:focus-visible {
+  background: #aaa;
+  color: #000080;
+}
+.machine-screen
+  .terminal-list
+  button:is(:hover, :focus-visible)
+  :is(small, span:last-child) {
+  color: #000080;
 }

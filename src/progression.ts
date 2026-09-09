@@ -1,38 +1,29 @@
-import { finale, lessons } from "./content";
-export type Phase =
-  | "onboarding"
-  | "briefing"
-  | "example"
-  | "exercise"
-  | "review"
-  | "finale"
-  | "ending"
-  | "endless";
+import { curriculum } from "./curriculum";
+import type { Lesson } from "./curriculum/types";
+export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
-  version: 2;
+  version: 3;
   phase: Phase;
-  lesson: number;
-  exercise: number;
+  lessonId: string;
+  assignmentId: string;
   completed: string[];
-  answers: Record<string, Record<string, string>>;
-  checkpoints: string[];
+  collectedAssignments: string[];
+  readAssignments: string[];
+  revisitingAssignment: boolean;
+  drafts: Record<string, string>;
   settings: { mute: boolean; reducedMotion: boolean; crt: boolean };
-  endless: {
-    seed: number;
-    solved: number;
-    topic: number | "mixed";
-    difficulty: number;
-    previousFamily: number;
-  };
 };
-export const fresh = (): Save => ({
-  version: 2,
+export const KEY = "please-fix-human:v3";
+export const fresh = (lessons = curriculum): Save => ({
+  version: 3,
   phase: "onboarding",
-  lesson: 0,
-  exercise: 0,
+  lessonId: lessons[0].id,
+  assignmentId: lessons[0].assignments[0].id,
   completed: [],
-  answers: {},
-  checkpoints: [],
+  collectedAssignments: [],
+  readAssignments: [],
+  revisitingAssignment: false,
+  drafts: {},
   settings: {
     mute: false,
     reducedMotion:
@@ -40,110 +31,231 @@ export const fresh = (): Save => ({
       matchMedia("(prefers-reduced-motion: reduce)").matches,
     crt: false,
   },
-  endless: {
-    seed: 1,
-    solved: 0,
-    topic: "mixed",
-    difficulty: 1,
-    previousFamily: -1,
-  },
 });
-export const KEY = "please-fix-human:v2";
-export const lessonDone = (s: Save, i: number) =>
-  lessons[i].exercises.every((e) => s.completed.includes(e.id));
-export const unlocked = (s: Save, i: number) =>
-  lessons[i].prerequisites.every((p) => lessonDone(s, p));
-export const campaignDone = (s: Save) =>
-  lessons.every((_, i) => lessonDone(s, i));
-export const endlessUnlocked = (s: Save) =>
-  campaignDone(s) && finale.every((e) => s.checkpoints.includes(e.id));
-export function decode(raw: string | null): Save {
-  const d = fresh();
-  if (!raw) return d;
-  try {
-    const v = JSON.parse(raw);
-    if (v.version !== 2) return d;
-    const known = lessons.flatMap((l) => l.exercises.map((e) => e.id));
-    d.completed = Array.isArray(v.completed)
-      ? v.completed.filter(
-          (id: unknown) => typeof id === "string" && known.includes(id),
-        )
-      : [];
-    // Remove impossible progress beyond a locked lesson.
-    for (let i = 0; i < lessons.length; i++)
-      if (!unlocked(d, i))
-        d.completed = d.completed.filter(
-          (id) => !lessons[i].exercises.some((e) => e.id === id),
-        );
-    d.lesson =
-      Number.isInteger(v.lesson) &&
-      v.lesson >= 0 &&
-      v.lesson < 11 &&
-      unlocked(d, v.lesson)
-        ? v.lesson
-        : 0;
-    d.exercise = v.exercise === 1 ? 1 : 0;
-    if (v.answers && typeof v.answers === "object" && !Array.isArray(v.answers))
-      for (const [id, a] of Object.entries(v.answers)) {
-        if (a && typeof a === "object" && !Array.isArray(a))
-          d.answers[id] = Object.fromEntries(
-            Object.entries(a).filter(
-              ([k, val]) => k !== "__proto__" && typeof val === "string",
-            ),
-          );
+export const lessonDone = (save: Save, lesson: Lesson) =>
+  lesson.assignments.every((a) => save.completed.includes(a.id));
+export const unlocked = (
+  save: Save,
+  lessonId: string,
+  lessons = curriculum,
+) => {
+  const index = lessons.findIndex((l) => l.id === lessonId);
+  return (
+    index >= 0 && lessons.slice(0, index).every((l) => lessonDone(save, l))
+  );
+};
+export const assignmentUnlocked = (save: Save, lesson: Lesson, id: string) => {
+  const index = lesson.assignments.findIndex((a) => a.id === id);
+  return (
+    index >= 0 &&
+    lesson.assignments
+      .slice(0, index)
+      .every((a) => save.completed.includes(a.id))
+  );
+};
+export function availableAssignments(save: Save, lessons = curriculum) {
+  return lessons.flatMap((lesson) =>
+    unlocked(save, lesson.id, lessons)
+      ? lesson.assignments
+          .filter((assignment) =>
+            assignmentUnlocked(save, lesson, assignment.id),
+          )
+          .map((assignment) => ({ lesson, assignment }))
+      : [],
+  );
+}
+export type Action =
+  | { type: "enter" | "pass" | "submit" | "continue" }
+  | { type: "open-assignment" | "replay"; id: string }
+  | { type: "draft"; code: string };
+export function transition(
+  save: Save,
+  action: Action,
+  lessons = curriculum,
+): Save {
+  const lesson = lessons.find((l) => l.id === save.lessonId)!;
+  const assignmentIndex = lesson.assignments.findIndex(
+    (a) => a.id === save.assignmentId,
+  );
+  const assignment = lesson.assignments[assignmentIndex];
+  switch (action.type) {
+    case "submit": {
+      const passed = transition(save, { type: "pass" }, lessons);
+      if (passed === save) return save;
+      const next = availableAssignments(passed, lessons).find(
+        ({ assignment }) => !passed.completed.includes(assignment.id),
+      );
+      return next
+        ? transition(
+            passed,
+            { type: "open-assignment", id: next.assignment.id },
+            lessons,
+          )
+        : { ...passed, phase: "complete" };
+    }
+    case "enter":
+      return save.phase === "onboarding" ? { ...save, phase: "coding" } : save;
+    case "draft":
+      return save.phase === "coding"
+        ? { ...save, drafts: { ...save.drafts, [assignment.id]: action.code } }
+        : save;
+    case "pass":
+      return save.phase === "coding" &&
+        assignmentUnlocked(save, lesson, assignment.id)
+        ? {
+            ...save,
+            phase: "review",
+            completed: [...new Set([...save.completed, assignment.id])],
+          }
+        : save;
+    case "continue": {
+      if (save.phase === "review") {
+        const next = lesson.assignments[assignmentIndex + 1];
+        return next
+          ? { ...save, phase: "coding", assignmentId: next.id }
+          : { ...save, phase: "complete" };
       }
-    d.checkpoints =
-      campaignDone(d) && Array.isArray(v.checkpoints)
-        ? finale
-            .map((e) => e.id)
-            .filter((_id, i, ids) =>
-              ids.slice(0, i + 1).every((x) => v.checkpoints.includes(x)),
+      if (save.phase === "complete") {
+        const next = lessons[lessons.indexOf(lesson) + 1];
+        return next
+          ? transition(
+              save,
+              { type: "open-assignment", id: next.assignments[0].id },
+              lessons,
             )
-        : [];
-    for (const k of ["mute", "reducedMotion", "crt"] as const)
-      if (typeof v.settings?.[k] === "boolean") d.settings[k] = v.settings[k];
-    if (v.endless) {
-      const e = v.endless;
-      d.endless = {
-        seed: Number.isSafeInteger(e.seed) && e.seed > 0 ? e.seed : 1,
-        solved: Number.isSafeInteger(e.solved) && e.solved >= 0 ? e.solved : 0,
-        topic:
-          e.topic === "mixed" ||
-          (Number.isInteger(e.topic) && e.topic >= 0 && e.topic < 11)
-            ? e.topic
-            : "mixed",
-        difficulty: [1, 2, 3].includes(e.difficulty) ? e.difficulty : 1,
-        previousFamily: [-1, 0, 1, 2].includes(e.previousFamily)
-          ? e.previousFamily
-          : -1,
+          : save;
+      }
+      return save;
+    }
+    case "open-assignment": {
+      const target = availableAssignments(save, lessons).find(
+        ({ assignment }) => assignment.id === action.id,
+      );
+      return target
+        ? {
+            ...save,
+            lessonId: target.lesson.id,
+            assignmentId: target.assignment.id,
+            revisitingAssignment: save.completed.includes(target.assignment.id),
+            phase: "coding",
+          }
+        : save;
+    }
+    case "replay": {
+      const target = lesson.assignments.find((a) => a.id === action.id);
+      if (
+        !target ||
+        !save.completed.includes(target.id) ||
+        !assignmentUnlocked(save, lesson, target.id)
+      )
+        return save;
+      return {
+        ...save,
+        assignmentId: target.id,
+        revisitingAssignment: true,
+        phase: "coding",
+        drafts: { ...save.drafts, [target.id]: target.starterCode ?? "" },
       };
     }
+  }
+}
+export function decode(raw: string | null, lessons = curriculum): Save {
+  const result = fresh(lessons);
+  if (!raw) return result;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || value.version !== 3) return result;
+    const completed: string[] = Array.isArray(value.completed)
+      ? value.completed.filter(
+          (id: unknown): id is string => typeof id === "string",
+        )
+      : [];
+    for (const lesson of lessons) {
+      if (!unlocked(result, lesson.id, lessons)) break;
+      for (const assignment of lesson.assignments) {
+        if (
+          !assignmentUnlocked(result, lesson, assignment.id) ||
+          !completed.includes(assignment.id)
+        )
+          break;
+        result.completed.push(assignment.id);
+      }
+    }
+    const lesson =
+      lessons.find(
+        (l) => l.id === value.lessonId && unlocked(result, l.id, lessons),
+      ) ??
+      lessons.find((l) => !lessonDone(result, l)) ??
+      lessons[0];
+    result.lessonId = lesson.id;
+    const assignment =
+      lesson.assignments.find(
+        (a) =>
+          a.id === value.assignmentId &&
+          assignmentUnlocked(result, lesson, a.id),
+      ) ??
+      lesson.assignments.find((a) => !result.completed.includes(a.id)) ??
+      lesson.assignments[0];
+    result.assignmentId = assignment.id;
+    const available = availableAssignments(result, lessons).map(
+      ({ assignment }) => assignment.id,
+    );
+    if (Array.isArray(value.collectedAssignments))
+      result.collectedAssignments = available.filter((id) =>
+        value.collectedAssignments.includes(id),
+      );
+    if (Array.isArray(value.readAssignments))
+      result.readAssignments = result.collectedAssignments.filter((id) =>
+        value.readAssignments.includes(id),
+      );
     if (
-      [
-        "onboarding",
-        "briefing",
-        "example",
-        "exercise",
-        "review",
-        "finale",
-        "ending",
-        "endless",
-      ].includes(v.phase)
-    )
-      d.phase = v.phase;
+      value.drafts &&
+      typeof value.drafts === "object" &&
+      !Array.isArray(value.drafts)
+    ) {
+      for (const l of lessons)
+        for (const a of l.assignments) {
+          if (
+            Object.hasOwn(value.drafts, a.id) &&
+            typeof value.drafts[a.id] === "string"
+          )
+            result.drafts[a.id] = value.drafts[a.id];
+        }
+    }
+    for (const key of ["mute", "reducedMotion", "crt"] as const)
+      if (typeof value.settings?.[key] === "boolean")
+        result.settings[key] = value.settings[key];
+    // Legacy v3 teaching/brief positions migrate to coding. Course access now
+    // comes only from completed tasks, never from a lesson's reading position.
+    result.phase =
+      value.phase === "onboarding"
+        ? "onboarding"
+        : value.phase === "complete" && lessonDone(result, lesson)
+          ? "complete"
+          : value.phase === "review" && result.completed.includes(assignment.id)
+            ? "review"
+            : "coding";
+    result.revisitingAssignment =
+      value.revisitingAssignment === true &&
+      result.completed.includes(result.assignmentId);
+    // Older saves could stop on a completed task before automatic delivery was
+    // added. Only keep a completed task selected when it was explicitly reopened.
     if (
-      (d.phase === "finale" && !campaignDone(d)) ||
-      (["ending", "endless"].includes(d.phase) && !endlessUnlocked(d))
-    )
-      d.phase = "briefing";
-    if (
-      d.phase === "review" &&
-      !d.completed.includes(lessons[d.lesson].exercises[d.exercise].id)
-    )
-      d.phase = "exercise";
-    return d;
+      result.completed.includes(result.assignmentId) &&
+      !result.revisitingAssignment
+    ) {
+      const next = availableAssignments(result, lessons).find(
+        ({ assignment }) => !result.completed.includes(assignment.id),
+      );
+      if (next) {
+        result.lessonId = next.lesson.id;
+        result.assignmentId = next.assignment.id;
+        result.phase = "coding";
+      } else result.phase = "complete";
+    }
+    return result;
   } catch {
-    return d;
+    return result;
   }
 }
 export function loadSave(): Save {
@@ -153,9 +265,9 @@ export function loadSave(): Save {
     return fresh();
   }
 }
-export function persist(s: Save): boolean {
+export function persist(save: Save): boolean {
   try {
-    localStorage.setItem(KEY, JSON.stringify(s));
+    localStorage.setItem(KEY, JSON.stringify(save));
     return true;
   } catch {
     return false;

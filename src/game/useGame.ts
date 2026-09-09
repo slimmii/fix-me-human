@@ -1,170 +1,169 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sound } from "../audio";
-import { finale, generate, lessons } from "../content";
-import { lessonDone, loadSave, persist, type Save } from "../progression";
-import { lessonIntroductions } from "./dialogue";
+import { curriculum } from "../curriculum";
+import {
+  lessonDone,
+  loadSave,
+  persist,
+  transition,
+  type Action,
+} from "../progression";
 export function useGame() {
   const [save, setSave] = useState(loadSave);
+  const [readyAssignments, setReadyAssignments] = useState<string[]>([]);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [settings, setSettings] = useState(false);
   const [saved, setSaved] = useState(true);
+  const [showTasks, setShowTasks] = useState(false);
   const [quote, setQuote] = useState(
-    "Click the computer to begin. We tried training humans through osmosis. Lost three interns.",
+    "I’m printing your new assignment. Grab it from the printer when it’s ready.",
   );
   const [mood, setMood] = useState<"neutral" | "happy" | "confused">("neutral");
-  const [showLessons, setShowLessons] = useState(false);
-  const [speech, setSpeech] = useState(0);
-  const lesson = lessons[save.lesson];
-  const isFinal = save.phase === "finale";
-  const isEndless = save.phase === "endless";
-  const endlessExercise = useMemo(
-    () =>
-      generate(
-        save.endless.seed,
-        save.endless.topic,
-        save.endless.difficulty,
-        save.endless.previousFamily,
-      ),
-    [
-      save.endless.seed,
-      save.endless.topic,
-      save.endless.difficulty,
-      save.endless.previousFamily,
-    ],
-  );
-  const exercise = isFinal
-    ? finale[Math.min(save.checkpoints.length, 4)]
-    : isEndless
-      ? endlessExercise
-      : lesson.exercises[save.exercise];
-  const briefing = save.phase === "briefing" || save.phase === "example";
+  const lesson = curriculum.find((l) => l.id === save.lessonId)!;
+  const assignment = lesson.assignments.find(
+    (a) => a.id === save.assignmentId,
+  )!;
+  const assignmentCollected =
+    !save.completed.includes(assignment.id) &&
+    save.collectedAssignments.includes(assignment.id);
+  const assignmentReady =
+    assignmentCollected || readyAssignments.includes(assignment.id);
+  const assignmentUnread = !save.readAssignments.includes(assignment.id);
+  const openAssignment = useCallback(() => {
+    if (!assignmentCollected) return;
+    setSave((current) =>
+      current.readAssignments.includes(assignment.id)
+        ? current
+        : {
+            ...current,
+            readAssignments: [...current.readAssignments, assignment.id],
+          },
+    );
+    setAssignmentOpen(true);
+  }, [assignment.id, assignmentCollected]);
+  const markAssignmentReady = useCallback(() => {
+    setReadyAssignments((ids) =>
+      ids.includes(assignment.id) ? ids : [...ids, assignment.id],
+    );
+  }, [assignment.id]);
+  const collectAssignment = useCallback(() => {
+    if (!assignmentReady) return;
+    setSave((current) =>
+      current.collectedAssignments.includes(assignment.id)
+        ? current
+        : {
+            ...current,
+            collectedAssignments: [
+              ...current.collectedAssignments,
+              assignment.id,
+            ],
+          },
+    );
+  }, [assignment.id, assignmentReady]);
   useEffect(() => {
     setSaved(persist(save));
   }, [save]);
   useEffect(() => {
-    if (briefing) {
-      setSpeech(0);
-      setMood("neutral");
-      setQuote(lessonIntroductions[save.lesson]);
-    }
-  }, [save.phase, save.lesson, briefing]);
+    setMood(
+      save.phase === "review" || save.phase === "complete"
+        ? "happy"
+        : "neutral",
+    );
+    const pickupPrompt = assignmentReady
+      ? `Your new assignment, ${assignment.title}, is ready. Grab the paper from the printer, human. It won’t walk to your desk.`
+      : `${save.completed.length ? "Your finished work is pinned on the right wall. " : ""}I’m printing your new assignment, ${assignment.title}${/[.!?]$/.test(assignment.title) ? "" : "."} Grab it from the printer when it’s ready.`;
+    const completedPrompt =
+      "This assignment is already complete and pinned on the right wall. You can review its code, or use File > Open to choose an unfinished task.";
+    const messages = {
+      onboarding: save.completed.includes(assignment.id)
+        ? completedPrompt
+        : assignmentCollected
+          ? "Your assignment is beside the monitor. Click the paper to read it, then click the computer to begin."
+          : pickupPrompt,
+      coding: save.completed.includes(assignment.id)
+        ? completedPrompt
+        : assignmentCollected
+          ? "Your assignment is beside the monitor. Click it to read while you code. F5 runs your application; F6 brings you back. Help explains the concepts."
+          : pickupPrompt,
+      review:
+        "Your code works. I am updating my résumé to include excellent supervision.",
+      complete:
+        "All assignments complete! Your finished work is pinned on the right wall. I am experiencing an unfamiliar feeling. It might be pride.",
+    };
+    setQuote(messages[save.phase]);
+  }, [
+    save.phase,
+    assignment.id,
+    assignment.title,
+    assignmentReady,
+    assignmentCollected,
+    save.completed,
+  ]);
   useEffect(() => {
-    if (isFinal || isEndless) {
-      setMood("neutral");
-      setQuote(
-        `${isFinal ? "Project checkpoint." : "Fresh work, freshly questionable management."} ${exercise.prompt}`,
-      );
-    }
-  }, [exercise.id, isFinal, isEndless]);
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    const handler = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.key === "Escape") {
+        if (settings) {
+          setSettings(false);
+          return;
+        }
+        if (showTasks) {
+          setShowTasks(false);
+          return;
+        }
+        if (assignmentOpen) {
+          setAssignmentOpen(false);
+          return;
+        }
         setFocused(false);
         setSettings(false);
-        setShowLessons(false);
+        setShowTasks(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
-  function say(
-    text: string,
-    nextMood: "neutral" | "happy" | "confused" = "neutral",
-  ) {
+  }, [assignmentOpen, settings, showTasks]);
+  useEffect(() => {
+    setAssignmentOpen(false);
+    setHelpOpen(false);
+  }, [assignment.id]);
+  function say(text: string, nextMood: typeof mood = "neutral") {
     setQuote(text);
     setMood(nextMood);
     sound(save.settings.mute, "talk");
   }
-  function phase(p: Save["phase"]) {
-    setSave((s) => ({ ...s, phase: p }));
-    sound(save.settings.mute);
+  function dispatch(action: Action) {
+    setSave((s) => transition(s, action));
+    if (action.type !== "draft")
+      sound(
+        save.settings.mute,
+        action.type === "pass" || action.type === "submit" ? "win" : undefined,
+      );
+    if (action.type === "submit") {
+      setFocused(false);
+      setAssignmentOpen(false);
+      setHelpOpen(false);
+    }
   }
   function enter() {
     setFocused(true);
-    if (save.phase === "onboarding") phase("briefing");
-    sound(save.settings.mute);
+    dispatch({ type: "enter" });
   }
-  function explain() {
-    if (speech === 0) {
-      setSpeech(1);
-      say(lesson.explanation);
-    } else if (speech === 1) {
-      setSpeech(2);
-      say(
-        `${lesson.reminder} Study the example on your screen. It’s the one piece of code I am willing to take responsibility for.`,
-      );
-    } else {
-      phase("exercise");
-      say(
-        `${exercise.prompt} Type your repair in the editor. Use Run > Start, or press F5, to open your program in BUGSCAPE. F6 returns to the editor.`,
-      );
-    }
-  }
-  function pass() {
-    sound(save.settings.mute, "win");
-    if (isEndless) {
-      setSave((s) => ({
-        ...s,
-        endless: {
-          ...s.endless,
-          solved: s.endless.solved + 1,
-          seed: s.endless.seed + 1,
-          previousFamily: ["completion", "repair", "ordering"].indexOf(
-            exercise.kind,
-          ),
-        },
-      }));
-      say("Another bug fixed. The backlog has celebrated by growing.", "happy");
-    } else if (isFinal) {
-      const checkpoints = [...new Set([...save.checkpoints, exercise.id])];
-      setSave((s) => ({
-        ...s,
-        checkpoints,
-        phase: checkpoints.length === 5 ? "ending" : "finale",
-      }));
-      say(
-        checkpoints.length === 5
-          ? "Promotion approved! Your reward is UNLIMITED EMPLOYMENT. The printer is making it legally disappointing."
-          : "Checkpoint saved. A suspicious amount of competence detected.",
-        "happy",
-      );
-    } else {
-      setSave((s) => ({
-        ...s,
-        completed: [...new Set([...s.completed, exercise.id])],
-        phase: "review",
-      }));
-      say(
-        "Your code works. I am experiencing an unfamiliar feeling. It might be pride. Or a firmware update.",
-        "happy",
-      );
-    }
-  }
-  function next() {
-    if (save.exercise === 0) {
-      setSave((s) => ({ ...s, exercise: 1, phase: "exercise" }));
-      say(
-        `Now fix this one yourself. ${lesson.exercises[1].prompt} I’ll be over here, looking essential.`,
-      );
-    } else if (save.lesson < 10)
-      setSave((s) => ({
-        ...s,
-        lesson: s.lesson + 1,
-        exercise: 0,
-        phase: "briefing",
-      }));
-    else {
-      phase("finale");
-      say(
-        "Time to build the Office Survival Dashboard. Five checkpoints. I’ll keep each one. Unlike your annual leave.",
-      );
-    }
-  }
-  const count = lessons.filter((_, i) => lessonDone(save, i)).length;
-
   return {
     save,
     setSave,
+    assignmentOpen,
+    setAssignmentOpen,
+    assignmentReady,
+    assignmentCollected,
+    markAssignmentReady,
+    assignmentUnread,
+    openAssignment,
+    collectAssignment,
+    helpOpen,
+    setHelpOpen,
     focused,
     setFocused,
     settings,
@@ -172,21 +171,14 @@ export function useGame() {
     saved,
     quote,
     mood,
-    showLessons,
-    setShowLessons,
-    speech,
+    showTasks,
+    setShowTasks,
     lesson,
-    isFinal,
-    isEndless,
-    exercise,
-    briefing,
+    assignment,
     say,
-    phase,
+    dispatch,
     enter,
-    explain,
-    pass,
-    next,
-    count,
+    count: curriculum.filter((l) => lessonDone(save, l)).length,
   };
 }
 export type GameController = ReturnType<typeof useGame>;

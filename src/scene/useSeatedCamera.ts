@@ -32,8 +32,17 @@ export function useSeatedCamera(props: WorldProps) {
       .normalize();
     const target = deskPosition.clone();
     if (props.posterFocused || focused) {
-      const width = props.posterFocused ? 0.78 : CRT.width;
-      const height = props.posterFocused ? 1.04 : CRT.height;
+      const showDeskPaper = focused && props.assignmentCollected;
+      const width = props.posterFocused
+        ? 0.78
+        : showDeskPaper
+          ? 2.8
+          : CRT.width;
+      const height = props.posterFocused
+        ? 1.04
+        : showDeskPaper
+          ? 1.3
+          : CRT.height;
       const distance = Math.max(
         height / (2 * Math.tan((Math.PI * 44) / 360) * 0.72),
         width /
@@ -44,12 +53,28 @@ export function useSeatedCamera(props: WorldProps) {
       );
       const center = props.posterFocused
         ? new THREE.Vector3(-2.05, 3, -1.83)
-        : new THREE.Vector3(0, CRT.centerY, CRT.surfaceZ);
+        : new THREE.Vector3(
+            showDeskPaper ? 0.3 : 0,
+            CRT.centerY - (showDeskPaper ? 0.15 : 0),
+            CRT.surfaceZ,
+          );
       target.copy(center).addScaledVector(direction, -distance);
+      if (focused && props.assignmentOpen) {
+        // Make room for the brief by panning only; preserve the monitor's scale.
+        target.x = Math.max(
+          target.x,
+          distance *
+            Math.tan((Math.PI * 44) / 360) *
+            (size.width / size.height) *
+            0.28,
+        );
+      }
     }
     camera.position.lerp(target, reduced ? 1 : 1 - Math.exp(-dt * 6));
     if (camera.position.distanceTo(target) < 0.01) camera.position.copy(target);
     camera.lookAt(camera.position.clone().add(direction));
+    // Drei projects the HTML in this same frame, including the final demand frame.
+    camera.updateMatrixWorld();
   }, -1); // Update before Drei measures the HTML screen, including demand frames.
 
   const handlers: Pick<

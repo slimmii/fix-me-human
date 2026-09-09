@@ -1,75 +1,107 @@
 import { test, expect } from "@playwright/test";
-import { lessons, sourceFor } from "../../src/content";
-import { fresh, KEY } from "../../src/progression";
-test("actual typed React handles state, refs, independent Hooks, and tag limits", async ({
+import { KEY } from "../../src/progression";
+import { codingSave, assignment } from "../fixtures/curriculum";
+test("actual React state, refs and independent Hooks work in the sandbox", async ({
   page,
 }) => {
+  const source = `import { useState, useRef } from "react";
+function useMachine(){ return useState(false); }
+export default function App(){
+  const [count, setCount] = useState(0);
+  const [first, setFirst] = useMachine();
+  const [second, setSecond] = useMachine();
+  const input = useRef(null);
+  return <><h1>Hello B.U.G.</h1>
+    <button onClick={() => {setCount(c => c + 1);setCount(c => c + 1);}}>{count} coffees</button>
+    <input ref={input}/><button onClick={() => input.current?.focus()}>Focus</button>
+    <button onClick={() => setFirst(!first)}>First {String(first)}</button>
+    <button onClick={() => setSecond(!second)}>Second {String(second)}</button>
+  </>;
+}`;
+  await page.addInitScript(
+    ([key, value]) => {
+      if (window === window.top) localStorage.setItem(key, value);
+    },
+    [KEY, JSON.stringify(codingSave(source))],
+  );
   await page.goto("/");
-  async function open(topic: number, index: number) {
-    const s = fresh();
-    s.lesson = topic;
-    s.exercise = index;
-    s.phase = "exercise";
-    s.settings.reducedMotion = true;
-    s.completed = lessons
-      .slice(0, topic)
-      .flatMap((l) => l.exercises.map((e) => e.id));
-    const e = lessons[topic].exercises[index];
-    s.answers[e.id] = {
-      code: sourceFor(
-        e,
-        Object.fromEntries(e.slots.map((slot) => [slot.name, slot.answer])),
-      ),
-    };
-    await page.evaluate(
-      ([key, value]) => localStorage.setItem(key, value),
-      [KEY, JSON.stringify(s)],
-    );
-    await page.reload();
-    await page.locator('[data-surface="crt-glass"]').click();
-    await page.getByRole("button", { name: "Run my code" }).click();
-    await expect(
-      page.getByRole("button", { name: "Repair complete" }),
-    ).toBeVisible({ timeout: 15000 });
-  }
-  await open(5, 0);
-  let browser = page.frameLocator("iframe");
-  await browser.getByRole("textbox").fill("Espresso");
-  await browser.getByRole("button", { name: "Order", exact: true }).click();
-  await browser.getByRole("textbox").fill("Tea");
-  await browser.getByRole("button", { name: "Order", exact: true }).click();
-  await expect(browser.locator("p")).toHaveText("Espresso, Tea");
-  await open(5, 1);
-  browser = page.frameLocator("iframe");
+  await page.locator('[data-surface="crt-glass"]').click();
+  await page.getByRole("button", { name: "Run my code" }).click();
+  await expect(
+    page.getByRole("button", { name: "Submit assignment" }),
+  ).toBeVisible({ timeout: 15000 });
+  const browser = page.frameLocator("iframe");
   await browser.getByRole("button", { name: "0 coffees" }).click();
   await expect(
     browser.getByRole("button", { name: "2 coffees" }),
   ).toBeVisible();
-  await open(7, 0);
-  browser = page.frameLocator("iframe");
   await browser.getByRole("button", { name: "Focus", exact: true }).click();
   await expect(browser.getByRole("textbox")).toBeFocused();
-  await open(8, 1);
-  browser = page.frameLocator("iframe");
-  await browser
-    .getByRole("button", { name: "false", exact: true })
-    .first()
-    .click();
+  await browser.getByRole("button", { name: "First false" }).click();
   await expect(
-    browser.getByRole("button", { name: "true", exact: true }),
-  ).toHaveCount(1);
+    browser.getByRole("button", { name: "First true" }),
+  ).toBeVisible();
   await expect(
-    browser.getByRole("button", { name: "false", exact: true }),
-  ).toHaveCount(1);
-  await page.getByRole("button", { name: "← Editor F6" }).click();
-  await page
-    .getByLabel("Your React code")
-    .fill("export default function App(){return <video/>}");
-  await page.getByRole("button", { name: "Run my code" }).click();
-  await expect(page.locator(".robot-dialogue")).toContainText(
-    "<video> is not in our tiny toolbox",
+    browser.getByRole("button", { name: "Second false" }),
+  ).toBeVisible();
+});
+test("only the rendered greeting passes, and errors or stale runs cannot unlock submission", async ({
+  page,
+}) => {
+  page.setDefaultTimeout(30000);
+  await page.addInitScript(
+    ([key, value]) => {
+      if (window === window.top) localStorage.setItem(key, value);
+    },
+    [KEY, JSON.stringify(codingSave())],
   );
-  await expect(page.locator("iframe")).toHaveCount(0);
+  await page.goto("/");
+  await page.locator('[data-surface="crt-glass"]').click();
+  const editor = page.getByLabel("Your React code");
+  for (const source of [
+    "export default function App(){return <h1>Hello world</h1>}",
+    "function Unused(){return <h1>Hello B.U.G.</h1>} export default function App(){return <p>Hello B.U.G.</p>}",
+    "export default function App(){return <h1 hidden>Hello B.U.G.</h1>}",
+    "export default function App(){return <div style={{opacity:0}}><h1>Hello B.U.G.</h1></div>}",
+    "export default function App(){return <h1>{missingName}</h1>}",
+    "export default function App(){return <video/>}",
+    "export default function App(){return <h1>broken}",
+  ]) {
+    await editor.fill(source);
+    await editor.press("F5");
+    await expect(page.locator(".retro-browser-status")).not.toContainText(
+      "Compiling",
+    );
+    await expect(
+      page.getByRole("button", { name: "Submit assignment" }),
+    ).toHaveCount(0);
+    await page.getByRole("button", { name: "← Editor F6" }).click();
+  }
+  await editor.fill(
+    "const App = () => <h1>  Hello   B.U.G.  </h1>; export default App;",
+  );
+  await editor.press("F5");
+  await expect(
+    page.getByRole("button", { name: "Submit assignment" }),
+  ).toBeVisible({ timeout: 15000 });
+  // A message from the outer window has the wrong source and cannot change acceptance.
+  await page.getByRole("button", { name: "← Editor F6" }).click();
+  await editor.fill(assignment.solution + "\n// edited");
+  await page.evaluate(() =>
+    window.postMessage(
+      {
+        channel: "human-preview",
+        token: "",
+        type: "rendered",
+        detail: JSON.stringify({ valid: true, checks: [{ pass: true }] }),
+      },
+      "*",
+    ),
+  );
+  await page.getByRole("menuitem", { name: "Run", exact: true }).click();
+  await expect(
+    page.getByRole("menuitem", { name: "Submit assignment" }),
+  ).toBeDisabled();
 });
 test("WebGL and storage failures preserve the simple coding interface", async ({
   page,
@@ -84,7 +116,7 @@ test("WebGL and storage failures preserve the simple coding interface", async ({
       if (type === "webgl" || type === "webgl2") return null;
       return native.apply(this, [type, ...args] as never);
     } as typeof native;
-    localStorage.setItem("please-fix-human:v2", "{invalid");
+    localStorage.setItem("please-fix-human:v3", "{invalid");
     Object.defineProperty(Storage.prototype, "setItem", {
       value: () => {
         throw new DOMException("blocked", "SecurityError");
@@ -100,9 +132,9 @@ test("WebGL and storage failures preserve the simple coding interface", async ({
     .first()
     .click();
   await expect(
-    page.getByText("Storage unavailable · this session only"),
+    page.getByText("This session only · storage unavailable"),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Repair the employee welcome page" }),
+    page.getByRole("textbox", { name: "Your React code" }),
   ).toBeVisible();
 });

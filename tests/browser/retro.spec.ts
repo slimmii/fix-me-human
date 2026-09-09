@@ -1,15 +1,15 @@
+import { codingSave } from "../fixtures/curriculum";
 import { test, expect } from "@playwright/test";
-import { fresh, KEY } from "../../src/progression";
+import { KEY } from "../../src/progression";
 test("QBasic menus run a separate CRT browser and return to the intact editor", async ({
   page,
 }) => {
   const code =
     'import { useState } from "react";\nconst name = "Human";\nexport default function Welcome() {\n  const [count, setCount] = useState(0);\n  return <><h1 className="welcome">Hello, {name}</h1>\n    <p>Office status: questionable.</p>\n    <button onClick={() => setCount(c => c + 1)}>Coffee {count}</button></>;\n}';
-  const save = fresh();
-  save.phase = "exercise";
+  const save = codingSave();
   save.settings.reducedMotion = true;
   save.settings.mute = true;
-  save.answers["0-0"] = { code };
+  save.drafts["hello-bug"] = code;
   await page.addInitScript(
     ([key, value]) => {
       if (window === window.top && !localStorage.getItem(key))
@@ -21,7 +21,7 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   await page.locator('[data-surface="crt-glass"]').click();
   const editor = page.getByRole("textbox", { name: "Your React code" });
   await expect(editor).toBeVisible();
-  await expect(page.locator(".cm-gutters")).toBeVisible();
+  await expect(page.locator('.cm-line[data-line-number="1"]')).toBeVisible();
   await expect(page.locator(".qbasic-source")).toHaveCSS(
     "background-color",
     "rgba(0, 0, 0, 0)",

@@ -1,5 +1,14 @@
 import type { ReactNode } from "react";
 export type SceneProps = {
+  completedAssignments: string[];
+  assignment: import("../curriculum/types").Assignment;
+  assignmentOpen: boolean;
+  assignmentReady: boolean;
+  assignmentCollected: boolean;
+  assignmentUnread: boolean;
+  onAssignment: () => void;
+  onAssignmentReady: () => void;
+  onAssignmentCollected: () => void;
   mute: boolean;
   focused: boolean;
   reduced: boolean;

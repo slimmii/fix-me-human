@@ -1,15 +1,8 @@
 import { test, expect } from "@playwright/test";
-import {
-  lessons,
-  finale,
-  sourceFor,
-  generate,
-  type Exercise,
-} from "../../src/content";
 import { fresh, KEY } from "../../src/progression";
-const solution = (e: Exercise) =>
-  sourceFor(e, Object.fromEntries(e.slots.map((s) => [s.name, s.answer])));
-test("type and render the complete React campaign, finale, and endless rounds", async ({
+import { assignment, codingSave } from "../fixtures/curriculum";
+
+test("start coding immediately, consult the printed brief and integrated Help, submit and replay", async ({
   page,
 }) => {
   const initial = fresh();
@@ -17,137 +10,186 @@ test("type and render the complete React campaign, finale, and endless rounds", 
   initial.settings.mute = true;
   await page.addInitScript(
     ([key, value]) => {
-      if (window !== window.top) return;
-      if (!localStorage.getItem(key)) localStorage.setItem(key, value);
+      if (window === window.top && !localStorage.getItem(key))
+        localStorage.setItem(key, value);
     },
     [KEY, JSON.stringify(initial)],
   );
   const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  await page.locator('[data-surface="crt-glass"]').click();
-  async function briefing() {
-    await page.getByRole("button", { name: "Go on, B.U.G." }).click();
-    await page.getByRole("button", { name: "Go on, B.U.G." }).click();
-    await page.getByRole("button", { name: "Let me type" }).click();
-  }
-  async function solve(e: Exercise) {
-    console.log("Typing", e.id);
-    await page.getByLabel("Your React code").fill(solution(e));
-    await page.getByRole("button", { name: "Run my code" }).click();
-    await expect(
-      page.getByRole("button", { name: "Repair complete" }),
-    ).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: "Repair complete" }).click();
-  }
-  for (let i = 0; i < 11; i++) {
-    await briefing();
-    if (i === 0) {
-      await page
-        .getByLabel("Your React code")
-        .fill(
-          'export default function Welcome(){ return <h1 className="welcome">Hello, {name}</h1>; }',
-        );
-      await page.getByRole("button", { name: "Run my code" }).click();
-      await expect(
-        page.getByRole("button", { name: "Repair complete" }),
-      ).toHaveCount(0);
-      await page.getByRole("button", { name: "← Editor F6" }).click();
-      await page
-        .getByLabel("Your React code")
-        .fill(solution(lessons[0].exercises[0]));
-      await page.reload();
-      await page.locator('[data-surface="crt-glass"]').click();
-      await expect(page.getByLabel("Your React code")).toHaveText(
-        solution(lessons[0].exercises[0]),
-        { useInnerText: true },
-      );
-    }
-    await solve(lessons[i].exercises[0]);
-    await page
-      .getByRole("button", { name: "Try the independent repair" })
-      .click();
-    await solve(lessons[i].exercises[1]);
-    await page
-      .getByRole("button", {
-        name: i === 10 ? "Build my final project" : "Next assignment",
-      })
-      .click();
-  }
-  for (const e of finale) await solve(e);
   await expect(
-    page.getByText("UNLIMITED EMPLOYMENT.", { exact: true }),
-  ).toBeVisible();
-  await page.screenshot({ path: "test-results/ending.png" });
-  await page.getByRole("button", { name: "Begin Endless Shift" }).click();
-  for (let i = 0; i < 4; i++) {
-    const s = await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!),
-      KEY,
-    );
-    await solve(
-      generate(
-        s.endless.seed,
-        s.endless.topic,
-        s.endless.difficulty,
-        s.endless.previousFamily,
-      ),
-    );
-  }
-  await expect(page.getByText("4 repaired")).toBeVisible();
-  await page.reload();
+    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", {
+      name: "Grab new assignment: Hello B.U.G.",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+  ).toBeVisible({ timeout: 15000 });
+  await page
+    .getByRole("button", { name: "Read printed assignment: Hello B.U.G." })
+    .click();
+  const paper = page.getByRole("complementary", {
+    name: "Printed assignment",
+    exact: true,
+  });
+  await expect(paper).toContainText("FROM:");
+  await page.screenshot({ path: "test-results/printed-assignment-desk.png" });
+  await page.getByRole("button", { name: "Put assignment down" }).click();
   await page.locator('[data-surface="crt-glass"]').click();
-  await expect(page.getByText("4 repaired")).toBeVisible();
-  expect(errors).toEqual([]);
-});
-test("the playable interface is inside the CRT and supports keyboard, settings, and real rendered output", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: "test-results/desk.png" });
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByLabel("Reduce motion").check();
-  await page.getByLabel("Mute sound").check();
-  await page.getByRole("button", { name: "Back to work" }).click();
-  await page.locator('[data-surface="crt-glass"]').click();
-  // Demand rendering must update the HTML transform in the same frame as the camera.
+  const editor = page.getByRole("textbox", { name: "Your React code" });
+  await expect(editor).toBeVisible();
+  await expect(editor).toHaveText("");
+  await expect(
+    page.getByRole("button", { name: "Start assignment" }),
+  ).toHaveCount(0);
+  await editor.fill(assignment.solution);
+  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
+  await expect(paper).toBeVisible();
+  await expect(editor).toBeVisible();
+  await expect(page.locator("main")).toHaveClass(/focused/);
+  await editor.press("ControlOrMeta+End");
+  await editor.press("Enter");
+  await editor.pressSequentially("// checking the brief");
+  await expect(editor).toContainText("// checking the brief");
+  await page.screenshot({ path: "test-results/editor-with-printout.png" });
+  // The paper and screen occupy separate horizontal regions while coding.
   await expect
     .poll(async () => {
       const screen = await page
         .locator('[data-surface="crt-glass"]')
         .boundingBox();
-      return screen?.width ?? 0;
+      const sheet = await paper.boundingBox();
+      return screen && sheet ? screen.x + screen.width <= sheet.x : false;
     })
-    .toBeGreaterThan(1000);
-
-  await page.getByRole("button", { name: "Go on, B.U.G." }).click();
-  await page.getByRole("button", { name: "Go on, B.U.G." }).click();
-  await page.getByRole("button", { name: "Let me type" }).click();
+    .toBe(true);
+  await page.getByRole("button", { name: "Put assignment down" }).click();
+  await page.getByRole("menuitem", { name: "Help", exact: true }).click();
   await page
-    .getByLabel("Your React code")
-    .fill(
-      'const name = "Actual typed human";\nexport default function Welcome(){ return <h1 className="welcome">Hello, {name}</h1>; }',
-    );
-  await page.getByLabel("Your React code").press("Control+Enter");
+    .getByRole("button", { name: "Read topic: React fundamentals" })
+    .click();
+  const help = page.getByRole("complementary", {
+    name: "Course material",
+    exact: true,
+  });
+  await expect(
+    help.getByRole("heading", { name: "Meet the component" }),
+  ).toBeVisible();
+  await expect(editor).toBeHidden();
+  for (let i = 0; i < 3; i++)
+    await page.getByRole("button", { name: "Next →", exact: true }).click();
+  await expect(help.locator("pre code")).toContainText(
+    "export default function App()",
+  );
+  await page.screenshot({ path: "test-results/editor-course-help.png" });
+  await page.getByRole("button", { name: "Close course material" }).click();
+  await expect(editor).toBeFocused();
+  await editor.press("ControlOrMeta+z");
+  await expect(editor).not.toContainText("// checking the brief");
+  await editor.fill(assignment.solution);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+  ).toBeVisible({ timeout: 15000 });
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(editor).toHaveText(assignment.solution, { useInnerText: true });
+  await editor.press("F5");
+  const submit = page.getByRole("button", { name: "Submit assignment" });
+  await expect(submit).toBeVisible({ timeout: 15000 });
   await expect(
     page
       .frameLocator("iframe")
-      .getByRole("heading", { name: "Hello, Actual typed human" }),
+      .getByRole("heading", { name: "Hello B.U.G.", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
+  await expect(submit).toBeVisible();
+  await page.getByRole("button", { name: "Put assignment down" }).click();
+  await submit.click();
+  await expect(
+    page.getByRole("button", {
+      name: "Grab new assignment: Welcome, Human",
+      exact: true,
+    }),
+  ).toBeEnabled({ timeout: 15000 });
+  await expect(page.getByRole("status")).toContainText(
+    "new assignment, Welcome, Human",
+  );
+  await expect(
+    page.getByRole("button", {
+      name: "Read printed assignment: Hello B.U.G.",
+    }),
+  ).toHaveCount(0);
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(editor).toHaveText("");
+  expect(
+    await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!).completed,
+      KEY,
+    ),
+  ).toEqual([assignment.id]);
+  expect(errors).toEqual([]);
+});
+
+test("editor and references fit desktop screen sizes", async ({ page }) => {
+  const save = codingSave(assignment.solution);
+  await page.addInitScript(
+    ([key, value]) => {
+      if (window === window.top) localStorage.setItem(key, value);
+    },
+    [KEY, JSON.stringify(save)],
+  );
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", {
+      name: "Grab new assignment: Hello B.U.G.",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
   ).toBeVisible({ timeout: 15000 });
-  await expect(page.locator(".machine-screen")).toHaveCount(1);
-  await expect(page.locator(".terminal")).toHaveCount(0);
-  await expect(page.locator(".slot select")).toHaveCount(0);
-  await page.screenshot({ path: "test-results/computer.png" });
-  for (const size of [
-    { width: 1280, height: 800 },
-    { width: 1920, height: 1080 },
-  ]) {
-    await page.setViewportSize(size);
-    await page.screenshot({ path: `test-results/computer-${size.width}.png` });
+  await page.locator('[data-surface="crt-glass"]').click();
+  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Reduce motion").check();
+  await page.getByLabel("Mute sound").check();
+  await page.getByRole("button", { name: "Back to work" }).click();
+  await expect(
+    page.getByRole("complementary", {
+      name: "Printed assignment",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Put assignment down" }).click();
+  for (const width of [1280, 1920]) {
+    await page.setViewportSize({ width, height: width === 1280 ? 800 : 1080 });
+    await page
+      .getByRole("button", { name: /^Read printed assignment:/ })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Put assignment down" }),
+    ).toBeInViewport();
+    await page.getByRole("button", { name: "Put assignment down" }).click();
+    await page.getByLabel("Your React code").press("F1");
+    await page
+      .getByRole("button", { name: "Read topic: React fundamentals" })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Next →", exact: true }),
+    ).toBeInViewport();
+    await expect(
+      page.getByRole("scrollbar", { name: "Lesson scroll position" }),
+    ).toBeVisible();
+    await page.screenshot({ path: `test-results/editor-help-${width}.png` });
+    await page.getByRole("button", { name: "Close course material" }).click();
   }
-  await page.getByRole("button", { name: "← Editor F6" }).click();
   await page.getByLabel("Your React code").press("Escape");
   await expect(page.locator("main")).not.toHaveClass(/focused/);
-  await expect(page.getByRole("button", { name: "Sound off" })).toBeVisible();
 });

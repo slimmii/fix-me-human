@@ -1,3 +1,4 @@
+import { PrintedAssignment } from "./ui/PrintedAssignment";
 import Scene from "./Scene";
 import { GameComputer } from "./computer/GameComputer";
 import { useGame } from "./game/useGame";
@@ -15,24 +16,21 @@ export default function App() {
     setSettings,
     quote,
     mood,
-    showLessons,
-    speech,
-    briefing,
     say,
     enter,
-    explain,
-    next,
   } = game;
 
   return (
     <main
-      className={`game ${focused ? "focused" : ""} ${save.settings.reducedMotion ? "reduced" : ""}`}
+      className={`game ${focused ? "focused" : ""} ${game.assignmentOpen ? "paper-open" : ""} ${save.settings.reducedMotion ? "reduced" : ""}`}
       onClickCapture={(e) => {
         if (!focused || settings) return;
         const target = e.target;
         if (
           target instanceof Element &&
-          target.closest(".crt-display,.fallback-computer,.hud,.robot-dialogue")
+          target.closest(
+            ".crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper",
+          )
         )
           return;
         e.stopPropagation();
@@ -40,15 +38,31 @@ export default function App() {
       }}
     >
       <Scene
+        completedAssignments={save.completed}
+        assignment={game.assignment}
+        assignmentOpen={game.assignmentOpen}
+        assignmentReady={game.assignmentReady}
+        assignmentCollected={game.assignmentCollected}
+        assignmentUnread={game.assignmentUnread}
+        onAssignmentReady={game.markAssignmentReady}
+        onAssignmentCollected={game.collectAssignment}
+        onAssignment={game.openAssignment}
         mute={save.settings.mute}
         focused={focused}
         reduced={save.settings.reducedMotion}
         onComputer={enter}
         onProp={say}
-        celebrate={save.phase === "ending"}
+        celebrate={false}
         mood={mood}
         computer={<GameComputer game={game} />}
       />
+      {game.assignmentCollected && (
+        <PrintedAssignment
+          assignment={game.assignment}
+          open={game.assignmentOpen}
+          onClose={() => game.setAssignmentOpen(false)}
+        />
+      )}
       <GameHud
         mute={save.settings.mute}
         onDesk={() => setFocused(false)}
@@ -81,23 +95,7 @@ export default function App() {
           </div>
         </>
       )}
-      <RobotDialogue mood={mood} quote={quote}>
-        {!showLessons &&
-          (briefing ? (
-            <button className="primary" onClick={explain}>
-              {speech < 2 ? "Go on, B.U.G. →" : "Let me type →"}
-            </button>
-          ) : save.phase === "review" ? (
-            <button className="primary" onClick={next}>
-              {save.exercise === 0
-                ? "Try the independent repair"
-                : save.lesson === 10
-                  ? "Build my final project"
-                  : "Next assignment"}{" "}
-              →
-            </button>
-          ) : null)}
-      </RobotDialogue>
+      <RobotDialogue mood={mood} quote={quote} />
       {settings && (
         <SettingsDialog
           settings={save.settings}

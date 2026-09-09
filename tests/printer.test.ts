@@ -2,16 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   INPUT_POSITION,
   OUTPUT_POSITION,
-  FLAT_ROTATION,
   PRINT_DURATION,
-  PAPER_RETURN_TIME,
-  printerClick,
+  isPrinterBusy,
   samplePrinter,
 } from "../src/scene/printerAnimation";
 
 describe("printer lifecycle", () => {
-  it("feeds the input sheet before revealing printout, then waits for another click", () => {
-    expect(printerClick("input")).toBe("printing");
+  it("feeds and prints the sheet, then waits for the user to collect it", () => {
     const feeding = samplePrinter("printing", 0.6, false);
     expect(feeding.input.visible).toBe(true);
     expect(feeding.input.length).toBeCloseTo(0.5);
@@ -22,34 +19,33 @@ describe("printer lifecycle", () => {
     expect(printing.output.length).toBeGreaterThan(0);
     expect(printing.output.length).toBeLessThan(1);
     const complete = samplePrinter("printing", PRINT_DURATION, false);
-    expect(complete.stage).toBe("output");
+    expect(complete.stage).toBe("ready");
+    expect(complete.output.visible).toBe(true);
     expect(complete.output.position).toEqual(OUTPUT_POSITION);
-    expect(samplePrinter("output", 100, false).stage).toBe("output");
+    expect(complete.input.visible).toBe(true);
+    expect(complete.input.position).toEqual(INPUT_POSITION);
+    expect(isPrinterBusy(complete.stage)).toBe(false);
   });
 
-  it("ignores clicks while busy and returns the dropped sheet to the input tray", () => {
-    expect(printerClick("printing")).toBe("printing");
-    expect(printerClick("falling")).toBe("falling");
-    expect(printerClick("output")).toBe("falling");
-    const floor = samplePrinter("falling", 4, false);
-    expect(floor.output.position[1]).toBeLessThan(-1.5);
-    expect(samplePrinter("falling", 5, false).output).toEqual(floor.output);
-    const returned = samplePrinter("falling", PAPER_RETURN_TIME, false);
-    expect(returned.stage).toBe("input");
-    expect(returned.input.position).toEqual(INPUT_POSITION);
-    expect(returned.input.visible).toBe(true);
-    expect(returned.output.visible).toBe(false);
-    expect(
-      samplePrinter(printerClick(returned.stage), 2, false).output.rotation,
-    ).toEqual(FLAT_ROTATION);
+  it("keeps the printout in the tray until it is collected", () => {
+    const ready = samplePrinter("ready", PRINT_DURATION, false);
+    expect(samplePrinter("ready", 100, false)).toEqual(ready);
+    expect(ready.output.visible).toBe(true);
+    expect(ready.output.position).toEqual(OUTPUT_POSITION);
   });
 
-  it("keeps reduced-motion paper stationary on the floor until it returns", () => {
-    const first = samplePrinter("falling", 0.1, true);
-    expect(samplePrinter("falling", 7.9, true).output).toEqual(first.output);
-    expect(first.output.rotation).toEqual(FLAT_ROTATION);
-    expect(samplePrinter("falling", PAPER_RETURN_TIME, true).stage).toBe(
-      "input",
-    );
+  it("keeps the assignment on the desk indefinitely", () => {
+    const placed = samplePrinter("placed", PRINT_DURATION, false);
+    expect(samplePrinter("placed", 100, false)).toEqual(placed);
+    expect(isPrinterBusy("printing")).toBe(true);
+    expect(isPrinterBusy("ready")).toBe(false);
+  });
+
+  it("waits for collection with reduced motion and no moving sheets", () => {
+    const first = samplePrinter("printing", 0.1, true);
+    expect(samplePrinter("printing", 2.9, true)).toEqual(first);
+    expect(first.input.position).toEqual(INPUT_POSITION);
+    expect(first.output.visible).toBe(false);
+    expect(samplePrinter("printing", PRINT_DURATION, true).stage).toBe("ready");
   });
 });

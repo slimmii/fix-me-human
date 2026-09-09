@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { SceneProps as Props } from "./scene/types";
 import { World } from "./scene/World";
+import { PRINT_DURATION } from "./scene/printerAnimation";
 export default function Scene(props: Props) {
   const [posterFocused, setPosterFocused] = useState(false);
   const posterClick = useRef<
@@ -34,6 +35,24 @@ export default function Scene(props: Props) {
       return false;
     }
   });
+  useEffect(() => {
+    if (
+      webgl ||
+      props.assignmentReady ||
+      props.assignmentCollected ||
+      props.completedAssignments.includes(props.assignment.id)
+    )
+      return;
+    const timer = setTimeout(props.onAssignmentReady, PRINT_DURATION * 1000);
+    return () => clearTimeout(timer);
+  }, [
+    webgl,
+    props.assignmentReady,
+    props.assignmentCollected,
+    props.onAssignmentReady,
+    props.completedAssignments,
+    props.assignment.id,
+  ]);
   return webgl ? (
     <Canvas
       onPointerMissed={() => setPosterFocused(false)}
@@ -67,6 +86,21 @@ export default function Scene(props: Props) {
       <h2>Your browser cannot start WebGL.</h2>
       <p>You can still type React and use the little browser.</p>
       <button onClick={props.onComputer}>Start</button>
+      {props.completedAssignments.includes(
+        props.assignment.id,
+      ) ? null : !props.assignmentCollected ? (
+        <button
+          className={props.assignmentReady ? "assignment-attention" : undefined}
+          disabled={!props.assignmentReady}
+          onClick={props.onAssignmentCollected}
+        >
+          Grab new assignment: {props.assignment.title}
+        </button>
+      ) : (
+        <button onClick={props.onAssignment}>
+          Read printed assignment: {props.assignment.title}
+        </button>
+      )}
       {props.focused && (
         <div className="fallback-computer">{props.computer}</div>
       )}

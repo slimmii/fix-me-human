@@ -10,6 +10,7 @@ import { Workstation } from "./Workstation";
 import { Confetti } from "./Confetti";
 import { BugCounterSign, MotivationalPoster } from "./Posters";
 import { Printer } from "./Printer";
+import { CompletedAssignments } from "./CompletedAssignments";
 import { Robot } from "./Robot";
 export function World(props: WorldProps) {
   const { focused, reduced, onComputer, onProp, celebrate } = props;
@@ -17,6 +18,7 @@ export function World(props: WorldProps) {
   return (
     <group {...cameraHandlers}>
       <Cubicle />
+      <CompletedAssignments completed={props.completedAssignments} />
       <Workstation
         focused={focused}
         onComputer={onComputer}
@@ -26,10 +28,17 @@ export function World(props: WorldProps) {
       <CoffeeMug reduced={reduced} onProp={onProp} />
       <DeskFan reduced={reduced} onProp={onProp} />
       <Printer
+        completedAssignments={props.completedAssignments}
+        key={`${props.assignment.id}:${props.completedAssignments.includes(props.assignment.id)}`}
+        assignment={props.assignment}
+        assignmentReady={props.assignmentReady}
+        assignmentCollected={props.assignmentCollected}
+        assignmentUnread={props.assignmentUnread}
+        onAssignment={props.onAssignment}
+        onAssignmentReady={props.onAssignmentReady}
+        onAssignmentCollected={props.onAssignmentCollected}
         mute={props.mute}
         reduced={reduced}
-        onProp={onProp}
-        celebrate={celebrate}
       />
       <Prop
         reduced={reduced}

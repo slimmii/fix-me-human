@@ -20,13 +20,14 @@ import {
   openSearchPanel,
   searchKeymap,
 } from "@codemirror/search";
-import { EditorState } from "@codemirror/state";
+import { EditorState, RangeSetBuilder } from "@codemirror/state";
 import {
+  Decoration,
   EditorView,
+  ViewPlugin,
   highlightActiveLine,
-  highlightActiveLineGutter,
   keymap,
-  lineNumbers,
+  type ViewUpdate,
 } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
@@ -44,6 +45,72 @@ type Props = {
   onHelp: () => void;
   onCursor: (line: number, column: number) => void;
 };
+
+// Keep numbers in the code rows. A separate gutter uses measured screen-space
+// heights, which drift under the CRT's perspective transform.
+function numberRows(view: EditorView) {
+  const rows = new RangeSetBuilder<Decoration>();
+  let previous = -1;
+  for (const { from, to } of view.visibleRanges) {
+    let line = view.state.doc.lineAt(from);
+    while (line.from <= to) {
+      if (line.from > previous) {
+        rows.add(
+          line.from,
+          line.from,
+          Decoration.line({
+            attributes: { "data-line-number": String(line.number) },
+          }),
+        );
+        previous = line.from;
+      }
+      if (line.to >= view.state.doc.length) break;
+      line = view.state.doc.line(line.number + 1);
+    }
+  }
+  return rows.finish();
+}
+const rowNumbers = ViewPlugin.fromClass(
+  class {
+    decorations;
+    constructor(view: EditorView) {
+      this.decorations = numberRows(view);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged)
+        this.decorations = numberRows(update.view);
+    }
+  },
+  { decorations: (plugin) => plugin.decorations },
+);
+
+const caretScrollKey = {};
+function keepCaretVisible(view: EditorView) {
+  view.requestMeasure({
+    key: caretScrollKey,
+    read(view) {
+      const { node } = view.domAtPos(view.state.selection.main.head);
+      const element = node instanceof Element ? node : node.parentElement;
+      const row = element?.closest<HTMLElement>(".cm-line");
+      if (!row || !view.scrollDOM.clientHeight) return null;
+      return {
+        top: view.contentDOM.offsetTop + row.offsetTop,
+        height: row.offsetHeight,
+      };
+    },
+    write(row, view) {
+      if (!row) return;
+      // Use layout coordinates, not the perspective-distorted screen rectangle.
+      const viewport = view.scrollDOM;
+      if (row.top < viewport.scrollTop) viewport.scrollTop = row.top;
+      else if (
+        row.top + row.height >
+        viewport.scrollTop + viewport.clientHeight
+      )
+        viewport.scrollTop = row.top + row.height - viewport.clientHeight;
+    },
+  });
+}
 const colors = HighlightStyle.define([
   {
     tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword],
@@ -94,8 +161,10 @@ export default forwardRef<RetroEditorHandle, Props>(
           extensions: [
             // Native caret and selection follow the CRT's perspective transform exactly.
             // CodeMirror's separately measured selection layer drifts on a 3D surface.
-            lineNumbers(),
-            highlightActiveLineGutter(),
+            rowNumbers,
+            EditorView.editorAttributes.compute(["doc"], (state) => ({
+              style: `--line-number-width: ${Math.max(3, String(state.doc.lines).length) + 2}ch`,
+            })),
             history(),
             highlightActiveLine(),
             bracketMatching(),
@@ -144,6 +213,7 @@ export default forwardRef<RetroEditorHandle, Props>(
                 const pos = update.state.selection.main.head;
                 const line = update.state.doc.lineAt(pos);
                 callbacks.current.onCursor(line.number, pos - line.from + 1);
+                keepCaretVisible(update.view);
               }
             }),
             EditorView.theme({
@@ -151,31 +221,38 @@ export default forwardRef<RetroEditorHandle, Props>(
                 height: "100%",
                 backgroundColor: "#000080",
                 color: "#aaaaaa",
-                fontSize: "17px",
+                fontSize: "var(--terminal-font-size)",
               },
               "&.cm-focused": { outline: "none" },
               ".cm-scroller": {
                 fontFamily: '"Courier New", monospace',
-                lineHeight: "1.45",
-                overflow: "auto",
+                lineHeight: "var(--terminal-line-height)",
+                overflow: "scroll",
               },
               ".cm-content": {
-                padding: "8px 0",
+                padding: "4px 0",
                 caretColor: "#ffff55",
                 caretShape: "block",
               },
-              ".cm-line": { padding: "0 12px" },
-              ".cm-dropCursor": { borderLeft: "2px solid #ffff55" },
-              ".cm-gutters": {
-                backgroundColor: "#000080",
+              ".cm-line": {
+                position: "relative",
+                padding: "0 8px 0 calc(var(--line-number-width) + 24px)",
+              },
+              ".cm-line::before": {
+                content: "attr(data-line-number)",
+                position: "absolute",
+                left: "0",
+                top: "0",
+                width: "var(--line-number-width)",
+                paddingRight: "12px",
+                textAlign: "right",
                 color: "#5555aa",
                 borderRight: "1px solid #5555aa",
+                userSelect: "none",
+                pointerEvents: "none",
               },
-              ".cm-gutterElement": { padding: "0 9px 0 8px" },
-              ".cm-activeLineGutter": {
-                backgroundColor: "#000080",
-                color: "#ffff55",
-              },
+              ".cm-activeLine::before": { color: "#ffff55" },
+              ".cm-dropCursor": { borderLeft: "2px solid #ffff55" },
               ".cm-activeLine": { backgroundColor: "#ffffff08" },
               ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
                 backgroundColor: "#5555aa!important",
@@ -188,7 +265,7 @@ export default forwardRef<RetroEditorHandle, Props>(
                 backgroundColor: "#aaaaaa",
                 color: "#000000",
                 fontFamily: '"Courier New", monospace',
-                fontSize: "15px",
+                fontSize: "var(--terminal-font-size)",
               },
               ".cm-textfield": {
                 borderRadius: "0",

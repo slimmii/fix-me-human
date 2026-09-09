@@ -1,15 +1,15 @@
+import { codingSave } from "../fixtures/curriculum";
 import { test, expect } from "@playwright/test";
-import { fresh, KEY } from "../../src/progression";
+import { KEY } from "../../src/progression";
 test("typing, replacing, deleting and indenting preserve the caret mid-code", async ({
   page,
 }) => {
   const original =
     'const name = "Ada";\nexport function Welcome() {\n  return <h1 className="welcome">Hello, {name}</h1>;\n}';
-  const save = fresh();
-  save.phase = "exercise";
+  const save = codingSave();
   save.settings.reducedMotion = true;
   save.settings.mute = true;
-  save.answers["0-0"] = { code: original };
+  save.drafts["hello-bug"] = original;
   await page.addInitScript(
     ([key, value]) => {
       if (window === window.top && !localStorage.getItem(key))
@@ -22,7 +22,7 @@ test("typing, replacing, deleting and indenting preserve the caret mid-code", as
   const editor = page.getByRole("textbox", { name: "Your React code" });
   const saved = () =>
     page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).answers["0-0"].code,
+      (key) => JSON.parse(localStorage.getItem(key)!).drafts["hello-bug"],
       KEY,
     );
   await page.locator(".cm-line").first().click();

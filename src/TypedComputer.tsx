@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { Exercise } from "./content";
-import { sourceFor } from "./content";
+import type { Assignment } from "./curriculum/types";
+import type { CodeCheck } from "./validation/types";
+import { EditorHelp } from "./computer/EditorHelp";
 import RetroEditor, { type RetroEditorHandle } from "./RetroEditor";
 import { browserDocument } from "./sandbox/document";
 import type { Compiled } from "./typed-engine";
@@ -17,23 +18,13 @@ export const TAGS = [
   "ul",
   "li",
 ];
-export function starterFor(e: Exercise) {
-  if (e.kind === "ordering")
-    return "// B.U.G. misplaced the entire file. Type your component here.\n// Use the example and ask B.U.G. for a hint if you need one.\n";
-  const values = Object.fromEntries(
-    e.slots.map((s, i) => [
-      s.name,
-      e.kind === "repair"
-        ? s.choices.find((c) => c.id !== s.answer)!.id
-        : i === 0
-          ? ""
-          : s.answer,
-    ]),
-  );
-  return sourceFor(e, values).replace(/\/\* ([A-Z]+) \*\//g, "/* TODO: $1 */");
-}
 type Props = {
-  exercise: Exercise;
+  exercise: Assignment;
+  focused: boolean;
+  completed: string[];
+  onOpenTasks: () => void;
+  helpOpen: boolean;
+  onCloseHelp: () => void;
   source: string;
   onChange: (code: string) => void;
   onPass: () => void;
@@ -43,9 +34,14 @@ type Props = {
   onHelp: () => void;
   onExit: () => void;
 };
-type Menu = "File" | "Edit" | "Search" | "Run" | "Help";
+type Menu = "File" | "Edit" | "Search" | "Run";
 export default function TypedComputer({
   exercise,
+  focused,
+  completed,
+  onOpenTasks,
+  helpOpen,
+  onCloseHelp,
   source,
   onChange,
   onPass,
@@ -86,6 +82,9 @@ export default function TypedComputer({
     };
   }, []);
   useEffect(() => {
+    if (focused && !helpOpen) editor.current?.focus();
+  }, [focused, helpOpen]);
+  useEffect(() => {
     menuPanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
   }, [menu]);
   function backToEditor() {
@@ -117,18 +116,25 @@ export default function TypedComputer({
         );
       }
       if (event.data.type === "rendered") {
-        const checks = pending.current?.checks || [];
-        const visible = JSON.parse(event.data.detail).valid;
-        const ok = checks.length > 0 && checks.every((c) => c.pass) && visible;
+        const runtime = JSON.parse(event.data.detail) as {
+          valid: boolean;
+          checks: CodeCheck[];
+        };
+        const checks = [
+          ...(pending.current?.checks ?? []),
+          ...(runtime.checks ?? []),
+        ];
+        const ok =
+          checks.length > 0 && checks.every((c) => c.pass) && runtime.valid;
         setAccepted(ok);
         setStatus(
           ok
             ? "Program ran successfully. Assignment checks passed."
-            : "Program running. Assignment needs a repair.",
+            : "Program running. Assignment needs another look.",
         );
         onRobot(
           ok
-            ? "Your program works. I am updating my résumé to include “excellent supervision.” Try your page, then submit the repair."
+            ? "Your program works. I am updating my résumé to include “excellent supervision.” Try your page, then submit the assignment."
             : `The page is alive! Now: ${
                 checks
                   .filter((c) => !c.pass)
@@ -149,16 +155,21 @@ export default function TypedComputer({
     setMenu(null);
     setActive("browser");
     setBusy(true);
+    token.current = "";
+    pending.current = null;
+    setPage("");
     setAccepted(false);
     setError("");
     setStatus("Compiling Office.tsx ...");
     const id = ++generation.current;
     const submitted = draft;
     worker.current.onmessage = (e) => {
-      if (e.data.id !== id || latestSource.current !== submitted) {
-        setBusy(false);
+      if (
+        e.data.id !== id ||
+        generation.current !== id ||
+        latestSource.current !== submitted
+      )
         return;
-      }
       const result = e.data.result as Compiled;
       pending.current = result;
       if (result.errors.length) {
@@ -174,7 +185,12 @@ export default function TypedComputer({
       }
       token.current = `${exercise.id}-${id}-${Date.now()}`;
       setPage(
-        browserDocument(result, token.current, exercise.variant, reduced),
+        browserDocument(
+          result,
+          token.current,
+          exercise.validation.runtime,
+          reduced,
+        ),
       );
       clearTimeout(timeout.current);
       timeout.current = setTimeout(() => {
@@ -188,11 +204,16 @@ export default function TypedComputer({
         );
       }, 6000);
     };
-    worker.current.postMessage({ id, source: draft, exercise });
+    worker.current.postMessage({
+      id,
+      source: draft,
+      exercise: { validation: exercise.validation },
+    });
   }
   function edit(code: string) {
     setDraft(code);
     latestSource.current = code;
+    generation.current++;
     token.current = "";
     clearTimeout(timeout.current);
     setBusy(false);
@@ -214,12 +235,13 @@ export default function TypedComputer({
     { label: string; key?: string; action: () => void; disabled?: boolean }[]
   > = {
     File: [
+      { label: "Open", key: "Ctrl+O", action: onOpenTasks },
       {
         label: "Save",
         key: "Ctrl+S",
         action: () => setStatus("Office.tsx saved on local disk."),
       },
-      { label: "Return to desk", action: onExit },
+      { label: "Exit", action: onExit },
     ],
     Edit: [
       { label: "Undo", key: "Ctrl+Z", action: () => editor.current?.undo() },
@@ -245,25 +267,23 @@ export default function TypedComputer({
         action: () => setActive("browser"),
         disabled: !page,
       },
-      { label: "Submit repair", action: onPass, disabled: !accepted },
-    ],
-    Help: [
-      { label: "Ask B.U.G.", key: "F1", action: onHelp },
-      { label: "Assignment hint", action: getHint },
-      {
-        label: "Allowed HTML tags",
-        action: () =>
-          onRobot(
-            `The entire tag budget: ${TAGS.map((t) => `<${t}>`).join(", ")}. Capitalized components and fragments are also welcome. We spent the rest on beige plastic.`,
-          ),
-      },
+      { label: "Submit assignment", action: onPass, disabled: !accepted },
     ],
   };
   return (
     <div
       className="qbasic-work"
       onKeyDownCapture={(e) => {
-        if (e.key === "F5" || ((e.ctrlKey || e.metaKey) && e.key === "Enter")) {
+        if (helpOpen) return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
+          e.preventDefault();
+          e.stopPropagation();
+          setMenu(null);
+          onOpenTasks();
+        } else if (
+          e.key === "F5" ||
+          ((e.ctrlKey || e.metaKey) && e.key === "Enter")
+        ) {
           e.preventDefault();
           e.stopPropagation();
           run();
@@ -285,6 +305,11 @@ export default function TypedComputer({
         ) {
           e.preventDefault();
           e.stopPropagation();
+          if (e.key.toLowerCase() === "h") {
+            setMenu(null);
+            onHelp();
+            return;
+          }
           setMenu(
             (
               {
@@ -292,7 +317,6 @@ export default function TypedComputer({
                 e: "Edit",
                 s: "Search",
                 r: "Run",
-                h: "Help",
               } as const
             )[e.key.toLowerCase() as "f"],
           );
@@ -306,152 +330,181 @@ export default function TypedComputer({
         }
       }}
     >
-      <div className="qbasic-menu" role="menubar" aria-label="Editor menu">
-        {(["File", "Edit", "Search", "Run", "Help"] as Menu[]).map((name) => (
-          <div className="qbasic-menu-anchor" key={name}>
-            <button
-              role="menuitem"
-              aria-haspopup="menu"
-              aria-expanded={menu === name}
-              onClick={() => setMenu(menu === name ? null : name)}
-            >
-              <u>{name[0]}</u>
-              {name.slice(1)}
-            </button>
-            {menu === name && (
-              <div
-                className="qbasic-dropdown"
-                role="menu"
-                ref={menuPanel}
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                    e.preventDefault();
-                    const buttons = Array.from(
-                      e.currentTarget.querySelectorAll<HTMLButtonElement>(
-                        "button:not(:disabled)",
-                      ),
-                    );
-                    const index = buttons.indexOf(
-                      document.activeElement as HTMLButtonElement,
-                    );
-                    buttons[
-                      (index +
-                        (e.key === "ArrowDown" ? 1 : -1) +
-                        buttons.length) %
-                        buttons.length
-                    ]?.focus();
-                  }
-                }}
-              >
-                {items[name].map((item) => (
-                  <button
-                    key={item.label}
-                    role="menuitem"
-                    disabled={item.disabled}
-                    onClick={() => {
-                      setMenu(null);
-                      item.action();
-                    }}
-                  >
-                    <span>{item.label}</span>
-                    <span>{item.key}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-        <span className="qbasic-program">B.U.G. BASIC / React Edition</span>
-      </div>
-      <div className="qbasic-source" hidden={active !== "editor"}>
-        <div className="qbasic-file">
-          <span>[■]</span>
-          <b>Office.tsx</b>
-          <span>React / TSX</span>
-        </div>
-        <RetroEditor
-          ref={editor}
-          initialSource={source}
-          onChange={edit}
-          onRun={run}
-          onHelp={onHelp}
-          onCursor={(line, column) => setPosition({ line, column })}
+      {helpOpen && (
+        <EditorHelp
+          completed={completed}
+          keyboardActive={focused}
+          onClose={() => {
+            onCloseHelp();
+            backToEditor();
+          }}
         />
-        <div className="qbasic-ruler">
-          <span>─── {exercise.title} ───</span>
+      )}
+      <div className="qbasic-work" hidden={helpOpen}>
+        <div className="qbasic-menu" role="menubar" aria-label="Editor menu">
+          {(["File", "Edit", "Search", "Run"] as Menu[]).map((name) => (
+            <div className="qbasic-menu-anchor" key={name}>
+              <button
+                role="menuitem"
+                aria-haspopup="menu"
+                aria-expanded={menu === name}
+                onClick={() => setMenu(menu === name ? null : name)}
+              >
+                <u>{name[0]}</u>
+                {name.slice(1)}
+              </button>
+              {menu === name && (
+                <div
+                  className="qbasic-dropdown"
+                  role="menu"
+                  ref={menuPanel}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                      e.preventDefault();
+                      const buttons = Array.from(
+                        e.currentTarget.querySelectorAll<HTMLButtonElement>(
+                          "button:not(:disabled)",
+                        ),
+                      );
+                      const index = buttons.indexOf(
+                        document.activeElement as HTMLButtonElement,
+                      );
+                      buttons[
+                        (index +
+                          (e.key === "ArrowDown" ? 1 : -1) +
+                          buttons.length) %
+                          buttons.length
+                      ]?.focus();
+                    }
+                  }}
+                >
+                  {items[name].map((item) => (
+                    <button
+                      key={item.label}
+                      role="menuitem"
+                      disabled={item.disabled}
+                      onClick={() => {
+                        setMenu(null);
+                        item.action();
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <span>{item.key}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          <button
+            role="menuitem"
+            onClick={() => {
+              setMenu(null);
+              onHelp();
+            }}
+          >
+            <u>H</u>elp
+          </button>
+          <span className="qbasic-program">B.U.G. BASIC / React Edition</span>
+        </div>
+        <div className="editor-panes">
+          <div className="editor-main">
+            <div className="qbasic-source" hidden={active !== "editor"}>
+              <div className="qbasic-file">
+                <span>[■]</span>
+                <b>Office.tsx</b>
+                <span>React / TSX</span>
+              </div>
+              <RetroEditor
+                ref={editor}
+                initialSource={source}
+                onChange={edit}
+                onRun={run}
+                onHelp={onHelp}
+                onCursor={(line, column) => setPosition({ line, column })}
+              />
+              <div className="qbasic-ruler">
+                <span>─── {exercise.title} ───</span>
+                <span>
+                  Ln {position.line}, Col {position.column}
+                </span>
+              </div>
+            </div>
+            <div className="retro-browser" hidden={active !== "browser"}>
+              <div className="retro-browser-title">
+                <b>▣ BUGSCAPE Navigator 1.0 — Local Intranet</b>
+                <button onClick={backToEditor} aria-label="Close browser">
+                  [×]
+                </button>
+              </div>
+              <div className="retro-browser-tools">
+                <button onClick={backToEditor}>
+                  ← Editor <small>F6</small>
+                </button>
+                <button disabled={busy} onClick={run}>
+                  Reload <small>F5</small>
+                </button>
+                <span>Location:</span>
+                <span className="retro-url">human://office/{exercise.id}</span>
+                <b>▦</b>
+              </div>
+              <div className="retro-browser-page">
+                {error ? (
+                  <div className="retro-error" role="alert">
+                    <h2>[ {status.toUpperCase()} ]</h2>
+                    <p>{error}</p>
+                    <button onClick={backToEditor}>Return to editor</button>
+                  </div>
+                ) : page ? (
+                  <iframe
+                    ref={frame}
+                    title="Your retro browser"
+                    sandbox="allow-scripts"
+                    srcDoc={page}
+                  />
+                ) : (
+                  <div className="retro-loading">
+                    <pre>
+                      {busy
+                        ? "Compiling program...\nLoading BUGSCAPE.EXE ...\nPlease enjoy this productive pause."
+                        : "No page loaded.\nPress F5 to run your program."}
+                    </pre>
+                  </div>
+                )}
+              </div>
+              <div className="retro-browser-status">
+                <span>● {status}</span>
+                {accepted && (
+                  <button onClick={onPass}>Submit assignment ✓</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="qbasic-status">
+          <button onClick={onHelp}>F1=Help</button>
+          <button aria-label="Run my code" disabled={busy} onClick={run}>
+            F5=Run
+          </button>
+          <button
+            onClick={() =>
+              active === "browser"
+                ? backToEditor()
+                : page && setActive("browser")
+            }
+          >
+            F6={active === "browser" ? "Editor" : "Output"}
+          </button>
+          <button onClick={getHint}>Hint</button>
           <span>
-            Ln {position.line}, Col {position.column}
+            {busy
+              ? "Compiling..."
+              : active === "editor"
+                ? status
+                : "Program output"}
           </span>
+          <b>INS</b>
         </div>
-      </div>
-      <div className="retro-browser" hidden={active !== "browser"}>
-        <div className="retro-browser-title">
-          <b>▣ BUGSCAPE Navigator 1.0 — Local Intranet</b>
-          <button onClick={backToEditor} aria-label="Close browser">
-            [×]
-          </button>
-        </div>
-        <div className="retro-browser-tools">
-          <button onClick={backToEditor}>
-            ← Editor <small>F6</small>
-          </button>
-          <button disabled={busy} onClick={run}>
-            Reload <small>F5</small>
-          </button>
-          <span>Location:</span>
-          <span className="retro-url">human://office/{exercise.preview}</span>
-          <b>▦</b>
-        </div>
-        <div className="retro-browser-page">
-          {error ? (
-            <div className="retro-error" role="alert">
-              <h2>[ {status.toUpperCase()} ]</h2>
-              <p>{error}</p>
-              <button onClick={backToEditor}>Return to editor</button>
-            </div>
-          ) : page ? (
-            <iframe
-              ref={frame}
-              title="Your retro browser"
-              sandbox="allow-scripts"
-              srcDoc={page}
-            />
-          ) : (
-            <div className="retro-loading">
-              <pre>
-                {busy
-                  ? "Compiling program...\nLoading BUGSCAPE.EXE ...\nPlease enjoy this productive pause."
-                  : "No page loaded.\nPress F5 to run your program."}
-              </pre>
-            </div>
-          )}
-        </div>
-        <div className="retro-browser-status">
-          <span>● {status}</span>
-          {accepted && <button onClick={onPass}>Repair complete ✓</button>}
-        </div>
-      </div>
-      <div className="qbasic-status">
-        <button onClick={onHelp}>F1=Help</button>
-        <button aria-label="Run my code" disabled={busy} onClick={run}>
-          F5=Run
-        </button>
-        <button
-          onClick={() =>
-            active === "browser" ? backToEditor() : page && setActive("browser")
-          }
-        >
-          F6={active === "browser" ? "Editor" : "Output"}
-        </button>
-        <button onClick={getHint}>Hint</button>
-        <span>
-          {busy
-            ? "Compiling..."
-            : active === "editor"
-              ? status
-              : "Program output"}
-        </span>
-        <b>INS</b>
       </div>
     </div>
   );

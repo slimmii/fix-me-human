@@ -1,23 +1,11 @@
 import { expect, it } from "vitest";
 import ts from "typescript";
-import {
-  lessons,
-  finale,
-  generate,
-  sourceFor,
-  type Exercise,
-} from "../src/content";
-it("all authored solutions and generated families compile as real TSX", () => {
-  const generated: Exercise[] = [];
-  for (let t = 0; t < 11; t++)
-    for (let seed = 1; seed < 5; seed++)
-      generated.push(generate(seed * 7919, t, 3));
-  const all = [...lessons.flatMap((l) => l.exercises), ...finale, ...generated];
+import { curriculum } from "../src/curriculum";
+it("all authored reference solutions compile as real TSX", () => {
   const files = new Map(
-    all.map((e, i) => [
-      `${process.cwd()}/src/solution-${i}.tsx`,
-      sourceFor(e, Object.fromEntries(e.slots.map((s) => [s.name, s.answer]))),
-    ]),
+    curriculum
+      .flatMap((l) => l.assignments)
+      .map((a, i) => [`${process.cwd()}/src/solution-${i}.tsx`, a.solution]),
   );
   const options: ts.CompilerOptions = {
     target: ts.ScriptTarget.ES2022,
