@@ -68,10 +68,10 @@ export default function Scene(props: Props) {
         posterClick.current?.(pointer, e);
       }}
       frameloop={props.reduced && idle ? "demand" : "always"}
-      gl={{ antialias: false, powerPreference: "high-performance" }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
       shadows
       camera={{ position: [0, 3.45, 6.8], fov: 44 }}
-      dpr={[1, 1.25]}
+      dpr={[1, 2]}
     >
       <Suspense fallback={null}>
         <World

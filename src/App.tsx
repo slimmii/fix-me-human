@@ -64,17 +64,19 @@ export default function App() {
           onClose={() => game.setAssignmentOpen(false)}
         />
       )}
-      <GameHud
-        mute={save.settings.mute}
-        onDesk={() => setFocused(false)}
-        onSettings={() => setSettings(true)}
-        onToggleSound={() =>
-          setSave((s) => ({
-            ...s,
-            settings: { ...s.settings, mute: !s.settings.mute },
-          }))
-        }
-      />
+      {!focused && (
+        <GameHud
+          mute={save.settings.mute}
+          onDesk={() => setFocused(false)}
+          onSettings={() => setSettings(true)}
+          onToggleSound={() =>
+            setSave((s) => ({
+              ...s,
+              settings: { ...s.settings, mute: !s.settings.mute },
+            }))
+          }
+        />
+      )}
       {!focused && (
         <>
           <div className="desk-label">
