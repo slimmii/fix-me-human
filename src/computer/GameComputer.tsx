@@ -23,11 +23,11 @@ export function GameComputer({ game }: { game: GameController }) {
             onChange={(code) => dispatch({ type: "draft", code })}
             onPass={() => dispatch({ type: "submit" })}
             onExit={() => game.setFocused(false)}
-            onRobot={game.say}
+            onActivity={game.activity}
             onKey={() => sound(save.settings.mute)}
             reduced={save.settings.reducedMotion}
             helpOpen={game.helpOpen}
-            onHelp={() => game.setHelpOpen(true)}
+            onHelp={game.openHelp}
             onCloseHelp={() => game.setHelpOpen(false)}
           />
         </div>

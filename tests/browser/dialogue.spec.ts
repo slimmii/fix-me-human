@@ -62,7 +62,7 @@ test("course Help fills the terminal with retro scroll controls and arrow naviga
   expect(dimensions.width).toBe(dimensions.workspace);
   expect(dimensions.height).toBe(dimensions.workspaceHeight);
   const heading = help.getByRole("heading", { level: 1 });
-  for (let i = 0; i < 3; i++) await heading.press("ArrowRight");
+  await heading.press("ArrowRight");
   const reader = page.locator(".lesson-scroll");
   await page
     .getByRole("button", { name: "Scroll lesson down", exact: true })
@@ -77,14 +77,14 @@ test("course Help fills the terminal with retro scroll controls and arrow naviga
   await page.getByRole("button", { name: "← Previous", exact: true }).click();
   await expect(
     page.getByRole("heading", {
-      name: "Give your component something to show",
+      name: "Meet the component",
     }),
   ).toBeVisible();
   await expect.poll(() => reader.evaluate((el) => el.scrollTop)).toBe(0);
   await heading.press("ArrowLeft");
-  await expect(help).toContainText("Page 2 of");
+  await expect(help).toContainText("Page 1 of");
   await heading.press("ArrowRight");
-  await expect(help).toContainText("Page 3 of");
+  await expect(help).toContainText("Page 2 of");
   await page.screenshot({ path: "test-results/full-screen-terminal-help.png" });
   await heading.press("Escape");
   await expect(help).toHaveCount(0);

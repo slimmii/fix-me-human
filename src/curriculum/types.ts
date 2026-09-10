@@ -6,6 +6,7 @@ export type Assignment = {
   starterCode?: string;
   hints: string[];
   solution: string;
+  robot?: { intro: string; success: string; retry: string };
   validation: Validation;
 };
 export type Lesson = {

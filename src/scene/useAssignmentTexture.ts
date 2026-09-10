@@ -23,9 +23,10 @@ export function useAssignmentTexture(
     ctx.font = "20px monospace";
     let y = 194;
     const plain = lessonText(assignment.brief).replace(/[*`>#]/g, "");
-    for (const paragraph of plain.split("\n")) {
+    paragraphs: for (const paragraph of plain.split("\n")) {
       let line = "";
       for (const word of paragraph.split(/\s+/)) {
+        if (y > 680) break paragraphs;
         if (ctx.measureText(`${line} ${word}`).width > 510) {
           ctx.fillText(line, 45, y);
           y += 27;
@@ -34,7 +35,7 @@ export function useAssignmentTexture(
       }
       ctx.fillText(line, 45, y);
       y += 29;
-      if (y > 700) break;
+      if (y > 680) break;
     }
     ctx.font = "bold 18px monospace";
     if (completed) {

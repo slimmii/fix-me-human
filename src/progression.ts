@@ -1,8 +1,9 @@
 import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
+import { decodeStory, type AssignmentStory } from "./game/story";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
-  version: 3;
+  version: 4;
   phase: Phase;
   lessonId: string;
   assignmentId: string;
@@ -11,11 +12,12 @@ export type Save = {
   readAssignments: string[];
   revisitingAssignment: boolean;
   drafts: Record<string, string>;
+  story: Record<string, AssignmentStory>;
   settings: { mute: boolean; reducedMotion: boolean; crt: boolean };
 };
-export const KEY = "please-fix-human:v3";
+export const KEY = "please-fix-human:v4";
 export const fresh = (lessons = curriculum): Save => ({
-  version: 3,
+  version: 4,
   phase: "onboarding",
   lessonId: lessons[0].id,
   assignmentId: lessons[0].assignments[0].id,
@@ -24,6 +26,7 @@ export const fresh = (lessons = curriculum): Save => ({
   readAssignments: [],
   revisitingAssignment: false,
   drafts: {},
+  story: {},
   settings: {
     mute: false,
     reducedMotion:
@@ -164,7 +167,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
   if (!raw) return result;
   try {
     const value = JSON.parse(raw);
-    if (!value || value.version !== 3) return result;
+    if (!value || value.version !== 4) return result;
     const completed: string[] = Array.isArray(value.completed)
       ? value.completed.filter(
           (id: unknown): id is string => typeof id === "string",
@@ -225,7 +228,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
     for (const key of ["mute", "reducedMotion", "crt"] as const)
       if (typeof value.settings?.[key] === "boolean")
         result.settings[key] = value.settings[key];
-    // Legacy v3 teaching/brief positions migrate to coding. Course access now
+    // Unknown teaching/brief positions normalize to coding. Course access now
     // comes only from completed tasks, never from a lesson's reading position.
     result.phase =
       value.phase === "onboarding"
@@ -252,6 +255,23 @@ export function decode(raw: string | null, lessons = curriculum): Save {
         result.assignmentId = next.assignment.id;
         result.phase = "coding";
       } else result.phase = "complete";
+    }
+    if (
+      value.story &&
+      typeof value.story === "object" &&
+      !Array.isArray(value.story)
+    ) {
+      const all = lessons.flatMap((item) => item.assignments);
+      for (const id of available) {
+        if (!Object.hasOwn(value.story, id)) continue;
+        const chapter = all.findIndex((item) => item.id === id);
+        result.story[id] = decodeStory(value.story[id], {
+          assignment: all[chapter],
+          chapter,
+          collected: result.collectedAssignments.includes(id),
+          completed: result.completed.includes(id),
+        });
+      }
     }
     return result;
   } catch {

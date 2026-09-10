@@ -3,11 +3,11 @@ import { compileCode } from "../src/typed-engine";
 import { assignment } from "./fixtures/curriculum";
 const valid = [
   assignment.solution,
-  "export function Welcome(){ return <h1>Hello B.U.G.</h1>; }",
-  "export const App = () => <h1>Hello B.U.G.</h1>;",
-  "const App = () => <h1>Hello B.U.G.</h1>; export default App;",
-  "const App = () => <h1>Hello B.U.G.</h1>; export { App };",
-  "function App(){return <h1>Hello B.U.G.</h1>} export { App as default };",
+  "export function Welcome(){ return <h1>Sprint board</h1>; }",
+  "export const App = () => <h1>Sprint board</h1>;",
+  "const App = () => <h1>Sprint board</h1>; export default App;",
+  "const App = () => <h1>Sprint board</h1>; export { App };",
+  "function App(){return <h1>Sprint board</h1>} export { App as default };",
 ];
 for (const source of valid)
   it(`accepts component export: ${source}`, () => {
@@ -18,11 +18,11 @@ for (const source of valid)
 it("rejects missing and lowercase exports, non-functions, comments, and a bad default before a good named export", () => {
   for (const source of [
     "",
-    "// export function App(){ return <h1>Hello B.U.G.</h1> }",
-    "function App(){return <h1>Hello B.U.G.</h1>}",
-    "export default function app(){return <h1>Hello B.U.G.</h1>}",
+    "// export function App(){ return <h1>Sprint board</h1> }",
+    "function App(){return <h1>Sprint board</h1>}",
+    "export default function app(){return <h1>Sprint board</h1>}",
     "export default 42;",
-    "export default 42; export function App(){return <h1>Hello B.U.G.</h1>}",
+    "export default 42; export function App(){return <h1>Sprint board</h1>}",
   ])
     expect(compileCode(source, assignment).checks.some((c) => !c.pass)).toBe(
       true,

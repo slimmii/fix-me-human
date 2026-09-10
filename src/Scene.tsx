@@ -38,6 +38,7 @@ export default function Scene(props: Props) {
   useEffect(() => {
     if (
       webgl ||
+      !props.assignmentPrintRequested ||
       props.assignmentReady ||
       props.assignmentCollected ||
       props.completedAssignments.includes(props.assignment.id)
@@ -48,6 +49,7 @@ export default function Scene(props: Props) {
   }, [
     webgl,
     props.assignmentReady,
+    props.assignmentPrintRequested,
     props.assignmentCollected,
     props.onAssignmentReady,
     props.completedAssignments,
@@ -88,7 +90,8 @@ export default function Scene(props: Props) {
       <button onClick={props.onComputer}>Start</button>
       {props.completedAssignments.includes(
         props.assignment.id,
-      ) ? null : !props.assignmentCollected ? (
+      ) ? null : !props.assignmentPrintRequested &&
+        !props.assignmentCollected ? null : !props.assignmentCollected ? (
         <button
           className={props.assignmentReady ? "assignment-attention" : undefined}
           disabled={!props.assignmentReady}

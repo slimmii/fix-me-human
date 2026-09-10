@@ -1,95 +1,80 @@
 # Authoring tasks and course topics
 
-Exercises and course material have separate catalogs. `src/curriculum/` contains ordered task groups, assignments, and paper briefs. `src/course/` contains a topic-organized reference library. A task does not own a sequence of teaching screens, and reading never gates progress.
+The registered curriculum is the 12-exercise Scrum board track. `src/curriculum/scrum-board/index.ts` supplies ordered lessons, briefs, hints and robot dialogue; `solutions.ts` stores readable TSX source strings; `validation.ts` composes cumulative checks. `src/course/scrum-board/index.ts` registers 24 reference pages in 12 topics. The old example files remain unregistered.
 
-All content is bundled locally. The editor opens immediately. Completing tasks unlocks later tasks and additional Help topics.
+## Exercises and checkpoints
 
-## Define an exercise
+A Lesson contains an ID, title and ordered assignments. Register lessons in `src/curriculum/index.ts`; their order defines progression. Each assignment needs:
 
-A `Lesson` in `src/curriculum/types.ts` is an ordered group of assignments with an ID and title. It has no course pages. Register groups in `src/curriculum/index.ts`; group order and assignment order define task progression.
+- A unique, stable lowercase ID, title and Markdown brief path relative to `src/curriculum/`.
+- Nonempty hints and a reference solution that compiles as strict TSX.
+- `robot: { intro, success, retry }` with original dialogue for that exercise. These fields are optional in the general type for legacy definitions, but required by the active catalog validator.
+- Source and runtime validation rules.
+- Optional `starterCode`; omission means an empty editor.
 
-```ts
-{
-  id: "another-greeting",
-  title: "Another greeting",
-  brief: "hello-react/another-greeting.md",
-  // Omit starterCode to start with an empty file.
-  starterCode: "export default function App() {\n  return null;\n}",
-  hints: [
-    "Return a heading from your component.",
-    "Use h1 and put the requested greeting between its tags.",
-    "One working solution: export default function App() { return <h1>Hello again</h1>; }",
-  ],
-  solution: "export default function App() { return <h1>Hello again</h1>; }",
-  validation: {
-    source: [{ type: "exported-component", label: "Export a capitalized function component" }],
-    runtime: [{ type: "visible-heading", text: "Hello again", label: "Display Hello again in a visible h1 heading" }],
-  },
-}
-```
+The Scrum track uses the preceding reference solution as the next starter. Explain this convention in Help. Opening a saved task always prefers its own draft. Do not copy arbitrary earlier drafts over a tested checkpoint or overwrite existing drafts. Adding a stage requires updating its solution, cumulative rules, brief, topic prerequisite and tests together.
 
-Brief paths are relative to `src/curriculum/`. Briefs are separate Markdown files written as assignments from B.U.G. New assignments print automatically and wait in the printer's output tray. B.U.G. prompts the player to grab the paper. Collecting it makes the desk sheet and readable panel available; printing alone does not grant access to the paper. The panel can stay open beside the editor. Collected sheets remain available when revisiting tasks during the session.
+B.U.G.'s introduction is a separate briefing line. Only advancing past it authorizes printing. Successful and failed runs use that assignment's authored reaction; failures identify the first check to fix. The completion screen and finale retain the final reaction. Early reactions are awkwardly supportive; later ones reveal insecurity about human competence and job loss. Humor should support the story without making mistakes costly.
 
-State every requirement the checks enforce. Label optional practice suggestions as optional: the follow-up tasks encourage JSX expressions and props, but accept equivalent components that produce the required heading. Hints appear one at a time; the last can provide a solution. `solution` supports automated verification and does not populate the editor. Use `starterCode` for scaffolding.
+Keep paper briefs short: a B.U.G. reason for the work, three to five concrete steps, one quick verification and the relevant Help topic. Preserve exact new names/labels needed by checks. Put setup, save behavior, sandbox limitations and repeated workflow instructions in Help, not on the assignment sheet.
 
-Named and default exported function components are supported, including arrow functions assigned to capitalized names. The game mounts the default export if one exists, otherwise the first exported capitalized function component.
+## Help pages
 
-## Define a Help topic
+Topics have an ID, title, description, `unlockAfter` assignment IDs and ordered pages. An empty prerequisite list makes a topic available immediately. The next topic should unlock after the preceding exercise, so learners can read the relevant material before implementing it. Completion, not reading position, governs access.
 
-Create Markdown files under `src/course/`, then add a `CourseTopic` to `src/course/index.ts`:
+Each page has a unique ID, title and Markdown path starting with `course/`, relative to `src/`. The reader renders the title from the catalog, so Markdown starts with prose rather than a duplicate h1. Use original explanations, focused fenced `tsx` examples, common mistakes, a small practice prompt and an official React reference. Clearly label partial code outlines. Raw HTML is disabled.
 
-```ts
-{
-  id: "jsx-expressions",
-  title: "JavaScript in JSX",
-  description: "Put variables and expressions inside your markup.",
-  unlockAfter: ["hello-bug"],
-  pages: [
-    {
-      id: "values-in-markup",
-      title: "Give your markup a value",
-      markdown: "course/jsx-expressions/01-values.md",
-    },
-  ],
-}
-```
+Help has keyboard paging and retro scrolling. Earned topics stay available when revisiting tasks and across reloads. File → Open restores code without erasing progress; explicit Replay resets its selected draft.
 
-`unlockAfter` contains assignment IDs. Every listed task must be completed before the topic appears. An empty array makes the topic available from the start. Prerequisites are independent of the currently selected exercise: earned topics remain available while revisiting or replaying earlier tasks and after reloading.
+## Public markup contracts
 
-The topic title organizes the Help index; each page has its own title. Array order controls topic and page order. Markdown paths start with `course/` and are relative to `src/`. IDs start with a lowercase letter and contain lowercase letters, digits, or hyphens. Keep IDs stable so task completion and unlock prerequisites survive edits.
+Teach every requirement enforced by checks. The board uses these contracts from exercise 3 onward:
 
-Use paragraphs, emphasis, lists, blockquotes, inline code, and fenced `tsx` examples. Page titles come from the catalog, so begin Markdown with prose instead of repeating the title. Raw HTML is disabled.
+- `h1`: Sprint board.
+- A section named TODO, IN PROGRESS or DONE via `aria-label`, containing the matching h2.
+- Cards are li elements with numeric `data-task-id` and a p containing the title. Seed IDs are 1, 2, 3; new IDs are unique among current tasks.
+- Inputs use Task title, Edit task title and Search tasks as their aria-labels.
+- Buttons use Add task, Start task, Finish task, Reopen task, Edit task, Save task, Cancel edit and Delete task as their aria-labels. Exercise 4 temporarily uses Add sample task.
+- Counts use `aria-label="Task count"` and the exact N tasks format. Empty filtered columns say No matching tasks.
 
-Help fills the terminal with the topic index. Selecting a topic opens the full-screen reader with a retro scrollbar, Previous/Next buttons, and keyboard controls. Use ↑/↓, PgUp/PgDn, Home/End to scroll, ←/→ for pages, and Topics to return to the index. Escape returns to the editor with its draft and undo history intact.
-
-## Task history and progress
-
-File → Open (Ctrl/Cmd+O) lists completed tasks and the next available task. Selecting an entry restores that task's saved code and preserves all other drafts and earned completion. Cancel or Escape returns to the existing editor. Unknown task IDs and tasks whose predecessors are incomplete cannot be opened.
-
-Replay is a separate, explicit action on the completion screen. It resets only the selected task's draft to its starter while preserving completion and unlocked Help topics.
-
-The published progression contains:
-
-1. Hello B.U.G. — React fundamentals available from the start.
-2. Welcome, Human — JavaScript in JSX unlocks after Hello B.U.G.
-3. Office status board — Component props unlocks after Welcome, Human.
+The brief distinguishes required component/hook names from optional implementation details. Runtime checks target observable behavior; source checks inspect a few required structures. They cannot prove that all data flow, keys, hook dependencies or architectural choices are correct. Ask learners to review those as well.
 
 ## Validation
 
-Rules are serializable data. Source rules run against parsed TSX in the compiler worker; runtime rules inspect the rendered application inside the isolated iframe.
+Rules are serializable data. Source checks run against the parsed TSX AST in the compiler worker:
 
-1. Define new rule types and parameter validation in `src/validation/types.ts`.
-2. Add evaluation in `src/typed-engine.ts` or `src/validation/runtime.ts`, dispatching explicitly by rule type.
-3. Add positive and negative cases, including programs with the wrong rendered result. Unknown rules must fail closed.
-4. Reference the rule from an assignment. No exercise-ID conditions belong in the compiler or sandbox.
+- `exported-component`: a capitalized exported function component.
+- `component` with `name`: a local function/arrow component definition and JSX usage.
+- `uses-call` with `name`: a call expression, including named import aliases. Comments and string mentions do not qualify. This is a structural check, not full data-flow analysis.
 
-Current rules require a capitalized exported function component and a visible `h1` with the requested text after normalizing whitespace. They allow equivalent implementations.
+Runtime rules inspect the isolated preview:
 
-The catalogs validate IDs, required fields, prerequisite task IDs, and rule types on import. Markdown is loaded with Vite raw imports; missing or empty referenced pages fail at startup. Content tests verify referenced files, and TypeScript tests compile every authored task solution.
+- `visible-heading`: a visible h1 with normalized exact text.
+- `visible-text`: normalized exact text under a supplied selector.
+- `interaction`: an ordered scenario of click, input, expect and title steps. Expect can assert element count, text or input value. Title checks the iframe document title.
+- `column-layout`: expected column count and side-by-side non-overlapping rectangles at or above a supplied minimum root width. Separate browser tests verify narrow stacking and overflow.
 
-## Saves and verification
+Each interaction scenario gets a fresh React mount. Input steps use the native input setter and dispatch events to reach React's controlled-input handlers; clicks exercise actual handlers. Updates settle before assertions. Errors or unknown rules fail closed. After all scenarios the learner receives a fresh board, so checking does not leave behind test tasks or edits. The parent still validates the frame source and current run token.
 
-Local storage remains at `please-fix-human:v3`. Drafts, task completion, current exercise, and settings are preserved. Old v3 teaching and brief positions migrate to the editor; obsolete screen/taught metadata is ignored. Help unlocks derive from validated task completion, so no separate unlock state can drift out of sync. Older v2 saves remain untouched.
+To add a rule, update `src/validation/types.ts`, its explicit evaluator in `src/typed-engine.ts` or `src/validation/runtime.ts`, and positive/negative tests. Do not branch on exercise IDs inside the engine. Shared cumulative scenarios ensure earlier features remain tested after refactors.
+
+The sandbox allows React imports and `div section h1 h2 p span button input label ul li`, plus fragments and capitalized components. Network, browser storage, external packages and forms are unavailable. `document.title` is supported for the effect exercise. Code is limited to 16,000 characters.
+
+## Progress, printing and saves
+
+Submit records completion, pins the finished sheet and selects the next unfinished assignment. The new assignment starts with a handoff and briefing. Its printer stays idle until the player advances the briefing. A requested print resumes after reload; ready and collected sheets restore without reprinting. Completed work deliberately reopened through File → Open stays available for code review and does not print again. All 12 sheets fit the right wall; there is no thirteenth assignment.
+
+The new course uses `please-fix-human:v4`. It starts with fresh course progress because the previous example tasks are different exercises. Existing v2/v3 keys remain untouched. Validated completion determines task and topic access. Drafts, paper history and settings round-trip independently. The learner's in-preview board data is not persisted across runs.
+
+## Story scripting
+
+`src/game/storyScripts.ts` contains twelve chapter scripts, ordered with the curriculum. Each supplies collection, editor, Help, typing, paper, run and handoff lines; the assignment metadata supplies intro/success/retry. The shared event renderer adds printer status, hints, revisits and a three-page finale. Keep technical guidance appropriate to the current exercise while moving the humor from awkward support toward job insecurity.
+
+`src/game/story.ts` is the pure director. A saved assignment story holds delivery (`waiting`, `printing`, `ready`), the current event/page, seen events and a pending queue. `tellStory` handles activities, `continueStory` advances dialogue, and `finishPrinting` accepts only an authorized print completion. Briefings cannot be bypassed by early editor/Help/typing events. First typing gives encouragement and preserves any remaining tutorial page; repeated typing does not replay it. Incidental prop chatter cannot interrupt an unfinished finale.
+
+Wire meaningful activities through `game.activity`, `game.openHelp` and the existing collection/editor callbacks. Use `game.say` for incidental office props. Never start a printer from a dialogue timer or from Submit. Both the 3D printer and WebGL fallback honor `assignmentPrintRequested`. The persistent v4 save adds story records without resetting existing progress, drafts, settings or paper history. Old saves without story data start a briefing, or resume collected/completed work appropriately.
+
+## Verification
 
 ```sh
 npm run format:check
@@ -98,4 +83,4 @@ npm run test:browser
 npm run build
 ```
 
-Tests cover authoring contracts, cumulative topic unlocks, blocked future tasks, cross-task draft restoration, save migration, replay, reference solutions, and the end-to-end task/history/Help flow. Screenshots are written to `test-results/`.
+Unit tests validate content, all strict-TSX solutions, source rules, cumulative unlocks, save recovery and progression. Browser tests run all 12 reference solutions in the real sandbox, reject broken updates/context/effects/layout, verify clean resets, exercise narrow layouts, and check printing, Help, task history and final completion. Screenshots are written to `test-results/`.

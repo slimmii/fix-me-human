@@ -1,3 +1,4 @@
+import { startAssignmentPrint } from "../fixtures/story";
 import { test, expect } from "@playwright/test";
 import { fresh, KEY } from "../../src/progression";
 import { assignment, codingSave } from "../fixtures/curriculum";
@@ -18,20 +19,21 @@ test("start coding immediately, consult the printed brief and integrated Help, s
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
+  await startAssignmentPrint(page);
   await expect(
-    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+    page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toHaveCount(0);
   await page
     .getByRole("button", {
-      name: "Grab new assignment: Hello B.U.G.",
+      name: "Grab new assignment: Sprint board",
       exact: true,
     })
     .click();
   await expect(
-    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+    page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toBeVisible({ timeout: 15000 });
   await page
-    .getByRole("button", { name: "Read printed assignment: Hello B.U.G." })
+    .getByRole("button", { name: "Read printed assignment: Sprint board" })
     .click();
   const paper = page.getByRole("complementary", {
     name: "Printed assignment",
@@ -80,9 +82,7 @@ test("start coding immediately, consult the printed brief and integrated Help, s
     help.getByRole("heading", { name: "Meet the component" }),
   ).toBeVisible();
   await expect(editor).toBeHidden();
-  for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: "Next →", exact: true }).click();
-  await expect(help.locator("pre code")).toContainText(
+  await expect(help.locator("pre code").first()).toContainText(
     "export default function App()",
   );
   await page.screenshot({ path: "test-results/editor-course-help.png" });
@@ -93,7 +93,7 @@ test("start coding immediately, consult the printed brief and integrated Help, s
   await editor.fill(assignment.solution);
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+    page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toBeVisible({ timeout: 15000 });
   await page.locator('[data-surface="crt-glass"]').click();
   await expect(editor).toHaveText(assignment.solution, { useInnerText: true });
@@ -103,28 +103,29 @@ test("start coding immediately, consult the printed brief and integrated Help, s
   await expect(
     page
       .frameLocator("iframe")
-      .getByRole("heading", { name: "Hello B.U.G.", exact: true }),
+      .getByRole("heading", { name: "Sprint board", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
   await expect(submit).toBeVisible();
   await page.getByRole("button", { name: "Put assignment down" }).click();
   await submit.click();
+  await startAssignmentPrint(page);
   await expect(
     page.getByRole("button", {
-      name: "Grab new assignment: Welcome, Human",
+      name: "Grab new assignment: Reusable task cards",
       exact: true,
     }),
   ).toBeEnabled({ timeout: 15000 });
   await expect(page.getByRole("status")).toContainText(
-    "new assignment, Welcome, Human",
+    "new assignment, Reusable task cards",
   );
   await expect(
     page.getByRole("button", {
-      name: "Read printed assignment: Hello B.U.G.",
+      name: "Read printed assignment: Sprint board",
     }),
   ).toHaveCount(0);
   await page.locator('[data-surface="crt-glass"]').click();
-  await expect(editor).toHaveText("");
+  await expect(editor).toHaveText(assignment.solution, { useInnerText: true });
   expect(
     await page.evaluate(
       (key) => JSON.parse(localStorage.getItem(key)!).completed,
@@ -143,17 +144,18 @@ test("editor and references fit desktop screen sizes", async ({ page }) => {
     [KEY, JSON.stringify(save)],
   );
   await page.goto("/");
+  await startAssignmentPrint(page);
   await expect(
-    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+    page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toHaveCount(0);
   await page
     .getByRole("button", {
-      name: "Grab new assignment: Hello B.U.G.",
+      name: "Grab new assignment: Sprint board",
       exact: true,
     })
     .click();
   await expect(
-    page.getByRole("button", { name: "Read printed assignment: Hello B.U.G." }),
+    page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toBeVisible({ timeout: 15000 });
   await page.locator('[data-surface="crt-glass"]').click();
   await page.getByRole("button", { name: /^Read printed assignment:/ }).click();

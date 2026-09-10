@@ -1,6 +1,7 @@
 import { evaluateRuntimeRules } from "../validation/runtime";
 import type { RuntimeRule } from "../validation/types";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 let failed = false;
 const notify = (type: string, detail = "") => {
@@ -99,15 +100,25 @@ window.__mount = (Component) => {
     );
     return;
   }
-  createRoot(document.getElementById("app")!).render(
-    <Boundary>
-      <Component />
-    </Boundary>,
-  );
-  setTimeout(() => {
+  const reactRoot = createRoot(document.getElementById("app")!);
+  let mount = 0;
+  const reset = async () => {
+    document.title = "";
+    flushSync(() =>
+      reactRoot.render(
+        <Boundary key={mount++}>
+          <Component />
+        </Boundary>,
+      ),
+    );
+    await new Promise<void>((resolve) => setTimeout(resolve, 25));
+  };
+  void reset();
+  setTimeout(async () => {
     if (failed) return;
     const root = document.getElementById("app")!;
-    const checks = evaluateRuntimeRules(root, window.__RULES);
+    const checks = await evaluateRuntimeRules(root, window.__RULES, reset);
+    if (failed) return;
     notify(
       "rendered",
       JSON.stringify({

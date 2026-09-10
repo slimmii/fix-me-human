@@ -42,6 +42,7 @@ export default function App() {
         assignment={game.assignment}
         assignmentOpen={game.assignmentOpen}
         assignmentReady={game.assignmentReady}
+        assignmentPrintRequested={game.assignmentPrintRequested}
         assignmentCollected={game.assignmentCollected}
         assignmentUnread={game.assignmentUnread}
         onAssignmentReady={game.markAssignmentReady}
@@ -95,7 +96,16 @@ export default function App() {
           </div>
         </>
       )}
-      <RobotDialogue mood={mood} quote={quote} />
+      <RobotDialogue
+        mood={mood}
+        quote={quote}
+        chapter={game.chapter}
+        chapterTitle={game.chapterTitle}
+        event={game.storyEvent}
+        canContinue={game.canContinueDialogue}
+        onContinue={game.continueDialogue}
+        continueLabel={game.continueLabel}
+      />
       {settings && (
         <SettingsDialog
           settings={save.settings}

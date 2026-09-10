@@ -1,9 +1,10 @@
+import { startAssignmentPrint } from "../fixtures/story";
 import { test, expect } from "@playwright/test";
 import { fresh, KEY } from "../../src/progression";
 import { curriculum } from "../../src/curriculum";
 
 for (const reducedMotion of [false, true]) {
-  test(`assignments print automatically and wait for collection (reduced motion: ${reducedMotion})`, async ({
+  test(`assignments print after dialogue and wait for collection (reduced motion: ${reducedMotion})`, async ({
     page,
   }) => {
     const save = fresh();
@@ -18,12 +19,13 @@ for (const reducedMotion of [false, true]) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
+    await startAssignmentPrint(page);
     const pickup = page.getByRole("button", {
-      name: "Grab new assignment: Hello B.U.G.",
+      name: "Grab new assignment: Sprint board",
       exact: true,
     });
     const sheet = page.getByRole("button", {
-      name: "Read printed assignment: Hello B.U.G.",
+      name: "Read printed assignment: Sprint board",
     });
     const brief = page.getByRole("complementary", {
       name: "Printed assignment",
@@ -51,13 +53,13 @@ for (const reducedMotion of [false, true]) {
     await expect(shortcut).toHaveCount(0);
     await expect(brief).toHaveCount(0);
     await expect(page.getByRole("status")).toContainText(
-      "Your assignment is beside the monitor",
+      "Your assignment is waiting beside the monitor",
     );
     await page.screenshot({
       path: `test-results/assignment-collected-${reducedMotion}.png`,
     });
     await sheet.click();
-    await expect(brief).toContainText("Hello B.U.G.");
+    await expect(brief).toContainText("Sprint board");
     await expect(brief).toContainText("FROM:");
     await page.getByRole("button", { name: "Put assignment down" }).click();
     await expect(sheet).toBeVisible();
@@ -67,53 +69,51 @@ for (const reducedMotion of [false, true]) {
   });
 }
 
-test("a new task prints automatically, and returning to a collected task keeps its paper", async ({
+test("reload advances completed work to a real new printout and preserves collected paper", async ({
   page,
 }) => {
   const save = fresh();
   save.phase = "coding";
   save.completed = [save.assignmentId];
+  save.collectedAssignments = [save.assignmentId];
+  save.readAssignments = [save.assignmentId];
   save.settings.mute = true;
   save.settings.reducedMotion = true;
   await page.addInitScript(
     ([key, value]) => {
-      if (window === window.top) localStorage.setItem(key, value);
+      if (window === window.top && !localStorage.getItem(key))
+        localStorage.setItem(key, value);
     },
     [KEY, JSON.stringify(save)],
   );
   const next = curriculum[1].assignments[0];
   await page.goto("/");
-  await page
-    .getByRole("button", {
-      name: "Grab new assignment: Hello B.U.G.",
-      exact: true,
-    })
-    .click();
-  await page.locator('[data-surface="crt-glass"]').click();
-  await page.getByLabel("Your React code").press("ControlOrMeta+o");
-  await page.getByRole("button", { name: `Open task: ${next.title}` }).click();
-  await expect(
-    page.getByRole("button", { name: "Open printed assignment" }),
-  ).toHaveCount(0);
-  // Step back from the screen to pick up the newly printed task.
-  await page.getByLabel("Your React code").press("Escape");
+  await startAssignmentPrint(page);
   const pickup = page.getByRole("button", {
     name: `Grab new assignment: ${next.title}`,
     exact: true,
   });
+  const sheet = page.getByRole("button", {
+    name: `Read printed assignment: ${next.title}`,
+    exact: true,
+  });
   await expect(pickup).toBeEnabled({ timeout: 15000 });
+  await expect(
+    page.getByRole("button", {
+      name: "Grab new assignment: Sprint board",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText(
     `Your new assignment, ${next.title}, is ready`,
   );
-  await expect(
-    page.getByRole("button", {
-      name: `Read printed assignment: ${next.title}`,
-    }),
-  ).toHaveCount(0);
   await pickup.click();
-  await page
-    .getByRole("button", { name: `Read printed assignment: ${next.title}` })
-    .click();
+  await sheet.click();
+  await page.getByRole("button", { name: "Put assignment down" }).click();
+  await page.reload();
+  await expect(sheet).toBeVisible({ timeout: 15000 });
+  await expect(pickup).toHaveCount(0);
+  await sheet.click();
   await expect(
     page.getByRole("complementary", {
       name: "Printed assignment",
@@ -123,18 +123,13 @@ test("a new task prints automatically, and returning to a collected task keeps i
   await page.getByRole("button", { name: "Put assignment down" }).click();
   await page.locator('[data-surface="crt-glass"]').click();
   await page.getByLabel("Your React code").press("ControlOrMeta+o");
-  await page.getByRole("button", { name: "Open task: Hello B.U.G." }).click();
+  await page
+    .getByRole("button", { name: "Open task: Sprint board", exact: true })
+    .click();
   await expect(
-    page.getByRole("button", {
-      name: "Grab new assignment: Hello B.U.G.",
-      exact: true,
-    }),
+    page.getByRole("button", { name: /^Read printed assignment:/ }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
-  await expect(
-    page.getByRole("complementary", {
-      name: "Printed assignment",
-      exact: true,
-    }),
-  ).toContainText("Hello B.U.G.");
+  await expect(page.getByRole("status")).toContainText(
+    "already complete and pinned on the right wall",
+  );
 });

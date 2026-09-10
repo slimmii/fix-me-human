@@ -9,7 +9,7 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   const save = codingSave();
   save.settings.reducedMotion = true;
   save.settings.mute = true;
-  save.drafts["hello-bug"] = code;
+  save.drafts["board-shell"] = code;
   await page.addInitScript(
     ([key, value]) => {
       if (window === window.top && !localStorage.getItem(key))

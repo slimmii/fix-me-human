@@ -12,7 +12,13 @@ export function AssignmentReview({ game }: { game: GameController }) {
       keyboardActive={game.focused && !game.settings}
       contentKey={save.phase}
       eyebrow="B.U.G. / ASSIGNMENT REVIEW"
-      title={complete ? "Lesson complete" : "Assignment complete"}
+      title={
+        complete
+          ? nextLesson
+            ? "Lesson complete"
+            : "Scrum board complete"
+          : "Assignment complete"
+      }
       actions={
         <>
           {!complete && (
@@ -29,7 +35,7 @@ export function AssignmentReview({ game }: { game: GameController }) {
           <button
             onClick={() => {
               game.setSave((current) => ({ ...current, phase: "coding" }));
-              game.setHelpOpen(true);
+              game.openHelp();
             }}
           >
             Open editor & course material
@@ -47,14 +53,16 @@ export function AssignmentReview({ game }: { game: GameController }) {
             : `You typed and ran ${assignment.title}. Your application passed all the assignment checks.`}
         </p>
         <blockquote>
-          Your code works. My supervision was clearly indispensable. — B.U.G.
+          {assignment.robot?.success ??
+            "Your code works. My supervision was clearly indispensable."}{" "}
+          — B.U.G.
         </blockquote>
         {complete && (
           <>
             {!nextLesson && (
               <p>
-                More lessons are coming. You can review what you learned or try
-                an assignment again.
+                You built a complete task board across 12 exercises. Open any
+                task to review its code, or revisit the course material.
               </p>
             )}
             <p>

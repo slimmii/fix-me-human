@@ -552,6 +552,17 @@
   flex: 1;
   min-height: 0;
 }
+.retro-preview-checking {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  background: #000080;
+  color: #aaaaaa;
+  font:
+    var(--terminal-font-size) / 1.5 "Courier New",
+    monospace;
+}
 .retro-browser-status {
   min-height: 31px;
   background: #aaaaaa;

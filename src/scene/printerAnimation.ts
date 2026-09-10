@@ -1,5 +1,5 @@
-/** Positions are local to the printer. Times are seconds from the automatic print start. */
-export type PrinterStage = "printing" | "ready" | "placed";
+/** Positions are local to the printer. Times are seconds from the player-authorized print start. */
+export type PrinterStage = "idle" | "printing" | "ready" | "placed";
 export type Vector3Tuple = [number, number, number];
 export type PaperPose = {
   visible: boolean;

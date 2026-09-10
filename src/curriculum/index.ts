@@ -1,8 +1,7 @@
-import { helloReact } from "./hello-react";
-import { officeWelcome, officeStatus } from "./office-tasks";
+import { scrumBoard } from "./scrum-board";
 import type { Lesson } from "./types";
 import { validSourceRule, validRuntimeRule } from "../validation/types";
-export const curriculum: Lesson[] = [helloReact, officeWelcome, officeStatus];
+export const curriculum: Lesson[] = scrumBoard;
 export function validateCurriculum(lessons: Lesson[]): void {
   if (!lessons.length)
     throw new Error("The curriculum needs at least one lesson.");
@@ -20,6 +19,9 @@ export function validateCurriculum(lessons: Lesson[]): void {
       unique(assignment.id);
       if (
         !assignment.title.trim() ||
+        !assignment.robot?.intro.trim() ||
+        !assignment.robot?.success.trim() ||
+        !assignment.robot?.retry.trim() ||
         !assignment.brief.endsWith(".md") ||
         !assignment.solution.trim() ||
         !assignment.hints.length ||

@@ -91,14 +91,14 @@ describe("independent tasks and course topics", () => {
     save = transition(save, { type: "pass" });
     expect(unlockedTopics(save.completed).map((t) => t.id)).toEqual([
       "react-basics",
-      "jsx-expressions",
+      "component-props",
     ]);
-    save = transition(save, { type: "open-assignment", id: "welcome-human" });
+    save = transition(save, { type: "open-assignment", id: "task-card" });
     save = transition(save, { type: "pass" });
     const earned = unlockedTopics(save.completed);
     expect(earned).toHaveLength(3);
-    save = transition(save, { type: "open-assignment", id: "hello-bug" });
-    save = transition(save, { type: "replay", id: "hello-bug" });
+    save = transition(save, { type: "open-assignment", id: "board-shell" });
+    save = transition(save, { type: "replay", id: "board-shell" });
     expect(unlockedTopics(save.completed)).toEqual(earned);
     expect(unlockedTopics(decode(JSON.stringify(save)).completed)).toEqual(
       earned,
@@ -217,7 +217,7 @@ describe("task progression", () => {
   });
 });
 
-describe("v3 saves", () => {
+describe("v4 saves", () => {
   it("resumes the next unfinished task when an old save still selects completed work", () => {
     const save = codingSave("saved solution");
     save.completed = [assignment.id];
@@ -225,7 +225,7 @@ describe("v3 saves", () => {
     save.readAssignments = [assignment.id];
     for (const phase of ["coding", "review", "complete"] as const) {
       const restored = decode(JSON.stringify({ ...save, phase }));
-      expect(restored.assignmentId).toBe("welcome-human");
+      expect(restored.assignmentId).toBe("task-card");
       expect(restored.phase).toBe("coding");
       expect(restored.completed).toEqual(save.completed);
       expect(restored.drafts).toEqual(save.drafts);
@@ -277,10 +277,10 @@ describe("v3 saves", () => {
             assignment.id,
             assignment.id,
             "missing",
-            "welcome-human",
+            "task-card",
             null,
           ],
-          readAssignments: [assignment.id, "welcome-human", 12],
+          readAssignments: [assignment.id, "task-card", 12],
         }),
       ),
     ).toEqual({

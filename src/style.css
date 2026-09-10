@@ -1106,6 +1106,44 @@ summary:focus-visible {
   flex: 1;
   min-width: 0;
 }
+.robot-dialogue-next {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  white-space: nowrap;
+  padding: 10px 12px;
+  border: 2px solid #27473b;
+  border-radius: 3px;
+  background: #e4af47;
+  color: #234137;
+  font:
+    700 13px "DM Sans",
+    sans-serif;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #27473b3d;
+}
+.robot-dialogue-next:hover {
+  background: #f2c96b;
+}
+.robot-dialogue-next:focus-visible {
+  outline: 3px solid #234137;
+  outline-offset: 3px;
+}
+.robot-dialogue-next:active {
+  box-shadow: none;
+}
+@media (max-width: 600px) {
+  .robot-dialogue {
+    gap: 10px;
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+  .robot-dialogue-next {
+    margin-left: auto;
+  }
+  .robot-speech {
+    flex-basis: calc(100% - 75px);
+  }
+}
 .robot-dialogue .primary {
   display: block;
   margin: 10px 0 0 auto;

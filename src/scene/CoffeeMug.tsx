@@ -43,6 +43,7 @@ export function CoffeeMug({
       </mesh>
       <Html
         zIndexRange={[5, 0]}
+        pointerEvents="none"
         style={{ pointerEvents: "none" }}
         position={[0, 0, 0.25]}
         transform

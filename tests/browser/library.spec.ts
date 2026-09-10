@@ -62,7 +62,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   await page
     .getByRole("button", { name: `Open task: ${second.title}` })
     .click();
-  await expect(editor).toHaveText("");
+  await expect(editor).toHaveText(second.starterCode!, { useInnerText: true });
   await editor.fill(second.solution);
   await editor.press("ControlOrMeta+o");
   await page.getByRole("button", { name: `Open task: ${first.title}` }).click();
@@ -70,17 +70,19 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   await editor.press("F1");
   await expect(topics.getByRole("button")).toHaveCount(2);
   await expect(
-    topics.getByRole("button", { name: "Read topic: Component props" }),
+    topics.getByRole("button", { name: "Read topic: Lists and board columns" }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Read topic: JavaScript in JSX" })
+    .getByRole("button", { name: "Read topic: Components and props" })
     .click();
   await expect(
-    help.getByRole("heading", { name: "Give your markup a value" }),
+    help.getByRole("heading", { name: "Give each card its inputs" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Next →", exact: true }).click();
   await expect(
-    help.getByRole("heading", { name: "Build a greeting from data" }),
+    help.getByRole("heading", {
+      name: "Describe the contract with TypeScript",
+    }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Topics", exact: true }).click();
   await expect(topics.getByRole("button")).toHaveCount(2);
@@ -107,10 +109,10 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   await expect(topics.getByRole("button")).toHaveCount(3);
   await page.screenshot({ path: "test-results/unlocked-course-topics.png" });
   await page
-    .getByRole("button", { name: "Read topic: Component props" })
+    .getByRole("button", { name: "Read topic: Lists and board columns" })
     .click();
   await expect(
-    help.getByRole("heading", { name: "Give a component its inputs" }),
+    help.getByRole("heading", { name: "Turn task data into columns" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close course material" }).click();
   await editor.fill(third.solution);

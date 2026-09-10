@@ -22,6 +22,7 @@ export function Printer({
   mute,
   assignment,
   assignmentReady,
+  assignmentPrintRequested,
   assignmentCollected,
   assignmentUnread,
   completedAssignments,
@@ -34,6 +35,7 @@ export function Printer({
   | "mute"
   | "assignment"
   | "assignmentReady"
+  | "assignmentPrintRequested"
   | "assignmentCollected"
   | "assignmentUnread"
   | "completedAssignments"
@@ -50,7 +52,9 @@ export function Printer({
       ? "placed"
       : assignmentReady
         ? "ready"
-        : "printing";
+        : assignmentPrintRequested
+          ? "printing"
+          : "idle";
   const [stage, setStage] = useState<PrinterStage>(initialStage);
   const stageRef = useRef<PrinterStage>(initialStage);
   const startedAt = useRef(performance.now());
@@ -105,7 +109,7 @@ export function Printer({
         />
       )}
       <group position={[2.7, 1.6, 0.2]} onClick={handlePickup}>
-        {stage !== "placed" && (
+        {stage !== "placed" && stage !== "idle" && (
           <Html
             transform
             position={[0, -0.008, 0.765]}

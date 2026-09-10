@@ -2,6 +2,7 @@ import { ContactShadows } from "@react-three/drei";
 import { CoffeeMug } from "./CoffeeMug";
 import { Cubicle } from "./Cubicle";
 import { DeskFan } from "./DeskFan";
+import { Radio } from "./Radio";
 import { Box, Prop, cream, dark } from "./primitives";
 import type { WorldProps } from "./types";
 import { useSeatedCamera } from "./useSeatedCamera";
@@ -27,11 +28,13 @@ export function World(props: WorldProps) {
       />
       <CoffeeMug reduced={reduced} onProp={onProp} />
       <DeskFan reduced={reduced} onProp={onProp} />
+      <Radio mute={props.mute} focused={focused} onProp={onProp} />
       <Printer
         completedAssignments={props.completedAssignments}
-        key={`${props.assignment.id}:${props.completedAssignments.includes(props.assignment.id)}`}
+        key={`${props.assignment.id}:${props.completedAssignments.includes(props.assignment.id)}:${props.assignmentPrintRequested}`}
         assignment={props.assignment}
         assignmentReady={props.assignmentReady}
+        assignmentPrintRequested={props.assignmentPrintRequested}
         assignmentCollected={props.assignmentCollected}
         assignmentUnread={props.assignmentUnread}
         onAssignment={props.onAssignment}

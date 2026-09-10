@@ -11,7 +11,7 @@ export default function App(){
   const [first, setFirst] = useMachine();
   const [second, setSecond] = useMachine();
   const input = useRef(null);
-  return <><h1>Hello B.U.G.</h1>
+  return <><h1>Sprint board</h1>
     <button onClick={() => {setCount(c => c + 1);setCount(c => c + 1);}}>{count} coffees</button>
     <input ref={input}/><button onClick={() => input.current?.focus()}>Focus</button>
     <button onClick={() => setFirst(!first)}>First {String(first)}</button>
@@ -60,9 +60,9 @@ test("only the rendered greeting passes, and errors or stale runs cannot unlock 
   const editor = page.getByLabel("Your React code");
   for (const source of [
     "export default function App(){return <h1>Hello world</h1>}",
-    "function Unused(){return <h1>Hello B.U.G.</h1>} export default function App(){return <p>Hello B.U.G.</p>}",
-    "export default function App(){return <h1 hidden>Hello B.U.G.</h1>}",
-    "export default function App(){return <div style={{opacity:0}}><h1>Hello B.U.G.</h1></div>}",
+    "function Unused(){return <h1>Sprint board</h1>} export default function App(){return <p>Sprint board</p>}",
+    "export default function App(){return <h1 hidden>Sprint board</h1>}",
+    "export default function App(){return <div style={{opacity:0}}><h1>Sprint board</h1></div>}",
     "export default function App(){return <h1>{missingName}</h1>}",
     "export default function App(){return <video/>}",
     "export default function App(){return <h1>broken}",
@@ -78,7 +78,7 @@ test("only the rendered greeting passes, and errors or stale runs cannot unlock 
     await page.getByRole("button", { name: "← Editor F6" }).click();
   }
   await editor.fill(
-    "const App = () => <h1>  Hello   B.U.G.  </h1>; export default App;",
+    "const App = () => <h1>  Sprint   board  </h1>; export default App;",
   );
   await editor.press("F5");
   await expect(
@@ -116,7 +116,7 @@ test("WebGL and storage failures preserve the simple coding interface", async ({
       if (type === "webgl" || type === "webgl2") return null;
       return native.apply(this, [type, ...args] as never);
     } as typeof native;
-    localStorage.setItem("please-fix-human:v3", "{invalid");
+    localStorage.setItem("please-fix-human:v4", "{invalid");
     Object.defineProperty(Storage.prototype, "setItem", {
       value: () => {
         throw new DOMException("blocked", "SecurityError");

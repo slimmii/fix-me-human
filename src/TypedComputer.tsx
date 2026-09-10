@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { StoryEvent } from "./game/story";
 import type { Assignment } from "./curriculum/types";
 import type { CodeCheck } from "./validation/types";
 import { EditorHelp } from "./computer/EditorHelp";
@@ -28,7 +29,7 @@ type Props = {
   source: string;
   onChange: (code: string) => void;
   onPass: () => void;
-  onRobot: (text: string, mood?: "neutral" | "happy" | "confused") => void;
+  onActivity: (event: StoryEvent, detail?: string) => void;
   onKey: () => void;
   reduced: boolean;
   onHelp: () => void;
@@ -45,7 +46,7 @@ export default function TypedComputer({
   source,
   onChange,
   onPass,
-  onRobot,
+  onActivity,
   onKey,
   reduced,
   onHelp,
@@ -110,10 +111,7 @@ export default function TypedComputer({
         setAccepted(false);
         setError(String(event.data.detail));
         setStatus("Runtime error");
-        onRobot(
-          `Good news: the browser found the problem before management did. ${String(event.data.detail).slice(0, 400)}`,
-          "confused",
-        );
+        onActivity("retry", String(event.data.detail).slice(0, 700));
       }
       if (event.data.type === "rendered") {
         const runtime = JSON.parse(event.data.detail) as {
@@ -132,26 +130,24 @@ export default function TypedComputer({
             ? "Program ran successfully. Assignment checks passed."
             : "Program running. Assignment needs another look.",
         );
-        onRobot(
+        onActivity(
+          ok ? "passed" : "retry",
           ok
-            ? "Your program works. I am updating my résumé to include “excellent supervision.” Try your page, then submit the assignment."
-            : `The page is alive! Now: ${
-                checks
-                  .filter((c) => !c.pass)
-                  .map((c) => c.label)
-                  .join(". ") ||
-                "Return the elements requested in the assignment"
+            ? undefined
+            : `Next: ${
+                checks.find((check) => !check.pass)?.label ||
+                "Check the printed assignment"
               }. Press F6 to return to your code.`,
-          ok ? "happy" : "confused",
         );
       }
     };
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [onRobot]);
+  }, [onActivity]);
   function run() {
     if (!worker.current || busy) return;
     onKey();
+    onActivity("run");
     setMenu(null);
     setActive("browser");
     setBusy(true);
@@ -177,10 +173,7 @@ export default function TypedComputer({
         setStatus("Compile error");
         setError(result.errors[0]);
         setPage("");
-        onRobot(
-          `I found a wrinkle. ${result.errors[0]} The browser is very literal. It gets that from me.`,
-          "confused",
-        );
+        onActivity("retry", result.errors[0]);
         return;
       }
       token.current = `${exercise.id}-${id}-${Date.now()}`;
@@ -198,11 +191,11 @@ export default function TypedComputer({
         setAccepted(false);
         setPage("");
         setError("Program did not respond. Check for endless recursion.");
-        onRobot(
-          "Your program has taken an unauthorized coffee break. Check for a function that calls itself forever.",
-          "confused",
+        onActivity(
+          "retry",
+          "Your program did not respond. Check for a function that calls itself forever.",
         );
-      }, 6000);
+      }, 12000);
     };
     worker.current.postMessage({
       id,
@@ -226,9 +219,7 @@ export default function TypedComputer({
     const index = Math.min(hint, exercise.hints.length - 1);
     setHint((h) => h + 1);
     setMenu(null);
-    onRobot(
-      `Hint ${index + 1}: ${exercise.hints[index]} I have generously refrained from invoicing you.`,
-    );
+    onActivity("hint", `Hint ${index + 1}: ${exercise.hints[index]}`);
   }
   const items: Record<
     Menu,
@@ -456,12 +447,23 @@ export default function TypedComputer({
                     <button onClick={backToEditor}>Return to editor</button>
                   </div>
                 ) : page ? (
-                  <iframe
-                    ref={frame}
-                    title="Your retro browser"
-                    sandbox="allow-scripts"
-                    srcDoc={page}
-                  />
+                  <>
+                    <iframe
+                      ref={frame}
+                      title="Your retro browser"
+                      sandbox="allow-scripts"
+                      srcDoc={page}
+                      inert={busy}
+                    />
+                    {busy && (
+                      <div
+                        className="retro-preview-checking"
+                        aria-live="polite"
+                      >
+                        Checking your program…
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="retro-loading">
                     <pre>

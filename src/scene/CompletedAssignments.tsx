@@ -14,8 +14,8 @@ function PinnedAssignment({
     <group
       position={[
         3.88,
-        2.95 - Math.floor(index / 3) * 0.85,
-        -1.1 + (index % 3) * 0.9,
+        3.45 - Math.floor(index / 4) * 0.82,
+        -1.35 + (index % 4) * 0.8,
       ]}
       rotation={[0, -Math.PI / 2, 0]}
     >

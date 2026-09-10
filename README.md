@@ -15,21 +15,35 @@ Open Vite's local URL. `npm run build` produces `dist/` for a static web server.
 
 ## Learn and play
 
-The introductory task assumes basic JavaScript and HTML. Help is a separate topic library: React fundamentals is available immediately, JavaScript in JSX unlocks after **Hello B.U.G.**, and Component props unlocks after **Welcome, Human**.
+The course assumes basic JavaScript and HTML and builds one Scrum-style task board across 12 exercises:
 
-Click the computer to open an empty `Office.tsx` editor immediately. B.U.G.'s new assignment prints automatically: build an application with an `h1` that says **Hello B.U.G.** B.U.G. tells you when it is ready. Grab the paper from the printer to place it beside the monitor; only then does the Assignment shortcut become available. Click the desk sheet or shortcut to read it while typing; the camera makes room for the paper.
+1. Sprint board — components, JSX and expressions.
+2. Reusable task cards — typed props.
+3. Three columns, one board — arrays, filtering, mapping and stable keys.
+4. Give the board a memory — useState and event handlers.
+5. Capture a task — controlled inputs, validation and an add callback.
+6. Move work with callbacks — shared state and child-to-parent communication.
+7. Edit and delete safely — local drafts and immutable updates by ID.
+8. Extract useTaskBoard — a custom hook with a focused action API.
+9. Share the board with context — one provider and a guarded consumer hook.
+10. Find work and count it — search, derived counts and empty states.
+11. Synchronize with an effect — useEffect and the preview document title.
+12. Ship the Scrum board — responsive TODO / IN PROGRESS / DONE columns and a complete workflow.
 
-- Click the physical CRT to focus the computer. File → Exit or Escape returns to the office.
-- **File → Open** (Ctrl/Cmd+O) opens previous tasks or the next available exercise, restoring each task’s saved code.
-- **Help** opens your unlocked topic index. Select a topic to fill the terminal with its reference pages. Use Previous/Next or ←/→ to change pages, and the retro scrollbar, ↑/↓, or PgUp/PgDn to scroll. Escape returns to your editor with the draft and undo history intact.
-- **F5** or **Ctrl/Cmd+Enter** runs your TSX in **BUGSCAPE Navigator**. **F6** returns to the intact **B.U.G. BASIC** editor.
-- **Tab** indents. **Ctrl/Cmd+F** opens find/replace. Standard undo/redo shortcuts work.
-- **Alt+F/E/S/R** opens the File, Edit, Search, or Run menu. **Alt+H** opens Help directly. Arrow keys navigate menu items.
-- **Help** or **F1** opens course material directly. Click the printed assignment to open the paper brief. **Hint** offers progressively more help.
-- **Submit assignment** becomes available when the current source and rendered output pass. Editing or reloading requires another run.
-- After submission, complete the lesson, review it, or replay the assignment. Replay starts a fresh draft and keeps earned completion.
+Each exercise has a paper brief, hints, a tested solution, matching Help material and a scripted B.U.G. chapter. His awkward encouragement gradually becomes passive-aggressive anxiety about being replaced by a human. He reacts to collecting and reading paper, entering the editor, opening Help, first typing, running code, hints, mistakes, success, revisiting work and the campaign finale. Tips play once per assignment; dialogue position and printer delivery survive reloads. There are 24 Help pages. Each topic unlocks before its exercise, after the previous task is completed; previously unlocked topics remain available.
 
-Three tasks are available: **Hello B.U.G.**, **Welcome, Human**, and **Office status board**. Completing them grows the Help topic library. Unlocked topics remain available when revisiting earlier exercises. The previous 11-topic curriculum, final project, and endless generator are archived in `archive/` as authoring references.
+Click the computer to open Office.tsx. The first exercise starts empty; later exercises start from the preceding reference solution. Your own earlier drafts remain available through File → Open. Collect a new assignment from the printer, then click the physical sheet beside the monitor to read it. Unread sheets glow yellow, and collected/read paper survives reloads. Submitting pins the completed sheet on the right wall. Continue B.U.G.’s handoff and next briefing to start the following print; submitting alone never starts the printer.
+
+- **B.U.G.’s next arrow:** advance his story. The last briefing line offers **Print assignment →**. Printing starts only after that click.
+- **F1 / Help:** open the topic index. Previous/Next or ←/→ change pages. The retro scrollbar, ↑/↓ and PgUp/PgDn scroll. Escape restores the editor and its undo history.
+- **F5 / Ctrl/Cmd+Enter:** compile and run in BUGSCAPE. **F6:** return to the code.
+- **File → Open / Ctrl/Cmd+O:** restore a previous task's draft or open the next available exercise.
+- **Tab:** indent. **Ctrl/Cmd+F:** find/replace. Standard undo/redo shortcuts work.
+- **Alt+F/E/S/R:** open a menu; **Alt+H:** open Help.
+- **Hint:** request the next exercise hint. **Submit assignment:** available after source and runtime checks pass.
+- **File → Exit / Escape:** step back from the computer. Replay resets only its selected draft while preserving earned completion.
+
+Checks create, move, edit, delete and search actual rendered cards. Each scenario uses a fresh mount and the preview resets after checking so the learner can try a clean board. The final exercise also checks the wide column layout. The previous short example track is no longer registered; older authoring references remain in the repository.
 
 Settings include mute, reduced motion, and optional scanlines. B.U.G.'s dialogue is always captioned. There are no timers or retry penalties. WebGL is required for the office; a fallback keeps the learning and coding interface available without it.
 
@@ -49,16 +63,19 @@ Only `react` can be imported. Named and default exported function components are
 div section h1 h2 p span button input label ul li
 ```
 
-Fragments, capitalized components, Hooks, expressions, and event handlers are supported by the runtime, although the first lesson only teaches a heading. Unsupported tags, remote imports, navigation attributes, and direct HTML injection receive feedback. Browser alerts and console logs appear as captions inside the preview. This is targeted TSX feedback, not a complete TypeScript IDE.
+Fragments, capitalized components, Hooks, expressions, and event handlers are supported by the runtime, with progressively deeper use throughout the board track. Unsupported tags, remote imports, navigation attributes, and direct HTML injection receive feedback. Browser alerts and console logs appear as captions inside the preview. This is targeted TSX feedback, not a complete TypeScript IDE.
 
-Location, drafts, assignment completion, and settings save locally under `please-fix-human:v3`. The rebuilt course starts fresh with default settings; old v2 saves remain untouched. Existing v3 teaching and brief saves resume directly in the editor. Course reading is optional; completing assignments unlocks the next tasks and more Help topics. File → Open preserves saved work; only explicit Replay resets a draft. Corrupt or incompatible saves recover safely. Blocked storage allows session-only play and displays a notice. No accounts, backend, analytics, or runtime network requests are required.
+Location, drafts, paper collection/read status, assignment completion and settings save locally under `please-fix-human:v4`. The new track starts fresh because its exercise IDs and completion requirements differ from the old example track. Existing v2/v3 storage is left untouched. File → Open preserves saved work; explicit Replay resets a draft. Corrupt or incompatible saves recover safely. Blocked storage allows session-only play and displays a notice.
+
+The learner's board tasks are in-memory React state: they reset on F5 or reload. Source code and course progress are saved by the office. This course does not include board storage, accounts, a backend or multi-user synchronization. The document-title effect runs inside the preview, not the outer office tab.
 
 ## Source and checks
 
 - `src/curriculum/`: ordered exercises, assignment briefs, and validation requirements.
 - `src/course/`: independent Help topics, Markdown reference pages, and task-based unlock rules.
-- `src/progression.ts`: pure progression transitions, completion rules, and v3 persistence.
-- `src/game/useGame.ts`: game state, B.U.G.'s dialogue, sound, and focus.
+- `src/progression.ts`: pure progression transitions, completion rules, and v4 persistence.
+- `src/game/useGame.ts`: game state, event wiring, sound, and focus.
+- `src/game/story.ts` and `storyScripts.ts`: saved dialogue cursors, explicit print gating and twelve authored story chapters.
 - `src/computer/`: integrated course Help, Markdown rendering, navigation, and completion screens.
 - `src/TypedComputer.tsx` and `src/RetroEditor.tsx`: compiler integration, CodeMirror editing, and editor/browser switching.
 - `src/typed-engine.ts`, `src/validation/`, and `src/sandbox/`: source checks, rendered-output checks, and isolated execution.
@@ -72,7 +89,7 @@ npm run test:browser
 npm run build
 ```
 
-Tests cover progression with multiple assignments, content integrity, component exports, saved drafts, rendered output, full lesson completion and replay, sandbox behavior, editor interactions, and the printer. Browser screenshots go to `test-results/`.
+Tests cover progression with multiple assignments, content integrity, component exports, saved drafts, rendered interactions for all 12 checkpoints, deliberately broken implementations, final course completion and replay, sandbox behavior, editor interactions, and the printer. Browser screenshots go to `test-results/`.
 
 ## Attribution
 

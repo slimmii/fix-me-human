@@ -8,6 +8,11 @@ import {
 } from "../src/scene/printerAnimation";
 
 describe("printer lifecycle", () => {
+  it("stays idle indefinitely until the story requests a print", () => {
+    expect(samplePrinter("idle", 999, false).stage).toBe("idle");
+    expect(samplePrinter("idle", 999, true).output.visible).toBe(false);
+    expect(isPrinterBusy("idle")).toBe(false);
+  });
   it("feeds and prints the sheet, then waits for the user to collect it", () => {
     const feeding = samplePrinter("printing", 0.6, false);
     expect(feeding.input.visible).toBe(true);

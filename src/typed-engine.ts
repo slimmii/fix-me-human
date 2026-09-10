@@ -113,14 +113,54 @@ export function evaluateSourceRules(
   rules: SourceRule[],
 ): { entry: string; checks: CodeCheck[] } {
   const component = componentExport(file);
+  const calls = new Set<string>();
+  const definitions = new Set<string>();
+  const rendered = new Set<string>();
+  const imports = new Map<string, string>();
+  for (const statement of file.statements) {
+    if (
+      ts.isImportDeclaration(statement) &&
+      statement.importClause?.namedBindings &&
+      ts.isNamedImports(statement.importClause.namedBindings)
+    )
+      for (const item of statement.importClause.namedBindings.elements)
+        imports.set(item.name.text, item.propertyName?.text ?? item.name.text);
+  }
+  const inspect = (node: ts.Node) => {
+    if (ts.isCallExpression(node)) {
+      const name = ts.isIdentifier(node.expression)
+        ? node.expression.text
+        : ts.isPropertyAccessExpression(node.expression)
+          ? node.expression.name.text
+          : "";
+      calls.add(imports.get(name) ?? name);
+    }
+    if (ts.isFunctionDeclaration(node) && node.name)
+      definitions.add(node.name.text);
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      (ts.isArrowFunction(node.initializer) ||
+        ts.isFunctionExpression(node.initializer))
+    )
+      definitions.add(node.name.text);
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node))
+      rendered.add(node.tagName.getText(file));
+    ts.forEachChild(node, inspect);
+  };
+  inspect(file);
   return {
     entry: component?.entry ?? "default",
     checks: rules.map((rule) => ({
       label: rule.label || "Unknown source rule",
       pass:
         validSourceRule(rule) &&
-        !!component?.function &&
-        /^[A-Z]/.test(component.name),
+        (rule.type === "uses-call"
+          ? calls.has(rule.name)
+          : rule.type === "component"
+            ? definitions.has(rule.name) && rendered.has(rule.name)
+            : !!component?.function && /^[A-Z]/.test(component.name)),
     })),
   };
 }

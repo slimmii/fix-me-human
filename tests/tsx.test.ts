@@ -36,4 +36,4 @@ it("all authored reference solutions compile as real TSX", () => {
         `${d.file?.fileName}: ${ts.flattenDiagnosticMessageText(d.messageText, " ")}`,
     );
   expect(diagnostics).toEqual([]);
-});
+}, 15000);

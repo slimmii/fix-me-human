@@ -4,6 +4,7 @@ export type SceneProps = {
   assignment: import("../curriculum/types").Assignment;
   assignmentOpen: boolean;
   assignmentReady: boolean;
+  assignmentPrintRequested: boolean;
   assignmentCollected: boolean;
   assignmentUnread: boolean;
   onAssignment: () => void;

@@ -9,7 +9,7 @@ test("typing, replacing, deleting and indenting preserve the caret mid-code", as
   const save = codingSave();
   save.settings.reducedMotion = true;
   save.settings.mute = true;
-  save.drafts["hello-bug"] = original;
+  save.drafts["board-shell"] = original;
   await page.addInitScript(
     ([key, value]) => {
       if (window === window.top && !localStorage.getItem(key))
@@ -22,7 +22,7 @@ test("typing, replacing, deleting and indenting preserve the caret mid-code", as
   const editor = page.getByRole("textbox", { name: "Your React code" });
   const saved = () =>
     page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).drafts["hello-bug"],
+      (key) => JSON.parse(localStorage.getItem(key)!).drafts["board-shell"],
       KEY,
     );
   await page.locator(".cm-line").first().click();
