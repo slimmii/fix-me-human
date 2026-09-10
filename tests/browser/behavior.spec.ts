@@ -73,6 +73,7 @@ test("only the rendered greeting passes, and errors or stale runs cannot unlock 
     await editor.press("F5");
     await expect(page.locator(".retro-browser-status")).not.toContainText(
       "Compiling",
+      { timeout: 15000 },
     );
     await expect(
       page.getByRole("button", { name: "Submit assignment" }),

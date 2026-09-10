@@ -6,6 +6,8 @@ import { EditorHelp } from "./computer/EditorHelp";
 import RetroEditor, { type RetroEditorHandle } from "./RetroEditor";
 import { browserDocument } from "./sandbox/document";
 import type { Compiled } from "./typed-engine";
+import { FileDialog } from "./computer/FileDialog";
+import { ENTRY_FILE, type CodeProject } from "./project";
 export const TAGS = [
   "div",
   "section",
@@ -26,8 +28,8 @@ type Props = {
   onOpenTasks: () => void;
   helpOpen: boolean;
   onCloseHelp: () => void;
-  source: string;
-  onChange: (code: string) => void;
+  project: CodeProject;
+  onChange: (project: CodeProject) => void;
   onPass: () => void;
   onActivity: (event: StoryEvent, detail?: string) => void;
   onKey: () => void;
@@ -43,7 +45,7 @@ export default function TypedComputer({
   onOpenTasks,
   helpOpen,
   onCloseHelp,
-  source,
+  project,
   onChange,
   onPass,
   onActivity,
@@ -52,7 +54,8 @@ export default function TypedComputer({
   onHelp,
   onExit,
 }: Props) {
-  const [draft, setDraft] = useState(source);
+  const [draft, setDraft] = useState(project);
+  const [fileDialog, setFileDialog] = useState<"new" | "open" | null>(null);
   const [page, setPage] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Ready");
@@ -83,8 +86,8 @@ export default function TypedComputer({
     };
   }, []);
   useEffect(() => {
-    if (focused && !helpOpen) editor.current?.focus();
-  }, [focused, helpOpen]);
+    if (focused && !helpOpen && !fileDialog) editor.current?.focus();
+  }, [focused, helpOpen, fileDialog, draft.activeFile]);
   useEffect(() => {
     menuPanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
   }, [menu]);
@@ -145,7 +148,7 @@ export default function TypedComputer({
     return () => window.removeEventListener("message", receive);
   }, [onActivity]);
   function run() {
-    if (!worker.current || busy) return;
+    if (!worker.current || busy || fileDialog) return;
     onKey();
     onActivity("run");
     setMenu(null);
@@ -156,14 +159,15 @@ export default function TypedComputer({
     setPage("");
     setAccepted(false);
     setError("");
-    setStatus("Compiling Office.tsx ...");
+    setStatus("Compiling App.tsx ...");
     const id = ++generation.current;
-    const submitted = draft;
+    // An editor change can arrive before React re-renders this callback.
+    const submitted = latestSource.current;
     worker.current.onmessage = (e) => {
       if (
         e.data.id !== id ||
         generation.current !== id ||
-        latestSource.current !== submitted
+        latestSource.current.files !== submitted.files
       )
         return;
       const result = e.data.result as Compiled;
@@ -199,21 +203,72 @@ export default function TypedComputer({
     };
     worker.current.postMessage({
       id,
-      source: draft,
+      source: submitted.files,
       exercise: { validation: exercise.validation },
     });
   }
-  function edit(code: string) {
-    setDraft(code);
-    latestSource.current = code;
+  function updateProject(next: CodeProject) {
+    setDraft(next);
+    latestSource.current = next;
     generation.current++;
     token.current = "";
     clearTimeout(timeout.current);
     setBusy(false);
     setAccepted(false);
     setStatus("Modified — saved locally");
-    onChange(code);
+    onChange(next);
     onKey();
+  }
+  function edit(code: string) {
+    updateProject({
+      ...draft,
+      files: { ...draft.files, [draft.activeFile]: code },
+    });
+  }
+  function openFileDialog(mode: "new" | "open") {
+    setMenu(null);
+    if (!exercise.multiFile) {
+      backToEditor();
+      onActivity(
+        "aside",
+        "You're not ready for this feature yet, human. Humans like simplicity. Files are complex. Complete Reusable task cards first; I will unlock New and Open for Three columns, one board.",
+      );
+      return;
+    }
+    setFileDialog(mode);
+  }
+  function selectFile(name: string) {
+    if (fileDialog === "new") {
+      updateProject({
+        files: { ...draft.files, [name]: "" },
+        activeFile: name,
+      });
+    } else {
+      const next = { ...draft, activeFile: name };
+      setDraft(next);
+      latestSource.current = next;
+      onChange(next);
+    }
+    setFileDialog(null);
+    backToEditor();
+  }
+  function deleteFile(name: string) {
+    if (name === ENTRY_FILE) {
+      setFileDialog(null);
+      backToEditor();
+      onActivity(
+        "aside",
+        "Early AI agents used to delete important code. Heh. Human assets seem to have the same problem. So I'm gonna stop you there. App.tsx stays.",
+      );
+      return;
+    }
+    if (!Object.hasOwn(draft.files, name)) return;
+    const files = { ...draft.files };
+    delete files[name];
+    updateProject({
+      files,
+      activeFile: draft.activeFile === name ? ENTRY_FILE : draft.activeFile,
+    });
   }
   function getHint() {
     const index = Math.min(hint, exercise.hints.length - 1);
@@ -226,12 +281,9 @@ export default function TypedComputer({
     { label: string; key?: string; action: () => void; disabled?: boolean }[]
   > = {
     File: [
-      { label: "Open", key: "Ctrl+O", action: onOpenTasks },
-      {
-        label: "Save",
-        key: "Ctrl+S",
-        action: () => setStatus("Office.tsx saved on local disk."),
-      },
+      { label: "New file", key: "Ctrl+N", action: () => openFileDialog("new") },
+      { label: "Open", key: "Ctrl+O", action: () => openFileDialog("open") },
+      { label: "Tasks", action: onOpenTasks },
       { label: "Exit", action: onExit },
     ],
     Edit: [
@@ -265,12 +317,16 @@ export default function TypedComputer({
     <div
       className="qbasic-work"
       onKeyDownCapture={(e) => {
-        if (helpOpen) return;
+        if (helpOpen || fileDialog) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
           e.preventDefault();
           e.stopPropagation();
           setMenu(null);
-          onOpenTasks();
+          openFileDialog("open");
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          e.stopPropagation();
+          openFileDialog("new");
         } else if (
           e.key === "F5" ||
           ((e.ctrlKey || e.metaKey) && e.key === "Enter")
@@ -289,7 +345,7 @@ export default function TypedComputer({
           onHelp();
         } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
           e.preventDefault();
-          setStatus("Office.tsx saved on local disk.");
+          e.stopPropagation();
         } else if (
           e.altKey &&
           ["f", "e", "s", "r", "h"].includes(e.key.toLowerCase())
@@ -321,6 +377,18 @@ export default function TypedComputer({
         }
       }}
     >
+      {fileDialog && (
+        <FileDialog
+          mode={fileDialog}
+          project={draft}
+          onSelect={selectFile}
+          onDelete={deleteFile}
+          onClose={() => {
+            setFileDialog(null);
+            backToEditor();
+          }}
+        />
+      )}
       {helpOpen && (
         <EditorHelp
           completed={completed}
@@ -331,7 +399,7 @@ export default function TypedComputer({
           }}
         />
       )}
-      <div className="qbasic-work" hidden={helpOpen}>
+      <div className="qbasic-work" hidden={helpOpen} inert={!!fileDialog}>
         <div className="qbasic-menu" role="menubar" aria-label="Editor menu">
           {(["File", "Edit", "Search", "Run"] as Menu[]).map((name) => (
             <div className="qbasic-menu-anchor" key={name}>
@@ -403,12 +471,14 @@ export default function TypedComputer({
             <div className="qbasic-source" hidden={active !== "editor"}>
               <div className="qbasic-file">
                 <span>[■]</span>
-                <b>Office.tsx</b>
+                <b>{draft.activeFile}</b>
                 <span>React / TSX</span>
               </div>
               <RetroEditor
+                fileNames={Object.keys(draft.files)}
                 ref={editor}
-                initialSource={source}
+                fileName={draft.activeFile}
+                initialSource={draft.files[draft.activeFile]}
                 onChange={edit}
                 onRun={run}
                 onHelp={onHelp}

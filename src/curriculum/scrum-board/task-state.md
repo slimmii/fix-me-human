@@ -9,6 +9,8 @@ The board looks organized but remembers nothing. We already have management for 
 3. Each click adds **Review backlog** to TODO with a unique numeric ID.
 4. Use a functional setter and a new array; preserve existing tasks.
 
+Keep your existing modules. Import `useState` in App.tsx and import the shared Task type and initial tasks from tasks.ts.
+
 **Try it:** Click twice: TODO should have three cards, and the board five in total.
 
 **F1:** State with useState.

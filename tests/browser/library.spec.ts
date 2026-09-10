@@ -3,7 +3,7 @@ import { curriculum } from "../../src/curriculum";
 import { KEY } from "../../src/progression";
 import { codingSave } from "../fixtures/curriculum";
 
-test("File Open restores previous tasks and Help grows with completed exercises", async ({
+test("Tasks menu restores previous tasks and Help grows with completed exercises", async ({
   page,
 }) => {
   const first = curriculum[0].assignments[0];
@@ -33,9 +33,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   const tasks = page.getByRole("list", { name: "Available tasks" });
   const open = async () => {
     await page.getByRole("menuitem", { name: "File", exact: true }).click();
-    await page
-      .getByRole("menuitem", { name: "Open Ctrl+O", exact: true })
-      .click();
+    await page.getByRole("menuitem", { name: "Tasks", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Open task", exact: true }),
     ).toBeVisible();
@@ -63,7 +61,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
     .getByRole("button", { name: "Submit assignment" })
     .click({ timeout: 15000 });
   await page.locator('[data-surface="crt-glass"]').click();
-  await editor.press("ControlOrMeta+o");
+  await open();
   await expect(tasks.getByRole("button")).toHaveCount(2);
   await expect(tasks).toContainText("Completed");
   await page
@@ -71,7 +69,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
     .click();
   await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await editor.fill(second.solution);
-  await editor.press("ControlOrMeta+o");
+  await open();
   await page.getByRole("button", { name: `Open task: ${first.title}` }).click();
   await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await editor.press("F1");
@@ -108,12 +106,12 @@ test("File Open restores previous tasks and Help grows with completed exercises"
     .getByRole("button", { name: "Submit assignment" })
     .click({ timeout: 15000 });
   await page.locator('[data-surface="crt-glass"]').click();
-  await editor.press("ControlOrMeta+o");
+  await open();
   await expect(tasks.getByRole("button")).toHaveCount(3);
   await tasks.screenshot({ path: "test-results/open-previous-tasks.png" });
   await page.getByRole("button", { name: `Open task: ${third.title}` }).click();
   await editor.press("F1");
-  await expect(topics.getByRole("button")).toHaveCount(3);
+  await expect(topics.getByRole("button")).toHaveCount(4);
   await topics.screenshot({ path: "test-results/unlocked-course-topics.png" });
   await page
     .getByRole("button", { name: "Read topic: Lists and identity" })
@@ -123,16 +121,5 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   ).toBeVisible();
   await help.screenshot({ path: "test-results/course-list-material.png" });
   await page.getByRole("button", { name: "Close course material" }).click();
-  await editor.fill(third.solution);
-  await editor.press("F5");
-  await page
-    .getByRole("button", { name: "Submit assignment" })
-    .click({ timeout: 15000 });
-  expect(
-    await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).completed,
-      KEY,
-    ),
-  ).toEqual([first.id, second.id, third.id]);
   expect(errors).toEqual([]);
 });

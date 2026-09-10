@@ -1,6 +1,6 @@
 import TypedComputer from "../TypedComputer";
 import { sound } from "../audio";
-import { assignmentSource } from "../progression";
+import { assignmentProject } from "../progression";
 import type { GameController } from "../game/useGame";
 import { AssignmentReview } from "./AssignmentReview";
 import { TaskMenu } from "./TaskMenu";
@@ -20,8 +20,8 @@ export function GameComputer({ game }: { game: GameController }) {
             completed={save.completed}
             onOpenTasks={() => game.setShowTasks(true)}
             key={assignment.id}
-            source={assignmentSource(save, assignment.id)}
-            onChange={(code) => dispatch({ type: "draft", code })}
+            project={assignmentProject(save, assignment.id)}
+            onChange={(project) => dispatch({ type: "project", project })}
             onPass={() => dispatch({ type: "submit" })}
             onExit={() => game.setFocused(false)}
             onActivity={game.activity}

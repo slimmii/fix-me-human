@@ -192,7 +192,15 @@ export function useGame() {
     setSave((current) => {
       let next = transition(current, action);
       if (next === current) return current;
-      if (action.type === "draft" && action.code.trim())
+      if (
+        (action.type === "draft" && action.code.trim()) ||
+        (action.type === "project" &&
+          Object.entries(action.project.files).some(
+            ([name, code]) =>
+              code.trim() &&
+              code !== current.projects[current.assignmentId]?.files[name],
+          ))
+      )
         next = record(next, "typing");
       if (action.type === "submit") {
         const previousChapter = contextFor(current).chapter;

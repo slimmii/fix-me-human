@@ -1,32 +1,49 @@
-Context supplies a value to components below a provider without forwarding it through every intermediate component. The value can contain both state and action functions.
+Context lets a component read a value supplied by an ancestor without passing it through every component in between. The value can be text, settings, or an object containing data and functions. A custom hook is not required.
 
-This example uses `useCounter` from the Custom hooks topic, defined in the same file:
+This complete example shares a greeting. Keep these definitions together in App.tsx:
 
+<!-- prettier-ignore -->
 ```tsx
-import { createContext } from "react";
-import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 
-const CounterContext = createContext<ReturnType<typeof useCounter> | null>(
-  null,
-);
-
-interface CounterProviderProps {
-  children: ReactNode;
+interface GreetingContextProps {
+  greeting: string;
 }
 
-function CounterProvider({ children }: CounterProviderProps) {
-  const counter = useCounter();
+const GreetingContext = createContext<GreetingContextProps | null>(null);
+
+function Welcome() {
+  const message = useContext(GreetingContext);
+  if (message === null) {
+    throw Error("Welcome needs a GreetingContext provider");
+  }
 
   return (
-    <CounterContext.Provider value={counter}>
-      {children}
-    </CounterContext.Provider>
+    <p>{message.greeting}</p>
+  );
+}
+
+function Panel() {
+  return (
+    <section>
+      <Welcome />
+    </section>
+  );
+}
+
+export default function App() {
+  return (
+    <GreetingContext.Provider value={{ greeting: "Hello, visitor!" }}>
+      <Panel />
+    </GreetingContext.Provider>
   );
 }
 ```
 
-Create the context outside components. `ReturnType<typeof useCounter>` describes the object returned by the hook, including its actions. `| null` allows a missing-provider value; the argument `null` sets that default.
+`createContext` creates the context outside the components. The interface describes its value: an object with a string named `greeting`. `| null` allows the missing-provider case, and the argument `null` supplies that default. It does not set the provider's value.
 
-The provider calls the stateful hook once and supplies its result through `value`. `children` is the nested JSX between the provider's opening and closing tags. `ReactNode` is React's type for renderable content.
+The provider's `value` prop supplies the greeting to components nested below it. `Panel` does not receive or forward a greeting prop; `Welcome` reads it directly with `useContext`. The double braces in `value={{ ... }}` are a JSX expression containing an object.
 
-All components that need this value must be below the same provider. Putting a separate provider around each consumer would create independent counters. The provider supplies an existing state value; context itself does not store the count.
+Call `useContext` at the component's top level. It reads the nearest matching provider above that component. Without one, it returns the context's default. The guard gives a clear error in that case and tells TypeScript that `message` is not null afterward.
+
+Context carries a value; it does not store state itself. This greeting is fixed, but a provider can also supply a value from `useState`. When that value changes, components reading the context receive the update. Use ordinary props when passing a value directly to a child is already clear.

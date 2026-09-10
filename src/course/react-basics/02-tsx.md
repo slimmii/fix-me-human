@@ -1,4 +1,4 @@
-In this computer, you write your component in **Office.tsx**.
+In this computer, you write your component in **App.tsx**.
 
 The `.tsx` extension means a TypeScript file can contain **JSX**: markup written inside JavaScript code. It looks much like the HTML you know.
 

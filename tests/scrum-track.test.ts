@@ -9,18 +9,23 @@ const assignments = curriculum.flatMap((lesson) => lesson.assignments);
 describe("complete Scrum board course", () => {
   it("provides 12 incremental checkpoints with material available before each task", () => {
     expect(assignments).toHaveLength(12);
-    expect(courseTopics.flatMap((topic) => topic.pages)).toHaveLength(24);
+    expect(courseTopics.flatMap((topic) => topic.pages)).toHaveLength(26);
     let save = transition(fresh(), { type: "enter" });
     for (const [index, assignment] of assignments.entries()) {
       expect(save.assignmentId).toBe(assignment.id);
       expect(assignment.starterCode).toBe(assignments[index - 1]?.solution);
-      expect(unlockedTopics(save.completed)).toHaveLength(index + 1);
+      expect(unlockedTopics(save.completed)).toHaveLength(
+        index + 1 + (index >= 2 ? 1 : 0),
+      );
       expect(
-        compileCode(assignment.solution, assignment).checks.every(
+        compileCode(assignment.solutionFiles!, assignment).checks.every(
           (check) => check.pass,
         ),
       ).toBe(true);
-      save = transition(save, { type: "draft", code: assignment.solution });
+      save = transition(save, {
+        type: "project",
+        project: { files: assignment.solutionFiles!, activeFile: "App.tsx" },
+      });
       save = transition(save, { type: "submit" });
       expect(save.completed).toHaveLength(index + 1);
       save = decode(JSON.stringify(save));
@@ -50,7 +55,7 @@ describe("complete Scrum board course", () => {
     const fake = `// useTaskBoard(); useState();\nconst words = "TaskCard BoardColumn AddTask";\nexport default function App(){return <h1>Sprint board</h1>}`;
     expect(
       compileCode(fake, assignment).checks.filter((check) => !check.pass),
-    ).toHaveLength(5);
+    ).toHaveLength(8);
   });
   it("rejects malformed runtime scenarios and layout rules", () => {
     for (const rule of [

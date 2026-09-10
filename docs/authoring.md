@@ -28,20 +28,20 @@ Help teaches the concepts; briefs supply the required component names, labels, d
 
 Review coverage before changing a page. Each concept must be available before the first assignment that needs it:
 
-| Assignment      | Help topic                     | Required foundations                                                                                              |
-| --------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| 1. Shell        | React fundamentals             | Exported component, JSX, expressions, return grouping, run/edit workflow and sandbox limits                       |
-| 2. Cards        | Components and props           | Interfaces, typed props, destructuring, composition and HTML list structure                                       |
-| 3. Columns      | Lists and identity             | Object/array props, unions, filter/map, callback returns, keys, headings, aria-label and data attributes          |
-| 4. State        | State with useState            | Imports, hook rules, snapshots, click handlers, typed arrays, functional setters, spread and numeric IDs          |
-| 5. Input        | Events and controlled inputs   | value/onChange, event text, typed function props, trim/blank validation, callback wiring and clearing drafts      |
-| 6. Callbacks    | Callbacks and shared state     | Shared owner, forwarding typed callbacks, arguments, conditional JSX and replacement by ID with map/spread        |
-| 7. Editing      | Immutable editing and deletion | Local drafts, reopening, save/cancel, blank saves, immutable replacement/removal and duplicate identities         |
-| 8. Hook         | Custom hooks                   | Extract state and operations, returned action API, hook rules and independent state per call                      |
-| 9. Context      | Context and providers          | createContext, null default, provider placement, children/ReactNode, ReturnType, useContext and guarded consumers |
-| 10. Search      | Search and derived state       | Controlled query, normalization/includes, grouped filtering, totals before search and empty states                |
-| 11. Effect      | Effects and synchronization    | Render/event/effect distinction, document.title, template strings, dependencies and totals from saved data        |
-| 12. Integration | Layout and review              | Inline styles, flexible widths, wrapping/overflow, accessible controls and complete interaction checks            |
+| Assignment      | Help topic                     | Required foundations                                                                                                                                              |
+| --------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Shell        | React fundamentals             | Exported component, JSX, expressions, return grouping, run/edit workflow and sandbox limits                                                                       |
+| 2. Cards        | Components and props           | Interfaces, typed props, destructuring, composition and HTML list structure                                                                                       |
+| 3. Columns      | Lists and identity             | Object/array props, unions, filter/map, callback returns, keys, headings, aria-label and data attributes                                                          |
+| 4. State        | State with useState            | Imports, hook rules, snapshots, click handlers, typed arrays, functional setters, spread and numeric IDs                                                          |
+| 5. Input        | Events and controlled inputs   | value/onChange, event text, typed function props, trim/blank validation, callback wiring and clearing drafts                                                      |
+| 6. Callbacks    | Callbacks and shared state     | Shared owner, forwarding typed callbacks, arguments, conditional JSX and replacement by ID with map/spread                                                        |
+| 7. Editing      | Immutable editing and deletion | Local drafts, reopening, save/cancel, blank saves, immutable replacement/removal and duplicate identities                                                         |
+| 8. Hook         | Custom hooks                   | Extract state and operations, returned action API, hook rules and independent state per call                                                                      |
+| 9. Context      | Context and providers          | createContext, explicit value interfaces, null default, provider placement, direct useContext reads and guards, then optional custom hooks and children/ReactNode |
+| 10. Search      | Search and derived state       | Controlled query, normalization/includes, grouped filtering, totals before search and empty states                                                                |
+| 11. Effect      | Effects and synchronization    | Render/event/effect distinction, document.title, template strings, dependencies and totals from saved data                                                        |
+| 12. Integration | Layout and review              | Inline styles, flexible widths, wrapping/overflow, accessible controls and complete interaction checks                                                            |
 
 Help has keyboard paging and retro scrolling. Earned topics stay available when revisiting tasks and across reloads. File → Open restores code without erasing progress; explicit Replay resets its selected draft.
 

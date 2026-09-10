@@ -41,6 +41,8 @@ export type RetroEditorHandle = {
 };
 type Props = {
   initialSource: string;
+  fileName: string;
+  fileNames: string[];
   onChange: (source: string) => void;
   onRun: () => void;
   onHelp: () => void;
@@ -99,6 +101,7 @@ const colors = HighlightStyle.define([
 ]);
 export default forwardRef<RetroEditorHandle, Props>(
   function RetroEditor(props, ref) {
+    const buffers = useRef(new Map<string, EditorState>());
     const host = useRef<HTMLDivElement>(null);
     const view = useRef<EditorView | null>(null);
     const callbacks = useRef(props);
@@ -175,145 +178,158 @@ export default forwardRef<RetroEditorHandle, Props>(
       doc.addEventListener("keydown", forwardKey, true);
       const editor = new EditorView({
         parent: doc.body,
-        state: EditorState.create({
-          doc: callbacks.current.initialSource,
-          extensions: [
-            rowNumbers,
-            EditorView.editorAttributes.compute(["doc"], (state) => ({
-              style: `--line-number-width: ${Math.max(3, String(state.doc.lines).length) + 2}ch`,
-            })),
-            history(),
-            highlightActiveLine(),
-            bracketMatching(),
-            closeBrackets(),
-            highlightSelectionMatches(),
-            indentUnit.of("  "),
-            javascript({ jsx: true, typescript: true }),
-            syntaxHighlighting(colors),
-            EditorView.contentAttributes.of({
-              "aria-label": "Your React code",
-              spellcheck: "false",
-              autocapitalize: "off",
-            }),
-            keymap.of([
-              {
-                key: "F5",
-                run: () => {
-                  callbacks.current.onRun();
-                  return true;
+        state:
+          buffers.current.get(props.fileName) ??
+          EditorState.create({
+            doc: callbacks.current.initialSource,
+            extensions: [
+              rowNumbers,
+              EditorView.editorAttributes.compute(["doc"], (state) => ({
+                style: `--line-number-width: ${Math.max(3, String(state.doc.lines).length) + 2}ch`,
+              })),
+              history(),
+              highlightActiveLine(),
+              bracketMatching(),
+              closeBrackets(),
+              highlightSelectionMatches(),
+              indentUnit.of("  "),
+              javascript({ jsx: true, typescript: true }),
+              syntaxHighlighting(colors),
+              EditorView.contentAttributes.of({
+                "aria-label": "Your React code",
+                spellcheck: "false",
+                autocapitalize: "off",
+              }),
+              keymap.of([
+                {
+                  key: "F5",
+                  run: () => {
+                    callbacks.current.onRun();
+                    return true;
+                  },
                 },
-              },
-              {
-                key: "Mod-Enter",
-                run: () => {
-                  callbacks.current.onRun();
-                  return true;
+                {
+                  key: "Mod-Enter",
+                  run: () => {
+                    callbacks.current.onRun();
+                    return true;
+                  },
                 },
-              },
-              {
-                key: "F1",
-                run: () => {
-                  callbacks.current.onHelp();
-                  return true;
+                {
+                  key: "F1",
+                  run: () => {
+                    callbacks.current.onHelp();
+                    return true;
+                  },
                 },
-              },
-              indentWithTab,
-              ...closeBracketsKeymap,
-              ...defaultKeymap,
-              ...historyKeymap,
-              ...searchKeymap,
-            ]),
-            EditorView.updateListener.of((update) => {
-              if (update.docChanged)
-                callbacks.current.onChange(update.state.doc.toString());
-              if (update.docChanged || update.selectionSet) {
-                const pos = update.state.selection.main.head;
-                const line = update.state.doc.lineAt(pos);
-                callbacks.current.onCursor(line.number, pos - line.from + 1);
-              }
-            }),
-            EditorView.theme({
-              "&": {
-                height: "100%",
-                backgroundColor: "#000080",
-                color: "#aaaaaa",
-                fontSize: "var(--terminal-font-size)",
-              },
-              "&.cm-focused": { outline: "none" },
-              ".cm-scroller": {
-                fontFamily: '"Courier New", monospace',
-                lineHeight: "var(--terminal-line-height)",
-                overflow: "scroll",
-              },
-              ".cm-content": {
-                padding: "4px 0",
-                caretColor: "#ffff55",
-                caretShape: "block",
-              },
-              ".cm-line": {
-                position: "relative",
-                padding: "0 8px 0 calc(var(--line-number-width) + 24px)",
-              },
-              ".cm-line::before": {
-                content: "attr(data-line-number)",
-                position: "absolute",
-                left: "0",
-                top: "0",
-                width: "var(--line-number-width)",
-                paddingRight: "12px",
-                textAlign: "right",
-                color: "#5555aa",
-                borderRight: "1px solid #5555aa",
-                userSelect: "none",
-                pointerEvents: "none",
-              },
-              ".cm-activeLine::before": { color: "#ffff55" },
-              ".cm-dropCursor": { borderLeft: "2px solid #ffff55" },
-              ".cm-activeLine": { backgroundColor: "#ffffff08" },
-              ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-                backgroundColor: "#5555aa!important",
-              },
-              ".cm-matchingBracket": {
-                backgroundColor: "#00aaaa",
-                color: "#000080",
-              },
-              ".cm-panels": {
-                backgroundColor: "#aaaaaa",
-                color: "#000000",
-                fontFamily: '"Courier New", monospace',
-                fontSize: "var(--terminal-font-size)",
-              },
-              ".cm-textfield": {
-                borderRadius: "0",
-                backgroundColor: "#000080",
-                color: "#ffff55",
-                border: "1px solid #ffffff",
-              },
-              ".cm-button": {
-                backgroundImage: "none",
-                backgroundColor: "#aaaaaa",
-                color: "#000000",
-                borderRadius: "0",
-                border: "2px outset #dddddd",
-                fontFamily: "inherit",
-              },
-              ".cm-searchMatch": {
-                backgroundColor: "#aa5500",
-                outline: "1px solid #ffff55",
-              },
-            }),
-          ],
-        }),
+                indentWithTab,
+                ...closeBracketsKeymap,
+                ...defaultKeymap,
+                ...historyKeymap,
+                ...searchKeymap,
+              ]),
+              EditorView.updateListener.of((update) => {
+                if (update.docChanged)
+                  callbacks.current.onChange(update.state.doc.toString());
+                if (update.docChanged || update.selectionSet) {
+                  const pos = update.state.selection.main.head;
+                  const line = update.state.doc.lineAt(pos);
+                  callbacks.current.onCursor(line.number, pos - line.from + 1);
+                }
+              }),
+              EditorView.theme({
+                "&": {
+                  height: "100%",
+                  backgroundColor: "#000080",
+                  color: "#aaaaaa",
+                  fontSize: "var(--terminal-font-size)",
+                },
+                "&.cm-focused": { outline: "none" },
+                ".cm-scroller": {
+                  fontFamily: '"Courier New", monospace',
+                  lineHeight: "var(--terminal-line-height)",
+                  overflow: "scroll",
+                },
+                ".cm-content": {
+                  padding: "4px 0",
+                  caretColor: "#ffff55",
+                  caretShape: "block",
+                },
+                ".cm-line": {
+                  position: "relative",
+                  padding: "0 8px 0 calc(var(--line-number-width) + 24px)",
+                },
+                ".cm-line::before": {
+                  content: "attr(data-line-number)",
+                  position: "absolute",
+                  left: "0",
+                  top: "0",
+                  width: "var(--line-number-width)",
+                  paddingRight: "12px",
+                  textAlign: "right",
+                  color: "#5555aa",
+                  borderRight: "1px solid #5555aa",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                },
+                ".cm-activeLine::before": { color: "#ffff55" },
+                ".cm-dropCursor": { borderLeft: "2px solid #ffff55" },
+                ".cm-activeLine": { backgroundColor: "#ffffff08" },
+                ".cm-selectionBackground, &.cm-focused .cm-selectionBackground":
+                  {
+                    backgroundColor: "#5555aa!important",
+                  },
+                ".cm-matchingBracket": {
+                  backgroundColor: "#00aaaa",
+                  color: "#000080",
+                },
+                ".cm-panels": {
+                  backgroundColor: "#aaaaaa",
+                  color: "#000000",
+                  fontFamily: '"Courier New", monospace',
+                  fontSize: "var(--terminal-font-size)",
+                },
+                ".cm-textfield": {
+                  borderRadius: "0",
+                  backgroundColor: "#000080",
+                  color: "#ffff55",
+                  border: "1px solid #ffffff",
+                },
+                ".cm-button": {
+                  backgroundImage: "none",
+                  backgroundColor: "#aaaaaa",
+                  color: "#000000",
+                  borderRadius: "0",
+                  border: "2px outset #dddddd",
+                  fontFamily: "inherit",
+                },
+                ".cm-searchMatch": {
+                  backgroundColor: "#aa5500",
+                  outline: "1px solid #ffff55",
+                },
+              }),
+            ],
+          }),
       });
       view.current = editor;
+      const cursor = editor.state.selection.main.head;
+      const line = editor.state.doc.lineAt(cursor);
+      callbacks.current.onCursor(line.number, cursor - line.from + 1);
       return () => {
+        if (callbacks.current.fileNames.includes(props.fileName))
+          buffers.current.set(props.fileName, editor.state);
         editor.destroy();
         doc.removeEventListener("keydown", forwardKey, true);
         resize.disconnect();
         frame.remove();
         view.current = null;
       };
-    }, []);
+    }, [props.fileName]);
+    useEffect(() => {
+      for (const name of buffers.current.keys()) {
+        if (!props.fileNames.includes(name)) buffers.current.delete(name);
+      }
+    }, [props.fileNames]);
     return (
       <div
         className="qbasic-editor"

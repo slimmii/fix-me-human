@@ -9,6 +9,8 @@ The board is nearly ready to replace several spreadsheets and, apparently, my se
 3. Test a new task: **add → edit → Start → Finish → search → Reopen → Delete**.
 4. Check blank input, duplicate titles, cancellation and empty search results. Existing tasks must stay intact.
 
+Keep the components, shared types, custom hook and context in their modules. F5 runs the complete project from App.tsx, whichever file you are editing.
+
 **Try it:** Run the checks and submit your finished board. I will be nearby, updating my résumé.
 
 **F1:** Layout and review.

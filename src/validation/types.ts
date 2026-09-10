@@ -1,5 +1,6 @@
 export type SourceRule =
   | { type: "exported-component"; label: string }
+  | { type: "module"; name: string; label: string }
   | {
       type: "uses-call" | "component";
       name: string;
@@ -37,6 +38,8 @@ export function validSourceRule(rule: SourceRule): boolean {
   return (
     !!rule.label?.trim() &&
     (rule.type === "exported-component" ||
+      (rule.type === "module" &&
+        /^[A-Za-z][A-Za-z0-9_-]*\.tsx?$/.test(rule.name)) ||
       ((rule.type === "uses-call" || rule.type === "component") &&
         /^[A-Za-z][A-Za-z0-9]*$/.test(rule.name)))
   );

@@ -3,6 +3,12 @@ import {
   isGraphicsQuality,
   type GraphicsQuality,
 } from "./graphics";
+import {
+  decodeProject,
+  singleFileProject,
+  ENTRY_FILE,
+  type CodeProject,
+} from "./project";
 import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
 import { decodeStory, type AssignmentStory } from "./game/story";
@@ -17,6 +23,7 @@ export type Save = {
   readAssignments: string[];
   revisitingAssignment: boolean;
   drafts: Record<string, string>;
+  projects: Record<string, CodeProject>;
   story: Record<string, AssignmentStory>;
   settings: {
     mute: boolean;
@@ -36,6 +43,7 @@ export const fresh = (lessons = curriculum): Save => ({
   readAssignments: [],
   revisitingAssignment: false,
   drafts: {},
+  projects: {},
   story: {},
   settings: {
     mute: false,
@@ -81,23 +89,37 @@ export function availableAssignments(save: Save, lessons = curriculum) {
 export type Action =
   | { type: "enter" | "pass" | "submit" | "continue" }
   | { type: "open-assignment" | "replay"; id: string }
-  | { type: "draft"; code: string };
+  | { type: "draft"; code: string }
+  | { type: "project"; project: CodeProject };
 export function assignmentSource(
   save: Save,
   id: string,
   lessons = curriculum,
 ): string {
+  return assignmentProject(save, id, lessons).files[ENTRY_FILE];
+}
+export function assignmentProject(
+  save: Save,
+  id: string,
+  lessons = curriculum,
+): CodeProject {
   const assignments = lessons.flatMap((lesson) => lesson.assignments);
   const index = assignments.findIndex((assignment) => assignment.id === id);
+  const own = save.projects[id];
+  if (own) return own;
+  if (Object.hasOwn(save.drafts, id)) return singleFileProject(save.drafts[id]);
   const previous = assignments[index - 1];
-  return (
-    save.drafts[id] ??
-    (previous && save.completed.includes(previous.id)
-      ? save.drafts[previous.id]
-      : undefined) ??
-    assignments[index]?.starterCode ??
-    ""
-  );
+  if (previous && save.completed.includes(previous.id)) {
+    if (save.projects[previous.id]) return save.projects[previous.id];
+    if (Object.hasOwn(save.drafts, previous.id))
+      return singleFileProject(save.drafts[previous.id]);
+  }
+  return {
+    files: assignments[index]?.starterFiles ?? {
+      [ENTRY_FILE]: assignments[index]?.starterCode ?? "",
+    },
+    activeFile: ENTRY_FILE,
+  };
 }
 
 export function transition(
@@ -127,9 +149,35 @@ export function transition(
     }
     case "enter":
       return save.phase === "onboarding" ? { ...save, phase: "coding" } : save;
+    case "project": {
+      const project = decodeProject(action.project);
+      return save.phase === "coding" && project
+        ? {
+            ...save,
+            projects: { ...save.projects, [assignment.id]: project },
+            drafts: {
+              ...save.drafts,
+              [assignment.id]: project.files[ENTRY_FILE],
+            },
+          }
+        : save;
+    }
     case "draft":
       return save.phase === "coding"
-        ? { ...save, drafts: { ...save.drafts, [assignment.id]: action.code } }
+        ? {
+            ...save,
+            drafts: { ...save.drafts, [assignment.id]: action.code },
+            projects: {
+              ...save.projects,
+              [assignment.id]: {
+                ...assignmentProject(save, assignment.id, lessons),
+                files: {
+                  ...assignmentProject(save, assignment.id, lessons).files,
+                  [ENTRY_FILE]: action.code,
+                },
+              },
+            },
+          }
         : save;
     case "pass":
       return save.phase === "coding" &&
@@ -138,6 +186,10 @@ export function transition(
             ...save,
             phase: "review",
             completed: [...new Set([...save.completed, assignment.id])],
+            projects: {
+              ...save.projects,
+              [assignment.id]: assignmentProject(save, assignment.id, lessons),
+            },
             drafts: {
               ...save.drafts,
               [assignment.id]: assignmentSource(save, assignment.id, lessons),
@@ -174,6 +226,14 @@ export function transition(
             assignmentId: target.assignment.id,
             revisitingAssignment: save.completed.includes(target.assignment.id),
             phase: "coding",
+            projects: {
+              ...save.projects,
+              [target.assignment.id]: assignmentProject(
+                save,
+                target.assignment.id,
+                lessons,
+              ),
+            },
             drafts: {
               ...save.drafts,
               [target.assignment.id]: assignmentSource(
@@ -198,6 +258,15 @@ export function transition(
         assignmentId: target.id,
         revisitingAssignment: true,
         phase: "coding",
+        projects: {
+          ...save.projects,
+          [target.id]: {
+            files: target.starterFiles ?? {
+              [ENTRY_FILE]: target.starterCode ?? "",
+            },
+            activeFile: ENTRY_FILE,
+          },
+        },
         drafts: { ...save.drafts, [target.id]: target.starterCode ?? "" },
       };
     }
@@ -264,6 +333,21 @@ export function decode(raw: string | null, lessons = curriculum): Save {
             typeof value.drafts[a.id] === "string"
           )
             result.drafts[a.id] = value.drafts[a.id];
+        }
+    }
+    if (
+      value.projects &&
+      typeof value.projects === "object" &&
+      !Array.isArray(value.projects)
+    ) {
+      for (const l of lessons)
+        for (const a of l.assignments) {
+          if (!Object.hasOwn(value.projects, a.id)) continue;
+          const project = decodeProject(value.projects[a.id]);
+          if (project) {
+            result.projects[a.id] = project;
+            result.drafts[a.id] = project.files[ENTRY_FILE];
+          }
         }
     }
     for (const key of ["mute", "reducedMotion", "crt"] as const)

@@ -10,6 +10,8 @@ Tasks need corrections and removal. Practice on the cards, please. My position i
 4. Save trims and updates only that ID through a parent callback. Blank saves keep editing open; Cancel preserves the saved title.
 5. Delete removes only that ID with `filter`. Preserve adding and moving.
 
+Edit TaskCard.tsx for the local draft and controls, BoardColumn.tsx for forwarding callbacks, and App.tsx for updates to the shared tasks. Each file imports the hooks and types it uses.
+
 **Try it:** Edit, cancel, save, then delete one of two identically named tasks. Its twin must survive.
 
 **F1:** Immutable editing and deletion.

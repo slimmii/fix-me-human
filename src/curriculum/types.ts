@@ -4,6 +4,9 @@ export type Assignment = {
   title: string;
   brief: string;
   starterCode?: string;
+  starterFiles?: Record<string, string>;
+  solutionFiles?: Record<string, string>;
+  multiFile?: boolean;
   hints: string[];
   solution: string;
   robot?: { intro: string; success: string; retry: string };

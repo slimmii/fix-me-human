@@ -40,6 +40,62 @@ it("rejects syntax errors and preserves the sandbox toolbox", () => {
   ])
     expect(compileCode(source, assignment).errors.length).toBeGreaterThan(0);
 });
+it("allows standard JavaScript constructors in local modules and preserves their behavior", () => {
+  const result = compileCode(
+    {
+      "App.tsx": `import { summarize } from "./board";
+export default function App() { return summarize(["Todo", "Todo", "Done"]); }`,
+      "board.ts": `export function summarize(titles: string[]) {
+  const statuses = new Set(titles);
+  const counts = new Map([["unique", statuses.size]]);
+  const date = new (Date)("2026-09-10T00:00:00Z");
+  const pattern = new RegExp("^Todo$");
+  return [counts.get("unique"), date.getUTCFullYear(), pattern.test(titles[0])];
+}`,
+    },
+    assignment,
+  );
+  expect(result.errors).toEqual([]);
+  const exports: Record<string, () => unknown> = {};
+  new Function("exports", "require", result.code)(exports, () => ({}));
+  expect(exports.default()).toEqual([2, 2026, true]);
+});
+it("allows a custom context hook to throw new Error with a useful message", () => {
+  const result = compileCode(
+    `import { createContext, useContext } from "react";
+const BoardContext = createContext(null);
+function useBoard() {
+  const board = useContext(BoardContext);
+  if (board === null) throw new Error("useBoard needs a BoardProvider");
+  return board;
+}
+export default function App() { return useBoard(); }`,
+    assignment,
+  );
+  expect(result.errors).toEqual([]);
+  const exports: Record<string, () => unknown> = {};
+  new Function("exports", "require", result.code)(exports, () => ({
+    createContext: () => null,
+    useContext: () => null,
+  }));
+  expect(() => exports.default()).toThrow("useBoard needs a BoardProvider");
+});
+it.each([
+  'new Function("return 1")',
+  'new WebSocket("wss://example.com")',
+  "new XMLHttpRequest()",
+  'new Worker("worker.js")',
+  'new EventSource("https://example.com")',
+  "new Image()",
+  'new (Error.constructor)("return 1")',
+])("keeps unsupported constructors blocked: %s", (expression) => {
+  const result = compileCode(
+    `export default function App(){ ${expression}; return <p/>; }`,
+    assignment,
+  );
+  expect(result.errors.join()).toContain("is not available");
+  expect(result.errors.join()).toContain("App.tsx:");
+});
 it("fails closed for an unregistered source rule", () => {
   const invalid = structuredClone(assignment);
   invalid.validation.source[0].type = "missing" as never;

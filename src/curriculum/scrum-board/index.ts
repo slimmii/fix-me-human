@@ -1,5 +1,5 @@
 import type { Lesson } from "../types";
-import { solutions } from "./solutions";
+import { solutions, solutionProjects } from "./solutions";
 import { validations } from "./validation";
 const track = [
   {
@@ -59,6 +59,7 @@ const track = [
         hints: [
           "Give each task an id, title and status. Use filter for a column and map to make cards.",
           "Use task.id as the card key and data-task-id. BoardColumn receives tasks and status.",
+          "Use File > New file for tasks.ts, TaskCard.tsx and BoardColumn.tsx. Export their types or components, then import them with ./Name. F1: Modules and files.",
         ],
         robot: {
           intro:
@@ -172,8 +173,8 @@ const track = [
         title: "Extract useTaskBoard",
         brief: "scrum-board/use-task-board.md",
         hints: [
-          "Move task state and its four operations into useTaskBoard; call it once in App.",
-          "Return { tasks, addTask, moveTask, updateTask, removeTask }. Keep input and edit state local to their components.",
+          "Create a new file useTaskBoard.ts. F1 explains custom hooks.",
+          "Think about which state belongs to the board and which belongs to an individual component.",
         ],
         robot: {
           intro:
@@ -284,7 +285,38 @@ export const scrumBoard: Lesson[] = track.map((lesson, index) => ({
   assignments: lesson.assignments.map((assignment) => ({
     ...assignment,
     solution: solutions[index],
-    ...(index ? { starterCode: solutions[index - 1] } : {}),
-    validation: validations[index],
+    solutionFiles: solutionProjects[index],
+    multiFile: index >= 2,
+    ...(index
+      ? {
+          starterCode: solutions[index - 1],
+          starterFiles: solutionProjects[index - 1],
+        }
+      : {}),
+    validation: {
+      ...validations[index],
+      source: [
+        ...validations[index].source,
+        ...(index >= 2
+          ? [
+              {
+                type: "module" as const,
+                name: "TaskCard.tsx",
+                label: "Import TaskCard.tsx into the project",
+              },
+              {
+                type: "module" as const,
+                name: "BoardColumn.tsx",
+                label: "Import BoardColumn.tsx into the project",
+              },
+              {
+                type: "module" as const,
+                name: "tasks.ts",
+                label: "Share task types from tasks.ts",
+              },
+            ]
+          : []),
+      ],
+    },
   })),
 }));

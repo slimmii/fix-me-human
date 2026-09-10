@@ -4,10 +4,9 @@ Put the board logic in one reusable place. Apparently that is “good architectu
 
 **Your job**
 
-1. Create `useTaskBoard` and move the task state into it.
-2. Move `addTask`, `moveTask`, `updateTask` and `removeTask` into the hook. Return them together with `tasks`.
-3. Call `useTaskBoard` once at the top of App and connect its actions to the existing callbacks.
-4. Keep input and edit drafts in their components. Separate calls to this hook create separate boards.
+1. Create a new file `useTaskBoard.ts`.
+2. Move the board's state and actions into a custom hook named `useTaskBoard`.
+3. Use the hook in App. Keep input and edit drafts in their components.
 
 **Try it:** Add, edit, move and delete a card. The refactor must preserve every behavior.
 

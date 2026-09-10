@@ -96,7 +96,7 @@ describe("independent tasks and course topics", () => {
     save = transition(save, { type: "open-assignment", id: "task-card" });
     save = transition(save, { type: "pass" });
     const earned = unlockedTopics(save.completed);
-    expect(earned).toHaveLength(3);
+    expect(earned).toHaveLength(4);
     save = transition(save, { type: "open-assignment", id: "board-shell" });
     save = transition(save, { type: "replay", id: "board-shell" });
     expect(unlockedTopics(save.completed)).toEqual(earned);

@@ -10,6 +10,10 @@ Apparently “somewhere in my inbox” is not a task status. Give our work three
 4. Each column needs a `section` with `aria-label={status}` and an `h2` showing that status.
 5. Update `TaskCard` to receive an entire Task object through a `task` prop instead of just a title. When mapping tasks in `BoardColumn`, pass each task object to its `TaskCard`. Each card needs `<li data-task-id={task.id}>` and a `p` containing the task's title.
 
+6. Split the project into **App.tsx**, **BoardColumn.tsx**, **TaskCard.tsx**, and **tasks.ts**. Use **File > New file** to create each file and **File > Open** to switch between them. Move the Task and TaskStatus types into `tasks.ts`, export them, and use `import type` wherever they are needed. Export the components from their own files: App imports BoardColumn, and BoardColumn imports TaskCard. Remove the old copies from App.tsx.
+
+`App.tsx` remains the entry point. Keep its exported App component. F5 runs the whole project regardless of which file you are editing. One file is visible at a time, and all changes save automatically. Your project carries forward to the next assignment.
+
 **Try it:** Run it: each of the three tasks should appear in its assigned column.
 
-**F1:** Lists and identity.
+**F1:** Lists and identity; Modules and files.

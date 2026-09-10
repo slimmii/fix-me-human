@@ -1,10 +1,32 @@
-A consumer reads the nearest matching provider above it with `useContext`. A small custom hook can make that read easy to reuse and explain a missing provider clearly.
+Once context is working, custom hooks can help organize the code. A stateful hook can produce the value a provider shares, and a consumer hook can reuse the context read and its guard. These are optional ways to combine the concepts.
 
-Add these definitions to the counter example from the previous page:
+This counter example uses `useCounter` from the Custom hooks topic. Copy that topic's first code block, including its `useState` import, then add the following definitions in the same file. The hook returns a count and two actions, which we describe with an ordinary interface:
 
-<!-- prettier-ignore -->
 ```tsx
-import { useContext } from "react";
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+
+interface CounterContextProps {
+  count: number;
+  increment: () => void;
+  reset: () => void;
+}
+
+const CounterContext = createContext<CounterContextProps | null>(null);
+
+interface CounterProviderProps {
+  children: ReactNode;
+}
+
+function CounterProvider({ children }: CounterProviderProps) {
+  const counter = useCounter();
+
+  return (
+    <CounterContext.Provider value={counter}>
+      {children}
+    </CounterContext.Provider>
+  );
+}
 
 function useCounterValue() {
   const counter = useContext(CounterContext);
@@ -13,12 +35,22 @@ function useCounterValue() {
   }
   return counter;
 }
+```
 
+`CounterContextProps` describes the shared value; `CounterProviderProps` describes the wrapper component's props. `children` is the JSX nested inside that wrapper, and `ReactNode` is React's type for renderable content. The context accepts an object matching its interface, regardless of whether a custom hook produced it.
+
+Add these components below those definitions:
+
+```tsx
 function VisitorButton() {
-  const { count, increment } = useCounterValue();
+  const { count, increment, reset } = useCounterValue();
 
   return (
-    <button onClick={increment}>Visitors: {count}</button>
+    <section>
+      <p>Visitors: {count}</p>
+      <button onClick={increment}>Count a visitor</button>
+      <button onClick={reset}>Reset</button>
+    </section>
   );
 }
 
@@ -26,13 +58,14 @@ export default function App() {
   return (
     <CounterProvider>
       <VisitorButton />
+      <VisitorButton />
     </CounterProvider>
   );
 }
 ```
 
-The guard stops execution if the provider is missing. After the guard, TypeScript knows the value is not null. When the provider's state changes, consumers receive the updated value.
+Both displays show the same count: clicking either Count a visitor button updates the value they share. The provider calls `useCounter` once to own that state. Each `useCounterValue` call only reads it. Calling `useCounter` in each visitor component, or wrapping each one in a separate CounterProvider, would create independent counters.
 
-`useCounterValue` reads shared state; it does not create another counter. Call it at the top level of each component that needs the shared value. Calling `useCounter` in those components instead would create independent state.
+The consumer hook follows the same top-level calling rule as `useContext`. Components could also call `useContext` and check for null directly, as on the previous page; the wrapper simply avoids repeating that code.
 
-Context and callbacks work together: the button still invokes an action from the state owner. Never modify the context object directly. A consumer can also pass an action to a child as a focused prop. Keep local drafts local, and use ordinary props for simple direct relationships.
+Use the provided actions to change state rather than modifying the context object. A consumer can still pass an action to a child as a callback prop. Keep temporary input drafts local to the components that edit them.

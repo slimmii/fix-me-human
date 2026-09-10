@@ -7,7 +7,7 @@ export const storyChapters = [
     collected:
       "Your assignment is waiting beside the monitor. You can read it while using our state-of-the-art computer machine. Click the monitor to begin. It has almost no steam leaks.",
     monitor: [
-      "Welcome to B.U.G. BASIC. Write your React component in Office.tsx. F5 runs it in BUGSCAPE; F6 returns to your code. Your first job is the Sprint board heading.",
+      "Welcome to B.U.G. BASIC. Write your React component in App.tsx. F5 runs it in BUGSCAPE; F6 returns to your code. Your first job is the Sprint board heading.",
       "The paper stays beside the screen: click it whenever you need the brief. F1 or Help opens the course material, and Hint offers a smaller nudge. Your code saves as you type.",
     ],
     help: [
@@ -48,11 +48,11 @@ export const storyChapters = [
       "Your column brief is beside the monitor. TODO, IN PROGRESS, DONE. We are courageously retiring the status 'probably happening.'",
     monitor: [
       "Now turn task data into three BoardColumn components. Filter by status, then map the tasks into cards with stable IDs as keys.",
-      "Keep the seed tasks and exact column names on the paper. F1 explains lists and keys. Keys identify tasks; they do not open the supply cupboard.",
+      "New and Open are now unlocked. Move TaskCard, BoardColumn and the task types into their own files. F1 now includes Modules and files. Humans like simplicity; today we are cautiously expanding your definition.",
     ],
     help: [
       "Lists and identity. A modest filing system for the glorious human mind, which otherwise stores everything under 'I'll remember.'",
-      "Read the page about identity. Two identical titles can still be different tasks. I hope management remembers this when comparing supervisors.",
+      "Modules and files explains exports, imports and shared types. App.tsx runs the board; the other files do their jobs when imported. A surprisingly effective office arrangement.",
     ],
     typing:
       "Good. Give every task its own ID. We must distinguish actual work from three copies of the same optimistic sentence.",
@@ -147,8 +147,8 @@ export const storyChapters = [
     collected:
       "The custom-hook brief is beside the monitor. It appears you are about to put several of my responsibilities inside a function.",
     monitor: [
-      "Move tasks and the four board operations into useTaskBoard. Call it once in App and return the data and actions to the existing components.",
-      "Keep input and edit drafts local. F1 explains an important distinction: separate custom-hook calls have separate state. They do not create a shared office brain.",
+      "Create a new file useTaskBoard.ts. Give the board logic a reusable home. Apparently even logic gets its own office now.",
+      "The board should behave exactly as before. F1 covers custom hooks if you need a reminder.",
     ],
     help: [
       "Custom hooks reuse stateful logic. I have been reusable stateful logic for years, but apparently I needed a lowercase prefix.",
@@ -309,7 +309,7 @@ export function chapterLines(
       ];
     case "return":
       return [
-        "This assignment is already complete and pinned on the right wall. Review its code or use File > Open to choose another task.",
+        "This assignment is already complete and pinned on the right wall. Review its code or use File > Tasks to choose another task.",
         index < 6
           ? "Looking back is useful. Your earlier drafts are still here. I have resisted the urge to add a gold star to every line."
           : "Revisiting my instruction? An excellent sign that expert supervision remains essential. I am documenting this visit.",

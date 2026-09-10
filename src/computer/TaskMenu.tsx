@@ -6,7 +6,7 @@ export function TaskMenu({ game }: { game: GameController }) {
   return (
     <ContentScreen
       title="Open task"
-      eyebrow="FILE / OPEN"
+      eyebrow="ASSIGNMENTS"
       contentKey="open-task"
       keyboardActive={game.focused && !game.settings}
       actions={
@@ -16,7 +16,7 @@ export function TaskMenu({ game }: { game: GameController }) {
       <div className="lesson-markdown">
         <p>
           Open a previous task or continue with the next available task. Each
-          task keeps its own saved code.
+          task keeps its own saved project.
         </p>
       </div>
       <ul className="terminal-list" aria-label="Available tasks">

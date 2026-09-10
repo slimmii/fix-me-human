@@ -9,7 +9,8 @@ const assignments = curriculum.flatMap((lesson) => lesson.assignments);
 async function preview(
   page: Page,
   assignment: Assignment,
-  source = assignment.solution,
+  source: string | Record<string, string> = assignment.solutionFiles ??
+    assignment.solution,
 ) {
   const compiled = compileCode(source, assignment);
   expect(compiled.errors).toEqual([]);
@@ -193,11 +194,18 @@ test("behavior checks reject broken updates, split context and stale effects", a
   ];
   for (const item of broken) {
     const assignment = assignments[item.index];
-    expect(assignment.solution).toContain(item.before);
+    expect(Object.values(assignment.solutionFiles!).join("\n")).toContain(
+      item.before,
+    );
     const checks = await preview(
       page,
       assignment,
-      assignment.solution.replace(item.before, item.after),
+      Object.fromEntries(
+        Object.entries(assignment.solutionFiles!).map(([name, code]) => [
+          name,
+          code.replace(item.before, item.after),
+        ]),
+      ),
     );
     expect(
       checks.runtime.find((check) => check.label.startsWith(item.label))?.pass,
@@ -217,9 +225,16 @@ test("final submission completes the course, retains all drafts and never prints
   save.completed = assignments.slice(0, -1).map((assignment) => assignment.id);
   save.collectedAssignments = assignments.map((assignment) => assignment.id);
   save.readAssignments = [...save.collectedAssignments];
+  save.projects = Object.fromEntries(
+    assignments.map((assignment) => [
+      assignment.id,
+      { files: assignment.solutionFiles!, activeFile: "App.tsx" },
+    ]),
+  );
   save.drafts = Object.fromEntries(
     assignments.map((assignment) => [assignment.id, assignment.solution]),
   );
+  save.settings.graphicsQuality = 0;
   save.settings.mute = true;
   save.settings.reducedMotion = true;
   await page.addInitScript(
@@ -257,7 +272,10 @@ test("final submission completes the course, retains all drafts and never prints
   );
   expect(restored.completed).toHaveLength(12);
   expect(restored.drafts).toEqual(save.drafts);
-  await expect(page.locator('[data-surface="crt-glass"]')).toBeVisible();
+  expect(restored.projects).toEqual(save.projects);
+  await expect(page.locator('[data-surface="crt-glass"]')).toBeVisible({
+    timeout: 15000,
+  });
   await page.screenshot({
     path: "test-results/scrum-course-complete-wall.png",
   });

@@ -598,6 +598,8 @@
   letter-spacing: 0;
 }
 .retro-error p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font:
     16px/1.5 "Courier New",
     monospace;
@@ -1138,4 +1140,65 @@
   button:is(:hover, :focus-visible)
   :is(small, span:last-child) {
   color: #000080;
+}
+
+.qbasic-work {
+  position: relative;
+}
+.qbasic-dialog-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #00000055;
+}
+.qbasic-file-dialog {
+  width: min(520px, 90%);
+  max-height: 92%;
+  overflow: auto;
+  padding: 16px 24px;
+  background: #aaaaaa;
+  color: #000080;
+  border: 6px double #ffffff;
+  box-shadow: 12px 12px #000000;
+  font-size: var(--terminal-font-size);
+}
+.qbasic-file-dialog h2 {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: inherit;
+  border-bottom: 2px solid #000080;
+  padding-bottom: 8px;
+}
+.qbasic-file-dialog p {
+  margin: 12px 0;
+}
+.qbasic-file-dialog label {
+  display: block;
+  margin-bottom: 6px;
+}
+.qbasic-file-dialog input,
+.qbasic-file-dialog select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px inset #ffffff;
+  background: #000080;
+  color: #ffff55;
+  padding: 8px;
+  font-size: inherit;
+  border-radius: 0;
+}
+.qbasic-file-dialog option {
+  padding: 4px 8px;
+}
+.qbasic-file-dialog [role="alert"] {
+  color: #800000;
+}
+.qbasic-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 16px 0;
 }

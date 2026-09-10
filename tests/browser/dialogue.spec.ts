@@ -27,14 +27,16 @@ test("course Help fills the terminal with retro scroll controls and arrow naviga
   await expect(page.locator(".machine-menubar")).toHaveCount(0);
   await page.getByRole("menuitem", { name: "File", exact: true }).click();
   await expect(page.getByRole("menu").getByRole("menuitem")).toHaveText([
+    "New fileCtrl+N",
     "OpenCtrl+O",
-    "SaveCtrl+S",
+    "Tasks",
     "Exit",
   ]);
-  await page.getByRole("menuitem", { name: "Save Ctrl+S" }).click();
-  await expect(page.locator(".qbasic-status")).toContainText(
-    "Office.tsx saved on local disk.",
-  );
+  await page.getByRole("menuitem", { name: "New file Ctrl+N" }).click();
+  await expect(
+    page.getByRole("region", { name: "Conversation with B.U.G." }),
+  ).toContainText("Files are complex");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("menuitem", { name: "File", exact: true }).click();
   await page.getByRole("menuitem", { name: "Exit", exact: true }).click();
   await expect(page.locator("main")).not.toHaveClass(/focused/);

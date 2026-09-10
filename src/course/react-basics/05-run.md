@@ -1,4 +1,4 @@
-In a React project, startup code mounts your component into a web page. **This game provides that setup for you**, including React itself. You only write the component in Office.tsx.
+In a React project, startup code mounts your component into a web page. **This game provides that setup for you**, including React itself. You only write the component in App.tsx.
 
 1. Write your code in **B.U.G. BASIC**, the blue editor.
 2. Choose **Run → Start**, click **F5=Run**, or press **F5**.
@@ -9,4 +9,4 @@ Errors are part of the job. B.U.G. will explain what needs attention; there are 
 
 When your application meets the assignment requirements, **Submit assignment** becomes available. You can reopen this lesson and ask for hints while working.
 
-Your assignment is printed beside the computer. Open the sheet whenever you need the requirements, then keep coding in **Office.tsx**.
+Your assignment is printed beside the computer. Open the sheet whenever you need the requirements, then keep coding in **App.tsx**.

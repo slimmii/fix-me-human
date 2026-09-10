@@ -56,6 +56,25 @@ export const scrumTopics: CourseTopic[] = [
     ],
   },
   {
+    id: "modules",
+    title: "Modules and files",
+    description:
+      "Split a project into files, export components and share types.",
+    unlockAfter: ["task-card"],
+    pages: [
+      {
+        id: "modules-files",
+        title: "One project, several files",
+        markdown: "course/scrum-board/modules-1.md",
+      },
+      {
+        id: "modules-imports",
+        title: "Connect modules with imports",
+        markdown: "course/scrum-board/modules-2.md",
+      },
+    ],
+  },
+  {
     id: "react-state",
     title: "State with useState",
     description:
@@ -152,17 +171,17 @@ export const scrumTopics: CourseTopic[] = [
     id: "react-context",
     title: "Context and providers",
     description:
-      "Share a value and its actions through a provider and a consumer hook.",
+      "Provide and read shared values, then combine context with custom hooks.",
     unlockAfter: ["use-task-board"],
     pages: [
       {
         id: "react-context-page-1",
-        title: "One provider for shared state",
+        title: "Provide and read a value",
         markdown: "course/scrum-board/react-context-1.md",
       },
       {
         id: "react-context-page-2",
-        title: "Read context with a guard",
+        title: "Combine context with custom hooks",
         markdown: "course/scrum-board/react-context-2.md",
       },
     ],

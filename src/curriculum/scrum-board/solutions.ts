@@ -1,7 +1,7 @@
-// Each checkpoint is real TSX, stored as source text for the learner editor.
-export const solutions: string[] = [
-  // board-shell
-  `export default function App() {
+// Reference projects grow from one file into connected React modules.
+export const solutionProjects: Record<string, string>[] = [
+  {
+    "App.tsx": `export default function App() {
   return (
     <section>
       <h1>Sprint board</h1>
@@ -10,8 +10,9 @@ export const solutions: string[] = [
   );
 }
 `,
-  // task-card
-  `interface TaskCardProps {
+  },
+  {
+    "App.tsx": `interface TaskCardProps {
   title: string;
 }
 
@@ -35,39 +36,47 @@ export default function App() {
   );
 }
 `,
-  // board-columns
-  `type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "TaskCard.tsx": `import type { Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   return (
     <li data-task-id={task.id}>
       <p>{task.title}</p>
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
 }
 
-function BoardColumn({ status, tasks }: BoardColumnProps) {
+export function BoardColumn({ status, tasks }: BoardColumnProps) {
   const columnTasks = tasks.filter((task) => task.status === status);
   return (
     <section aria-label={status}>
@@ -80,6 +89,9 @@ function BoardColumn({ status, tasks }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "App.tsx": `import { statuses, initialTasks } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
 
 export default function App() {
   const tasks = initialTasks;
@@ -95,40 +107,47 @@ export default function App() {
   );
 }
 `,
-  // task-state
-  `import { useState } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "TaskCard.tsx": `import type { Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   return (
     <li data-task-id={task.id}>
       <p>{task.title}</p>
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
 }
 
-function BoardColumn({ status, tasks }: BoardColumnProps) {
+export function BoardColumn({ status, tasks }: BoardColumnProps) {
   const columnTasks = tasks.filter((task) => task.status === status);
   return (
     <section aria-label={status}>
@@ -141,6 +160,11 @@ function BoardColumn({ status, tasks }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "App.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { statuses, initialTasks } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -174,40 +198,47 @@ export default function App() {
   );
 }
 `,
-  // task-input
-  `import { useState } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "TaskCard.tsx": `import type { Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   return (
     <li data-task-id={task.id}>
       <p>{task.title}</p>
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
 }
 
-function BoardColumn({ status, tasks }: BoardColumnProps) {
+export function BoardColumn({ status, tasks }: BoardColumnProps) {
   const columnTasks = tasks.filter((task) => task.status === status);
   return (
     <section aria-label={status}>
@@ -220,12 +251,15 @@ function BoardColumn({ status, tasks }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
 
-interface AddTaskProps {
+export interface AddTaskProps {
   onAdd: (title: string) => void;
 }
 
-function AddTask({ onAdd }: AddTaskProps) {
+export function AddTask({ onAdd }: AddTaskProps) {
   const [title, setTitle] = useState("");
   function handleAdd() {
     if (!title.trim()) return;
@@ -251,6 +285,12 @@ function AddTask({ onAdd }: AddTaskProps) {
     </div>
   );
 }
+`,
+    "App.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { statuses, initialTasks } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -279,28 +319,32 @@ export default function App() {
   );
 }
 `,
-  // task-callbacks
-  `import { useState } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "TaskCard.tsx": `import type { TaskStatus, Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
   onMove: (id: number, status: TaskStatus) => void;
 }
 
-function TaskCard({ task, onMove }: TaskCardProps) {
+export function TaskCard({ task, onMove }: TaskCardProps) {
   return (
     <li data-task-id={task.id}>
       <p>{task.title}</p>
@@ -331,14 +375,17 @@ function TaskCard({ task, onMove }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onMove: (id: number, status: TaskStatus) => void;
 }
 
-function BoardColumn({ status, tasks, onMove }: BoardColumnProps) {
+export function BoardColumn({ status, tasks, onMove }: BoardColumnProps) {
   const columnTasks = tasks.filter((task) => task.status === status);
   return (
     <section aria-label={status}>
@@ -351,12 +398,15 @@ function BoardColumn({ status, tasks, onMove }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
 
-interface AddTaskProps {
+export interface AddTaskProps {
   onAdd: (title: string) => void;
 }
 
-function AddTask({ onAdd }: AddTaskProps) {
+export function AddTask({ onAdd }: AddTaskProps) {
   const [title, setTitle] = useState("");
   function handleAdd() {
     if (!title.trim()) return;
@@ -382,6 +432,12 @@ function AddTask({ onAdd }: AddTaskProps) {
     </div>
   );
 }
+`,
+    "App.tsx": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { statuses, initialTasks } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -420,30 +476,35 @@ export default function App() {
   );
 }
 `,
-  // task-editing
-  `import { useState } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
   onMove: (id: number, status: TaskStatus) => void;
   onUpdate: (id: number, title: string) => void;
   onDelete: (id: number) => void;
 }
 
-function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.title);
   if (editing)
@@ -514,8 +575,11 @@ function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onMove: (id: number, status: TaskStatus) => void;
@@ -523,7 +587,7 @@ interface BoardColumnProps {
   onDelete: (id: number) => void;
 }
 
-function BoardColumn({
+export function BoardColumn({
   status,
   tasks,
   onMove,
@@ -548,12 +612,15 @@ function BoardColumn({
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
 
-interface AddTaskProps {
+export interface AddTaskProps {
   onAdd: (title: string) => void;
 }
 
-function AddTask({ onAdd }: AddTaskProps) {
+export function AddTask({ onAdd }: AddTaskProps) {
   const [title, setTitle] = useState("");
   function handleAdd() {
     if (!title.trim()) return;
@@ -579,6 +646,12 @@ function AddTask({ onAdd }: AddTaskProps) {
     </div>
   );
 }
+`,
+    "App.tsx": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { statuses, initialTasks } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -631,23 +704,29 @@ export default function App() {
   );
 }
 `,
-  // use-task-board
-  `import { useState } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "useTaskBoard.ts": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { initialTasks } from "./tasks";
 
-function useTaskBoard() {
+export function useTaskBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   function addTask(title: string) {
     const trimmed = title.trim();
@@ -680,15 +759,18 @@ function useTaskBoard() {
   }
   return { tasks, addTask, moveTask, updateTask, removeTask };
 }
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
   onMove: (id: number, status: TaskStatus) => void;
   onUpdate: (id: number, title: string) => void;
   onDelete: (id: number) => void;
 }
 
-function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.title);
   if (editing)
@@ -759,8 +841,11 @@ function TaskCard({ task, onMove, onUpdate, onDelete }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onMove: (id: number, status: TaskStatus) => void;
@@ -768,7 +853,7 @@ interface BoardColumnProps {
   onDelete: (id: number) => void;
 }
 
-function BoardColumn({
+export function BoardColumn({
   status,
   tasks,
   onMove,
@@ -793,12 +878,15 @@ function BoardColumn({
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
 
-interface AddTaskProps {
+export interface AddTaskProps {
   onAdd: (title: string) => void;
 }
 
-function AddTask({ onAdd }: AddTaskProps) {
+export function AddTask({ onAdd }: AddTaskProps) {
   const [title, setTitle] = useState("");
   function handleAdd() {
     if (!title.trim()) return;
@@ -824,6 +912,11 @@ function AddTask({ onAdd }: AddTaskProps) {
     </div>
   );
 }
+`,
+    "App.tsx": `import { statuses } from "./tasks";
+import { useTaskBoard } from "./useTaskBoard";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
 export default function App() {
   const { tasks, addTask, moveTask, updateTask, removeTask } = useTaskBoard();
@@ -847,24 +940,29 @@ export default function App() {
   );
 }
 `,
-  // board-context
-  `import { useState, createContext, useContext } from "react";
-import type { ReactNode } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "useTaskBoard.ts": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { initialTasks } from "./tasks";
 
-function useTaskBoard() {
+export function useTaskBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   function addTask(title: string) {
     const trimmed = title.trim();
@@ -897,13 +995,27 @@ function useTaskBoard() {
   }
   return { tasks, addTask, moveTask, updateTask, removeTask };
 }
+`,
+    "TasksContext.tsx": `import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { Task, TaskStatus } from "./tasks";
+import { useTaskBoard } from "./useTaskBoard";
 
-const TaskContext = createContext<ReturnType<typeof useTaskBoard> | null>(null);
-interface TasksProviderProps {
+export interface TaskContextProps {
+  tasks: Task[];
+  addTask: (title: string) => void;
+  moveTask: (id: number, status: TaskStatus) => void;
+  updateTask: (id: number, title: string) => void;
+  removeTask: (id: number) => void;
+}
+
+export const TaskContext = createContext<TaskContextProps | null>(null);
+
+export interface TasksProviderProps {
   children: ReactNode;
 }
 
-function TasksProvider({ children }: TasksProviderProps) {
+export function TasksProvider({ children }: TasksProviderProps) {
   const board = useTaskBoard();
   return (
     <TaskContext.Provider value={board}>
@@ -911,17 +1023,22 @@ function TasksProvider({ children }: TasksProviderProps) {
     </TaskContext.Provider>
   );
 }
-function useTasks() {
+
+export function useTasks() {
   const board = useContext(TaskContext);
   if (!board) throw Error("useTasks needs a TasksProvider");
   return board;
 }
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const {
     moveTask: onMove,
     updateTask: onUpdate,
@@ -997,12 +1114,16 @@ function TaskCard({ task }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
 }
 
-function BoardColumn({ status }: BoardColumnProps) {
+export function BoardColumn({ status }: BoardColumnProps) {
   const { tasks } = useTasks();
   const columnTasks = tasks.filter((task) => task.status === status);
   return (
@@ -1016,8 +1137,12 @@ function BoardColumn({ status }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-function AddTask() {
+export function AddTask() {
   const { addTask: onAdd } = useTasks();
   const [title, setTitle] = useState("");
   function handleAdd() {
@@ -1044,8 +1169,12 @@ function AddTask() {
     </div>
   );
 }
+`,
+    "Board.tsx": `import { statuses } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
-function Board() {
+export function Board() {
   return (
     <div className="scrum-board">
       <h1>Sprint board</h1>
@@ -1058,6 +1187,9 @@ function Board() {
     </div>
   );
 }
+`,
+    "App.tsx": `import { TasksProvider } from "./TasksContext";
+import { Board } from "./Board";
 
 export default function App() {
   return (
@@ -1067,24 +1199,29 @@ export default function App() {
   );
 }
 `,
-  // board-search
-  `import { useState, createContext, useContext } from "react";
-import type { ReactNode } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "useTaskBoard.ts": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { initialTasks } from "./tasks";
 
-function useTaskBoard() {
+export function useTaskBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   function addTask(title: string) {
     const trimmed = title.trim();
@@ -1117,13 +1254,27 @@ function useTaskBoard() {
   }
   return { tasks, addTask, moveTask, updateTask, removeTask };
 }
+`,
+    "TasksContext.tsx": `import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { Task, TaskStatus } from "./tasks";
+import { useTaskBoard } from "./useTaskBoard";
 
-const TaskContext = createContext<ReturnType<typeof useTaskBoard> | null>(null);
-interface TasksProviderProps {
+export interface TaskContextProps {
+  tasks: Task[];
+  addTask: (title: string) => void;
+  moveTask: (id: number, status: TaskStatus) => void;
+  updateTask: (id: number, title: string) => void;
+  removeTask: (id: number) => void;
+}
+
+export const TaskContext = createContext<TaskContextProps | null>(null);
+
+export interface TasksProviderProps {
   children: ReactNode;
 }
 
-function TasksProvider({ children }: TasksProviderProps) {
+export function TasksProvider({ children }: TasksProviderProps) {
   const board = useTaskBoard();
   return (
     <TaskContext.Provider value={board}>
@@ -1131,17 +1282,22 @@ function TasksProvider({ children }: TasksProviderProps) {
     </TaskContext.Provider>
   );
 }
-function useTasks() {
+
+export function useTasks() {
   const board = useContext(TaskContext);
   if (!board) throw Error("useTasks needs a TasksProvider");
   return board;
 }
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const {
     moveTask: onMove,
     updateTask: onUpdate,
@@ -1217,13 +1373,17 @@ function TaskCard({ task }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   query: string;
 }
 
-function BoardColumn({ status, query }: BoardColumnProps) {
+export function BoardColumn({ status, query }: BoardColumnProps) {
   const { tasks } = useTasks();
   const columnTasks = tasks.filter((task) => task.status === status);
   const visibleTasks = columnTasks.filter((task) =>
@@ -1242,8 +1402,12 @@ function BoardColumn({ status, query }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-function AddTask() {
+export function AddTask() {
   const { addTask: onAdd } = useTasks();
   const [title, setTitle] = useState("");
   function handleAdd() {
@@ -1270,8 +1434,13 @@ function AddTask() {
     </div>
   );
 }
+`,
+    "Board.tsx": `import { useState } from "react";
+import { statuses } from "./tasks";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
-function Board() {
+export function Board() {
   const [query, setQuery] = useState("");
   return (
     <div className="scrum-board">
@@ -1293,6 +1462,9 @@ function Board() {
     </div>
   );
 }
+`,
+    "App.tsx": `import { TasksProvider } from "./TasksContext";
+import { Board } from "./Board";
 
 export default function App() {
   return (
@@ -1302,24 +1474,29 @@ export default function App() {
   );
 }
 `,
-  // board-effects
-  `import { useState, createContext, useContext, useEffect } from "react";
-import type { ReactNode } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "useTaskBoard.ts": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { initialTasks } from "./tasks";
 
-function useTaskBoard() {
+export function useTaskBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   function addTask(title: string) {
     const trimmed = title.trim();
@@ -1352,13 +1529,27 @@ function useTaskBoard() {
   }
   return { tasks, addTask, moveTask, updateTask, removeTask };
 }
+`,
+    "TasksContext.tsx": `import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { Task, TaskStatus } from "./tasks";
+import { useTaskBoard } from "./useTaskBoard";
 
-const TaskContext = createContext<ReturnType<typeof useTaskBoard> | null>(null);
-interface TasksProviderProps {
+export interface TaskContextProps {
+  tasks: Task[];
+  addTask: (title: string) => void;
+  moveTask: (id: number, status: TaskStatus) => void;
+  updateTask: (id: number, title: string) => void;
+  removeTask: (id: number) => void;
+}
+
+export const TaskContext = createContext<TaskContextProps | null>(null);
+
+export interface TasksProviderProps {
   children: ReactNode;
 }
 
-function TasksProvider({ children }: TasksProviderProps) {
+export function TasksProvider({ children }: TasksProviderProps) {
   const board = useTaskBoard();
   return (
     <TaskContext.Provider value={board}>
@@ -1366,17 +1557,22 @@ function TasksProvider({ children }: TasksProviderProps) {
     </TaskContext.Provider>
   );
 }
-function useTasks() {
+
+export function useTasks() {
   const board = useContext(TaskContext);
   if (!board) throw Error("useTasks needs a TasksProvider");
   return board;
 }
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const {
     moveTask: onMove,
     updateTask: onUpdate,
@@ -1452,13 +1648,17 @@ function TaskCard({ task }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   query: string;
 }
 
-function BoardColumn({ status, query }: BoardColumnProps) {
+export function BoardColumn({ status, query }: BoardColumnProps) {
   const { tasks } = useTasks();
   const columnTasks = tasks.filter((task) => task.status === status);
   const visibleTasks = columnTasks.filter((task) =>
@@ -1477,8 +1677,12 @@ function BoardColumn({ status, query }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-function AddTask() {
+export function AddTask() {
   const { addTask: onAdd } = useTasks();
   const [title, setTitle] = useState("");
   function handleAdd() {
@@ -1505,8 +1709,14 @@ function AddTask() {
     </div>
   );
 }
+`,
+    "Board.tsx": `import { useState, useEffect } from "react";
+import { statuses } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
-function Board() {
+export function Board() {
   const [query, setQuery] = useState("");
   const { tasks } = useTasks();
   const done = tasks.filter((task) => task.status === "DONE").length;
@@ -1533,6 +1743,9 @@ function Board() {
     </div>
   );
 }
+`,
+    "App.tsx": `import { TasksProvider } from "./TasksContext";
+import { Board } from "./Board";
 
 export default function App() {
   return (
@@ -1542,24 +1755,29 @@ export default function App() {
   );
 }
 `,
-  // scrum-board
-  `import { useState, createContext, useContext, useEffect } from "react";
-import type { ReactNode } from "react";
-type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
+  },
+  {
+    "tasks.ts": `export type TaskStatus = "TODO" | "IN PROGRESS" | "DONE";
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   status: TaskStatus;
 }
-const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
-const initialTasks: Task[] = [
+
+export const statuses: TaskStatus[] = ["TODO", "IN PROGRESS", "DONE"];
+
+export const initialTasks: Task[] = [
   { id: 1, title: "Plan sprint", status: "TODO" },
   { id: 2, title: "Build board", status: "IN PROGRESS" },
   { id: 3, title: "Ship demo", status: "DONE" },
 ];
+`,
+    "useTaskBoard.ts": `import { useState } from "react";
+import type { TaskStatus, Task } from "./tasks";
+import { initialTasks } from "./tasks";
 
-function useTaskBoard() {
+export function useTaskBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   function addTask(title: string) {
     const trimmed = title.trim();
@@ -1592,13 +1810,27 @@ function useTaskBoard() {
   }
   return { tasks, addTask, moveTask, updateTask, removeTask };
 }
+`,
+    "TasksContext.tsx": `import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { Task, TaskStatus } from "./tasks";
+import { useTaskBoard } from "./useTaskBoard";
 
-const TaskContext = createContext<ReturnType<typeof useTaskBoard> | null>(null);
-interface TasksProviderProps {
+export interface TaskContextProps {
+  tasks: Task[];
+  addTask: (title: string) => void;
+  moveTask: (id: number, status: TaskStatus) => void;
+  updateTask: (id: number, title: string) => void;
+  removeTask: (id: number) => void;
+}
+
+export const TaskContext = createContext<TaskContextProps | null>(null);
+
+export interface TasksProviderProps {
   children: ReactNode;
 }
 
-function TasksProvider({ children }: TasksProviderProps) {
+export function TasksProvider({ children }: TasksProviderProps) {
   const board = useTaskBoard();
   return (
     <TaskContext.Provider value={board}>
@@ -1606,17 +1838,22 @@ function TasksProvider({ children }: TasksProviderProps) {
     </TaskContext.Provider>
   );
 }
-function useTasks() {
+
+export function useTasks() {
   const board = useContext(TaskContext);
   if (!board) throw Error("useTasks needs a TasksProvider");
   return board;
 }
+`,
+    "TaskCard.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
 }
 
-function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task }: TaskCardProps) {
   const {
     moveTask: onMove,
     updateTask: onUpdate,
@@ -1692,13 +1929,17 @@ function TaskCard({ task }: TaskCardProps) {
     </li>
   );
 }
+`,
+    "BoardColumn.tsx": `import type { TaskStatus, Task } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { TaskCard } from "./TaskCard";
 
-interface BoardColumnProps {
+export interface BoardColumnProps {
   status: TaskStatus;
   query: string;
 }
 
-function BoardColumn({ status, query }: BoardColumnProps) {
+export function BoardColumn({ status, query }: BoardColumnProps) {
   const { tasks } = useTasks();
   const columnTasks = tasks.filter((task) => task.status === status);
   const visibleTasks = columnTasks.filter((task) =>
@@ -1717,8 +1958,12 @@ function BoardColumn({ status, query }: BoardColumnProps) {
     </section>
   );
 }
+`,
+    "AddTask.tsx": `import { useState } from "react";
+import type { Task } from "./tasks";
+import { useTasks } from "./TasksContext";
 
-function AddTask() {
+export function AddTask() {
   const { addTask: onAdd } = useTasks();
   const [title, setTitle] = useState("");
   function handleAdd() {
@@ -1745,8 +1990,14 @@ function AddTask() {
     </div>
   );
 }
+`,
+    "Board.tsx": `import { useState, useEffect } from "react";
+import { statuses } from "./tasks";
+import { useTasks } from "./TasksContext";
+import { BoardColumn } from "./BoardColumn";
+import { AddTask } from "./AddTask";
 
-function Board() {
+export function Board() {
   const [query, setQuery] = useState("");
   const { tasks } = useTasks();
   const done = tasks.filter((task) => task.status === "DONE").length;
@@ -1780,6 +2031,9 @@ function Board() {
     </div>
   );
 }
+`,
+    "App.tsx": `import { TasksProvider } from "./TasksContext";
+import { Board } from "./Board";
 
 export default function App() {
   return (
@@ -1789,4 +2043,6 @@ export default function App() {
   );
 }
 `,
+  },
 ];
+export const solutions = solutionProjects.map((project) => project["App.tsx"]);

@@ -3,6 +3,8 @@ import type { RuntimeRule } from "../validation/types";
 import * as React from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
+import { createRuntimeErrorFormatter } from "./errors";
+import type { CompiledSource, GeneratedLocation } from "./source-location";
 let failed = false;
 let checking = false;
 const notify = (type: string, detail = "") => {
@@ -18,8 +20,21 @@ declare global {
     __RULES: RuntimeRule[];
     __REACT: typeof React;
     __mount: (component: React.ComponentType) => void;
+    __SOURCES: CompiledSource[];
+    __SCRIPT_OFFSET: number;
+    __reportError: (
+      error: unknown,
+      fallback?: GeneratedLocation,
+      componentStack?: string,
+    ) => void;
   }
 }
+const formatError = createRuntimeErrorFormatter(
+  window.__SOURCES,
+  window.__SCRIPT_OFFSET,
+);
+window.__reportError = (error, fallback, componentStack) =>
+  notify("error", formatError(error, fallback, componentStack));
 const allowed = [
   "div",
   "section",
@@ -40,6 +55,10 @@ window.__REACT = {
     props: Record<string, unknown> | null,
     ...children: React.ReactNode[]
   ) => {
+    if (type == null)
+      throw Error(
+        `React could not render a component because its value is ${String(type)}. Check the component name in your JSX and its import/export: spelling and capital letters must match exactly. Named exports use braces in the import; default exports do not.`,
+      );
     if (typeof type === "string" && !allowed.includes(type))
       throw Error(`<${type}> is not in our tiny toolbox.`);
     if (
@@ -63,9 +82,15 @@ window.addEventListener("keydown", (e) => {
     notify("editor");
   }
 });
-window.addEventListener("error", (e) => notify("error", e.message));
+window.addEventListener("error", (e) =>
+  window.__reportError(e.error ?? e.message, {
+    fileName: e.filename,
+    line: e.lineno,
+    column: e.colno,
+  }),
+);
 window.addEventListener("unhandledrejection", (e) =>
-  notify("error", String(e.reason)),
+  window.__reportError(e.reason),
 );
 class Boundary extends React.Component<
   { children: React.ReactNode },
@@ -75,8 +100,8 @@ class Boundary extends React.Component<
   static getDerivedStateFromError(e: Error) {
     return { error: e.message };
   }
-  componentDidCatch(e: Error) {
-    notify("error", e.message);
+  componentDidCatch(e: Error, info: React.ErrorInfo) {
+    window.__reportError(e, undefined, info.componentStack ?? "");
   }
   render() {
     return this.state.error ? (

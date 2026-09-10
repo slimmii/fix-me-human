@@ -10,6 +10,8 @@ We need proof that work actually moves. I used to provide that proof verbally. N
 4. DONE cards: **Reopen task** moves back to TODO.
 5. Use those action names as button `aria-label`s. Update the matching ID with `map` and object spread; keep other tasks unchanged.
 
+Update the prop interfaces in TaskCard.tsx and BoardColumn.tsx as callbacks pass through them. Import TaskStatus from tasks.ts wherever a callback needs it.
+
 **Try it:** Move Plan sprint through all three columns and reopen it. Adding tasks must still work.
 
 **F1:** Callbacks and shared state.
