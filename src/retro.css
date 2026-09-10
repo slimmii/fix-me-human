@@ -488,7 +488,14 @@
     monospace;
   flex-shrink: 0;
 }
+.retro-browser-title > b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .retro-browser-title > button {
+  flex-shrink: 0;
   padding: 0 5px !important;
   font:
     15px "Courier New",
@@ -550,16 +557,90 @@
   flex: 1;
   min-height: 0;
 }
-.retro-preview-checking {
+.retro-run-loading {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: grid;
-  place-content: center;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
   background: #000080;
-  color: #aaaaaa;
+  color: #000080;
   font:
     var(--terminal-font-size) / 1.5 "Courier New",
     monospace;
+}
+.retro-run-dialog {
+  width: min(100%, 520px);
+  border: 3px outset #dddddd;
+  background: #aaaaaa;
+  box-shadow: 8px 8px #000000;
+}
+.retro-run-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 3px;
+  padding: 4px 8px;
+  background: #000080;
+  color: #ffffff;
+  font-size: 12px;
+}
+.retro-run-title > span {
+  color: #aaaaaa;
+}
+.retro-run-body {
+  padding: 20px 24px 24px;
+}
+.retro-run-body h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+.retro-run-message {
+  min-height: 3em;
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
+}
+.retro-run-track {
+  padding: 3px;
+  border: 2px inset #dddddd;
+  overflow: hidden;
+}
+.retro-run-blocks {
+  display: flex;
+  gap: 4px;
+  width: 30%;
+  height: 22px;
+  animation: retro-processing 2s steps(14, end) infinite alternate;
+}
+.retro-run-blocks > span {
+  flex: 1;
+  background: #000080;
+}
+.retro-run-body > small {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+}
+@keyframes retro-processing {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(233.333%);
+  }
+}
+.reduced .retro-run-blocks {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .retro-run-blocks {
+    animation: none;
+  }
 }
 .retro-browser-status {
   min-height: 31px;

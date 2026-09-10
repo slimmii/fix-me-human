@@ -47,7 +47,9 @@ Click the computer to open App.tsx. The first exercise starts empty; later exerc
 
 Checks create, move, edit, delete and search actual rendered cards. Each scenario uses a fresh mount and the preview resets after checking so the learner can try a clean board. The final exercise also checks the wide column layout. The previous short example track is no longer registered; older authoring references remain in the repository.
 
-Settings include mute, reduced motion, and optional scanlines. B.U.G.'s dialogue is always captioned. There are no timers or retry penalties. WebGL is required for the office; a fallback keeps the learning and coding interface available without it.
+The wall clock shows office time in 24-hour format. The safety sign counts full days since the last compile error, runtime error, or unresponsive program; each error resets it to zero without resetting the clock. Incomplete assignment checks do not reset the streak. Clock and streak timestamps save locally and continue advancing while the game is closed.
+
+Settings include mute, reduced motion, and optional scanlines. B.U.G.'s dialogue is always captioned. There are no deadlines or lost course progress after errors. The clock still updates with reduced motion enabled. WebGL is required for the office; a fallback keeps the learning, coding interface, and clock readout available without it.
 
 ## Author content
 

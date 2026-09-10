@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { useHoverHighlight } from "./useHoverHighlight";
 import { useEffect, useMemo } from "react";
 import { printTexture } from "./printTexture";
+import { WALL_PRINTS } from "./wallPrints";
 export function MotivationalPoster({ onClick }: { onClick: () => void }) {
   const highlight = useHoverHighlight<THREE.Mesh>();
   const texture = useMemo(() => {
@@ -78,18 +79,20 @@ export function MotivationalPoster({ onClick }: { onClick: () => void }) {
   return (
     <mesh
       {...highlight.mesh}
-      position={[-2.05, 3, -1.83]}
+      position={WALL_PRINTS.poster.position}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
     >
-      <planeGeometry args={[0.78, 1.04]} />
+      <planeGeometry
+        args={[WALL_PRINTS.poster.width, WALL_PRINTS.poster.height]}
+      />
       <meshBasicMaterial map={texture} toneMapped={false} />
     </mesh>
   );
 }
-export function BugCounterSign() {
+export function BugCounterSign({ days }: { days: number }) {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 1024;
@@ -112,11 +115,11 @@ export function BugCounterSign() {
     ctx.fillStyle = "#f5f0d3";
     ctx.fillRect(770, 41, 198, 174);
     ctx.fillStyle = "#345242";
-    ctx.font = "bold 140px monospace";
+    ctx.font = `bold ${Math.min(140, 270 / String(days).length)}px monospace`;
     ctx.textAlign = "center";
-    ctx.fillText("0", 869, 135);
+    ctx.fillText(String(days), 869, 135);
     return printTexture(canvas);
-  }, []);
+  }, [days]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
     <mesh position={[0.2, 3.45, -1.8]}>

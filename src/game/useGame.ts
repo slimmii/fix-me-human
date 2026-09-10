@@ -21,6 +21,7 @@ import {
   type StoryMood,
 } from "./story";
 import { storyChapters } from "./storyScripts";
+import { createOfficeClock } from "./officeTime";
 
 const assignments = curriculum.flatMap((lesson) => lesson.assignments);
 function contextFor(save: Save): StoryContext {
@@ -62,7 +63,20 @@ function record(
     : { ...save, story: { ...save.story, [save.assignmentId]: next } };
 }
 export function useGame() {
-  const [save, setSave] = useState(loadSave);
+  const [save, setSave] = useState<Save>(() => {
+    const saved = loadSave();
+    return { ...saved, officeClock: saved.officeClock ?? createOfficeClock() };
+  });
+  const reportBug = useCallback(() => {
+    const now = Date.now();
+    setSave((current) => ({
+      ...current,
+      officeClock: {
+        ...(current.officeClock ?? createOfficeClock(now)),
+        lastBugAt: now,
+      },
+    }));
+  }, []);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -282,6 +296,7 @@ export function useGame() {
   }
   return {
     save,
+    officeClock: save.officeClock!,
     setSave,
     assignmentOpen,
     setAssignmentOpen,
@@ -308,6 +323,7 @@ export function useGame() {
     assignment,
     say,
     activity,
+    reportBug,
     dispatch,
     enter,
     continueDialogue,

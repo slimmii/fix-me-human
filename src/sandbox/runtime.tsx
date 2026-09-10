@@ -14,6 +14,14 @@ const notify = (type: string, detail = "") => {
     "*",
   );
 };
+const notifyTitle = () => {
+  if (!checking) notify("title", document.title);
+};
+new MutationObserver(notifyTitle).observe(document.head, {
+  childList: true,
+  characterData: true,
+  subtree: true,
+});
 declare global {
   interface Window {
     __TOKEN: string;
@@ -150,6 +158,7 @@ window.__mount = (Component) => {
       checks = await evaluateRuntimeRules(root, window.__RULES, reset);
     } finally {
       checking = false;
+      notifyTitle();
     }
     if (failed) return;
     notify(

@@ -12,6 +12,7 @@ import {
 import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
 import { decodeStory, type AssignmentStory } from "./game/story";
+import { decodeOfficeClock, type OfficeClock } from "./game/officeTime";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
   version: 4;
@@ -25,6 +26,7 @@ export type Save = {
   drafts: Record<string, string>;
   projects: Record<string, CodeProject>;
   story: Record<string, AssignmentStory>;
+  officeClock: OfficeClock | null;
   settings: {
     mute: boolean;
     reducedMotion: boolean;
@@ -45,6 +47,7 @@ export const fresh = (lessons = curriculum): Save => ({
   drafts: {},
   projects: {},
   story: {},
+  officeClock: null,
   settings: {
     mute: false,
     reducedMotion:
@@ -278,6 +281,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
   try {
     const value = JSON.parse(raw);
     if (!value || value.version !== 4) return result;
+    result.officeClock = decodeOfficeClock(value.officeClock);
     const completed: string[] = Array.isArray(value.completed)
       ? value.completed.filter(
           (id: unknown): id is string => typeof id === "string",

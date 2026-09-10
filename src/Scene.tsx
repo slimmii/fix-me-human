@@ -5,19 +5,28 @@ import * as THREE from "three";
 import type { SceneProps as Props } from "./scene/types";
 import { World } from "./scene/World";
 import { PRINT_DURATION } from "./scene/printerAnimation";
+import { OfficeClockReadout } from "./ui/OfficeClockReadout";
+import { curriculum } from "./curriculum";
+import { CERTIFICATE } from "./scene/ReactBasicsCertificate";
+import type { WallFocus } from "./scene/wallPrints";
 export default function Scene(props: Props) {
   const quality = GRAPHICS_QUALITY[props.graphicsQuality];
-  const [posterFocused, setPosterFocused] = useState(false);
-  const posterClick = useRef<
+  const [wallFocus, setWallFocus] = useState<WallFocus>(null);
+  const certificateEarned = curriculum.every((lesson) =>
+    lesson.assignments.every((assignment) =>
+      props.completedAssignments.includes(assignment.id),
+    ),
+  );
+  const wallClick = useRef<
     | ((pointer: THREE.Vector2, event: { stopPropagation: () => void }) => void)
     | null
   >(null);
   useEffect(() => {
-    if (props.focused) setPosterFocused(false);
+    if (props.focused) setWallFocus(null);
   }, [props.focused]);
   useEffect(() => {
     const exit = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPosterFocused(false);
+      if (e.key === "Escape") setWallFocus(null);
     };
     window.addEventListener("keydown", exit);
     return () => window.removeEventListener("keydown", exit);
@@ -58,38 +67,58 @@ export default function Scene(props: Props) {
     props.assignment.id,
   ]);
   return webgl ? (
-    <Canvas
-      key={String(quality.antialias)}
-      onPointerMissed={() => setPosterFocused(false)}
-      onClickCapture={(e) => {
-        if (!posterFocused) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const pointer = new THREE.Vector2(
-          ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          (-(e.clientY - rect.top) / rect.height) * 2 + 1,
-        );
-        posterClick.current?.(pointer, e);
-      }}
-      frameloop={props.reduced && idle ? "demand" : "always"}
-      gl={{ antialias: quality.antialias, powerPreference: "high-performance" }}
-      shadows
-      camera={{ position: [0, 3.45, 6.8], fov: 44 }}
-      dpr={[1, quality.maxDpr]}
-    >
-      <Suspense fallback={null}>
-        <World
-          {...props}
-          posterFocused={posterFocused}
-          onPoster={() => setPosterFocused(true)}
-          onDesk={() => setPosterFocused(false)}
-          posterClick={posterClick}
-        />
-      </Suspense>
-    </Canvas>
+    <>
+      <OfficeClockReadout clock={props.officeClock} hidden />
+      <Canvas
+        key={String(quality.antialias)}
+        onPointerMissed={() => setWallFocus(null)}
+        onClickCapture={(e) => {
+          if (!wallFocus) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const pointer = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            (-(e.clientY - rect.top) / rect.height) * 2 + 1,
+          );
+          wallClick.current?.(pointer, e);
+        }}
+        frameloop={props.reduced && idle ? "demand" : "always"}
+        gl={{
+          antialias: quality.antialias,
+          powerPreference: "high-performance",
+        }}
+        shadows
+        camera={{ position: [0, 3.45, 6.8], fov: 44 }}
+        dpr={[1, quality.maxDpr]}
+      >
+        <Suspense fallback={null}>
+          <World
+            {...props}
+            wallFocus={wallFocus}
+            certificateEarned={certificateEarned}
+            onPoster={() => setWallFocus("poster")}
+            onCertificate={() => setWallFocus("certificate")}
+            onDesk={() => setWallFocus(null)}
+            wallClick={wallClick}
+          />
+        </Suspense>
+      </Canvas>
+    </>
   ) : (
     <div className="webgl-fallback">
       <h2>Your browser cannot start WebGL.</h2>
       <p>You can still type React and use the little browser.</p>
+      <OfficeClockReadout clock={props.officeClock} />
+      {certificateEarned && (
+        <article aria-label="REACT BASICS certificate">
+          <h2>{CERTIFICATE.title}</h2>
+          <h3>{CERTIFICATE.subtitle}</h3>
+          <p>{CERTIFICATE.work}</p>
+          <p>{CERTIFICATE.qualification}</p>
+          <p>
+            <i>{CERTIFICATE.signature}</i>
+          </p>
+        </article>
+      )}
       <button onClick={props.onComputer}>Start</button>
       {props.completedAssignments.includes(
         props.assignment.id,

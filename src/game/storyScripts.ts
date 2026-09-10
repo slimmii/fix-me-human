@@ -316,7 +316,7 @@ export function chapterLines(
       ];
     case "finale":
       return [
-        `All assignments complete! ${chapter.handoff}`,
+        "All assignments complete! Your certificate is on the wall. The training budget covered the paper. The rest was me.",
         assignment.robot?.success ?? "You shipped it, human.",
         "You can revisit every task and all course material. I have added one item to my own TODO column: remain indispensable. We make a decent team. Do not quote me.",
       ];

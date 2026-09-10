@@ -25,6 +25,7 @@ export function GameComputer({ game }: { game: GameController }) {
             onPass={() => dispatch({ type: "submit" })}
             onExit={() => game.setFocused(false)}
             onActivity={game.activity}
+            onBug={game.reportBug}
             onKey={() => sound(save.settings.mute)}
             reduced={save.settings.reducedMotion}
             helpOpen={game.helpOpen}

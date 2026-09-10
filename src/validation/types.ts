@@ -33,7 +33,7 @@ export type RuntimeRule =
   | { type: "visible-text"; selector: string; text: string; label: string }
   | { type: "interaction"; steps: RuntimeStep[]; label: string };
 export type Validation = { source: SourceRule[]; runtime: RuntimeRule[] };
-export type CodeCheck = { label: string; pass: boolean };
+export type CodeCheck = { label: string; pass: boolean; detail?: string };
 export function validSourceRule(rule: SourceRule): boolean {
   return (
     !!rule.label?.trim() &&

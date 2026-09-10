@@ -1,5 +1,25 @@
 import { validRuntimeRule, type CodeCheck, type RuntimeRule } from "./types";
-const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
+import {
+  normalizeText as normalize,
+  textMismatchFeedback,
+} from "./text-feedback";
+
+function textFeedback(expected: string, elements: HTMLElement[]): string {
+  const column = elements[0]?.closest("section[aria-label]");
+  const label = elements[0]?.getAttribute("aria-label");
+  const location = column
+    ? `the ${column.getAttribute("aria-label")} column`
+    : label
+      ? `“${label}”`
+      : elements[0]?.tagName === "H1"
+        ? "the page heading"
+        : "the page";
+  return textMismatchFeedback(
+    expected,
+    elements.map((element) => element.innerText),
+    location,
+  );
+}
 function visible(element: HTMLElement): boolean {
   if (!element.getClientRects().length) return false;
   for (
@@ -32,6 +52,7 @@ export async function evaluateRuntimeRules(
   const checks: CodeCheck[] = [];
   for (const rule of rules) {
     let pass = validRuntimeRule(rule);
+    let detail: string | undefined;
     try {
       if (!pass) throw Error("Unknown runtime rule");
       if (rule.type === "column-layout") {
@@ -55,17 +76,20 @@ export async function evaluateRuntimeRules(
         rule.type === "visible-text"
       ) {
         const selector = rule.type === "visible-heading" ? "h1" : rule.selector;
-        pass = Array.from(root.querySelectorAll<HTMLElement>(selector)).some(
-          (element) =>
-            visible(element) &&
-            normalize(element.innerText) === normalize(rule.text),
+        const elements = Array.from(
+          root.querySelectorAll<HTMLElement>(selector),
+        ).filter(visible);
+        pass = elements.some(
+          (element) => normalize(element.innerText) === normalize(rule.text),
         );
+        if (!pass) detail = textFeedback(rule.text, elements);
       } else {
         await reset?.();
         for (const step of rule.steps) {
           if (step.action === "title") {
             if (document.title !== step.text) {
               pass = false;
+              detail = `In the browser title, I expected “${step.text}”, but found “${document.title || "(empty)"}”. Match the title exactly, including spaces, capital letters and punctuation.`;
               break;
             }
             continue;
@@ -75,15 +99,24 @@ export async function evaluateRuntimeRules(
           ).filter(visible);
           const element = elements[0];
           if (step.action === "expect") {
+            if (step.count !== undefined && elements.length !== step.count) {
+              pass = false;
+              break;
+            }
             if (
-              (step.count !== undefined && elements.length !== step.count) ||
-              (step.text !== undefined &&
-                !elements.some(
-                  (item) => normalize(item.innerText) === normalize(step.text!),
-                )) ||
-              (step.value !== undefined &&
-                (!(element instanceof HTMLInputElement) ||
-                  element.value !== step.value))
+              step.text !== undefined &&
+              !elements.some(
+                (item) => normalize(item.innerText) === normalize(step.text!),
+              )
+            ) {
+              pass = false;
+              detail = textFeedback(step.text, elements);
+              break;
+            }
+            if (
+              step.value !== undefined &&
+              (!(element instanceof HTMLInputElement) ||
+                element.value !== step.value)
             ) {
               pass = false;
               break;
@@ -116,7 +149,11 @@ export async function evaluateRuntimeRules(
     } catch {
       pass = false;
     }
-    checks.push({ label: rule.label || "Unknown runtime rule", pass });
+    checks.push({
+      label: rule.label || "Unknown runtime rule",
+      pass,
+      ...(detail ? { detail } : {}),
+    });
   }
   // Interaction checks exercise a disposable mount; restore the learner's page.
   if (rules.some((rule) => rule.type === "interaction")) await reset?.();

@@ -1,13 +1,45 @@
-Choose where work belongs based on what causes it:
+**A timer with cleanup**
 
-- An **event handler** handles a user action, such as confirming a name or removing an item.
-- A **render calculation** filters a list, counts its entries or chooses which button to display.
-- An **effect** keeps an external system, such as the document title, synchronized with the current data.
+This counter adds 1 every second while it is on the page:
 
-An effect can depend on a calculated number. Calculate that number from the relevant saved data during render, read it in the effect, and include it in the dependency array. If it describes a collection total, a search query should not change the number's source.
+```tsx
+import { useEffect, useState } from "react";
 
-Dependencies follow the reactive values the effect uses. An effect reading `city` depends on `city`; one reading a calculated `total` depends on `total`. Do not omit a dependency to suppress updates. Avoid an effect that sets state only to calculate another value from existing state.
+export default function Counter() {
+  const [seconds, setSeconds] = useState(0);
 
-Some effects create ongoing work, such as a subscription or timer. Those return a cleanup function that stops the old work before setup runs again and when the component is removed. The title assignment creates no ongoing resource, so it needs no such cleanup. React's development checks can repeat setup and cleanup; effects should handle that safely.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((previous) => previous + 1);
+    }, 1000);
 
-Keep user actions in their handlers. An effect watching an input is not a substitute for a confirmation button: typing and confirming are different events.
+    return () => clearInterval(timer);
+  }, []);
+
+  return <p>{seconds} seconds</p>;
+}
+```
+
+`setInterval` starts the timer. `1000` means 1,000 milliseconds, or one second. The updater `previous => previous + 1` adds to the latest count without reading `seconds` inside the effect.
+
+The empty array `[]` means updating the counter does not restart the effect. The timer keeps ticking on its own.
+
+The returned function is the **cleanup**. When React removes the counter from the page, it calls `clearInterval(timer)` to stop the timer. Without cleanup, the timer would keep running after the counter disappears.
+
+Cleanup also runs before an effect restarts because a dependency changed. In development, Strict Mode can run setup → cleanup → setup as an extra check, even with `[]`. This example stops the first timer before starting another.
+
+**A title based on a count**
+
+An effect can also use a calculated value. In a library component with a `books` array and `useEffect` imported, the count and effect look like this:
+
+```tsx
+const total = books.length;
+
+useEffect(() => {
+  document.title = `Library — ${total} books`;
+}, [total]);
+```
+
+With 8 books, the title is **Library — 8 books**. A search that shows only 2 books leaves the title at 8 because the count comes from the full collection. Deleting a book changes `total` to 7, so the effect updates the title.
+
+The count is calculated directly from `books`; it needs no extra state or effect. The title assignment leaves no timer or subscription running, so it needs no cleanup.

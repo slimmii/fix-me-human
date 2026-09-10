@@ -8,6 +8,73 @@ test.beforeEach(async ({ page }) => {
   await useSimpleComputer(page);
 });
 
+test("B.U.G. identifies the task 10 punctuation mismatch and clears it after a fix", async ({
+  page,
+}) => {
+  const assignments = curriculum.flatMap((lesson) => lesson.assignments);
+  const assignment = assignments.find((item) => item.id === "board-search")!;
+  const files = { ...assignment.solutionFiles! };
+  files["BoardColumn.tsx"] = files["BoardColumn.tsx"].replace(
+    "<p>No matching tasks</p>",
+    "<p>No matching tasks.</p>",
+  );
+  const save = fresh();
+  save.phase = "coding";
+  save.lessonId = curriculum.find((lesson) =>
+    lesson.assignments.includes(assignment),
+  )!.id;
+  save.assignmentId = assignment.id;
+  save.completed = assignments
+    .slice(0, assignments.indexOf(assignment))
+    .map((item) => item.id);
+  save.collectedAssignments = [...save.completed, assignment.id];
+  save.readAssignments = [...save.collectedAssignments];
+  save.settings = {
+    ...save.settings,
+    reducedMotion: true,
+    mute: true,
+    graphicsQuality: 0,
+  };
+  save.projects[assignment.id] = { files, activeFile: "BoardColumn.tsx" };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (window === window.top) localStorage.setItem(key, value);
+    },
+    [KEY, JSON.stringify(save)],
+  );
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Start", exact: true })
+    .first()
+    .click();
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code");
+  await editor.press("F5");
+  const dialogue = page.getByRole("region", {
+    name: "Conversation with B.U.G.",
+  });
+  await expect(dialogue).toContainText(
+    "In the TODO column, I expected “No matching tasks”, but found “No matching tasks.”",
+    { timeout: 15000 },
+  );
+  await expect(dialogue).toContainText("Check the punctuation");
+  await expect(dialogue).toContainText("Press F6 to return to your code");
+  await expect(
+    page.getByRole("button", { name: "Submit assignment" }),
+  ).toHaveCount(0);
+  await dialogue.screenshot({ path: "test-results/bug-text-feedback.png" });
+  await page.getByRole("button", { name: "← Editor F6" }).click();
+  await editor.fill(assignment.solutionFiles!["BoardColumn.tsx"]);
+  await editor.press("F5");
+  await expect(
+    page.getByRole("button", { name: "Submit assignment" }),
+  ).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(dialogue).not.toContainText("I expected");
+});
+
 test("a misspelled provider export identifies the file and name, then recovers after editing", async ({
   page,
 }) => {

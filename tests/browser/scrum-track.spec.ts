@@ -217,6 +217,9 @@ test("behavior checks reject broken updates, split context and stale effects", a
 test("final submission completes the course, retains all drafts and never prints a thirteenth task", async ({
   page,
 }) => {
+  const certificate = page.getByRole("button", {
+    name: "Read REACT BASICS certificate",
+  });
   const last = assignments.at(-1)!;
   const save = fresh();
   save.phase = "coding";
@@ -245,6 +248,7 @@ test("final submission completes the course, retains all drafts and never prints
     [KEY, JSON.stringify(save)],
   );
   await page.goto("/");
+  await expect(certificate).toHaveCount(0);
   await page.locator('[data-surface="crt-glass"]').click();
   await page
     .frameLocator('iframe[title="Code editor"]')
@@ -253,9 +257,14 @@ test("final submission completes the course, retains all drafts and never prints
   await expect(page.getByRole("status")).toContainText(last.robot!.success, {
     timeout: 20000,
   });
+  await expect(certificate).toHaveCount(0);
   await page.getByRole("button", { name: "Submit assignment" }).click();
   await expect(page.getByRole("status")).toContainText(
     "All assignments complete!",
+  );
+  await expect(certificate).toBeVisible();
+  await expect(page.getByRole("status")).toContainText(
+    "Your certificate is on the wall. The training budget covered the paper. The rest was me.",
   );
   await expect(
     page.getByRole("button", { name: /^Grab new assignment:/ }),
@@ -276,7 +285,30 @@ test("final submission completes the course, retains all drafts and never prints
   await expect(page.locator('[data-surface="crt-glass"]')).toBeVisible({
     timeout: 15000,
   });
+  await expect(certificate).toBeVisible();
   await page.screenshot({
     path: "test-results/scrum-course-complete-wall.png",
   });
+  await certificate.click();
+  await expect
+    .poll(async () => (await certificate.boundingBox())?.width ?? 0)
+    .toBeGreaterThan(500);
+  await expect(certificate).toHaveAttribute(
+    "aria-description",
+    /Certified Mostly Functional.*You shipped a board\. You obeyed the hooks\..*You are now qualified to introduce more advanced bugs\..*Reluctantly approved by B\.U\.G\./,
+  );
+  await page.mouse.move(1400, 950);
+  await page.screenshot({ path: "test-results/react-basics-certificate.png" });
+  await page.keyboard.press("Escape");
+  await expect
+    .poll(async () => (await certificate.boundingBox())?.width ?? 0)
+    .toBeLessThan(200);
+  // Opening an earlier task keeps the earned certificate on the wall.
+  await page.locator('[data-surface="crt-glass"]').click();
+  await page.getByRole("button", { name: "Open task…", exact: true }).click();
+  await page
+    .getByRole("button", { name: `Open task: ${assignments[0].title}` })
+    .click();
+  await page.reload();
+  await expect(certificate).toBeVisible({ timeout: 15000 });
 });

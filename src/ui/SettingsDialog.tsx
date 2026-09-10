@@ -65,7 +65,7 @@ export function SettingsDialog({
         </div>
         <p>
           Type your own React. Tab indents; F5 runs; F6 switches to your editor.
-          Escape returns to the desk. No timers. No lost progress.
+          Escape returns to the desk. No deadlines. No lost progress.
         </p>
         <button className="primary" onClick={onClose}>
           Back to work

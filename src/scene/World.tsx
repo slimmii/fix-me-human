@@ -9,7 +9,9 @@ import { useSeatedCamera } from "./useSeatedCamera";
 import { Workstation } from "./Workstation";
 
 import { Confetti } from "./Confetti";
-import { BugCounterSign, MotivationalPoster } from "./Posters";
+import { MotivationalPoster } from "./Posters";
+import { ReactBasicsCertificate } from "./ReactBasicsCertificate";
+import { WallClock } from "./WallClock";
 import { Printer } from "./Printer";
 import { CompletedAssignments } from "./CompletedAssignments";
 import { Robot } from "./Robot";
@@ -64,7 +66,14 @@ export function World(props: WorldProps) {
         />
       </Prop>
       <MotivationalPoster onClick={props.onPoster} />
-      <BugCounterSign />
+      {props.certificateEarned && (
+        <ReactBasicsCertificate onClick={props.onCertificate} />
+      )}
+      <WallClock
+        officeClock={props.officeClock}
+        reduced={reduced}
+        onProp={onProp}
+      />
       <Robot
         reduced={reduced}
         onProp={onProp}

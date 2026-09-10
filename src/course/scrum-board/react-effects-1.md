@@ -1,4 +1,4 @@
-Rendering calculates JSX. An effect synchronizes something outside that JSX after React updates the screen. A document title is one example: it belongs to the browser document, not a returned element.
+`useEffect` runs code after React updates the page. For example, it can keep the browser's document title in sync with the city shown in a component.
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -19,8 +19,18 @@ export default function App() {
 }
 ```
 
-The first function is the effect's setup. `[city]` is its dependency array. The effect runs after the initial render is committed and again after a render where `city` changed. The backticks make a template string; `${city}` inserts the current city into it.
+The effect first sets the title to **Weather in Brussels**. When the button changes `city` to `"Ghent"`, React updates the heading and the effect updates the title to **Weather in Ghent**.
 
-Keep `useEffect` at the top level, like other hooks. Include the reactive values it reads. With an empty dependency array, this title would keep its initial city after the button is clicked. Assigning the title during render would put a side effect in a calculation that should remain pure.
+**What the dependency array does**
 
-The office sandbox permits `document.title`. It changes the embedded preview's title, not the outer office tab. It does not permit network or browser storage access.
+The array after the effect's function controls when it runs again:
+
+- `[city]`: runs when the component first appears and again when `city` changes.
+- `[]`: runs when the component first appears. Changes to state or props do not run it again. Removing the component and adding it back starts the effect again.
+- No array: runs after every completed render of the component.
+
+With `[]` in this example, the title would stay **Weather in Brussels**, even when the heading changes to Ghent. The effect reads `city`, so `[city]` is the right dependency array here.
+
+Keep `useEffect` directly inside the component, before `return`, outside conditions and click handlers. Keep the title assignment inside the effect.
+
+In the office sandbox, `document.title` updates the BUGSCAPE browser window's title bar on the fake computer. The outer office tab keeps its own title.

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import type { WallFocus } from "./wallPrints";
 export type SceneProps = {
+  officeClock: import("../game/officeTime").OfficeClock;
   completedAssignments: string[];
   assignment: import("../curriculum/types").Assignment;
   assignmentOpen: boolean;
@@ -21,13 +23,15 @@ export type SceneProps = {
   computer: ReactNode;
 };
 
-export type PosterClickHandler = (
+export type WallClickHandler = (
   pointer: import("three").Vector2,
   event: { stopPropagation: () => void },
 ) => void;
 export type WorldProps = SceneProps & {
-  posterFocused: boolean;
+  wallFocus: WallFocus;
+  certificateEarned: boolean;
   onPoster: () => void;
+  onCertificate: () => void;
   onDesk: () => void;
-  posterClick: import("react").RefObject<PosterClickHandler | null>;
+  wallClick: import("react").RefObject<WallClickHandler | null>;
 };

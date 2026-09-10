@@ -5,18 +5,28 @@ import { CRT } from "../monitor";
 
 import type { ThreeElements } from "@react-three/fiber";
 import type { WorldProps } from "./types";
+import { WALL_PRINTS } from "./wallPrints";
 export function useSeatedCamera(props: WorldProps) {
   const { focused, reduced } = props;
   const drag = useRef({ down: false, x: 0, y: 0, yaw: 0, pitch: 0 });
   useFrame(({ camera, size }, dt) => {
-    props.posterClick.current = (pointer, event) => {
+    const wallPrint = props.wallFocus ? WALL_PRINTS[props.wallFocus] : null;
+    props.wallClick.current = (pointer, event) => {
+      if (!wallPrint) return;
       const ray = new THREE.Raycaster();
       ray.setFromCamera(pointer, camera);
       const hit = ray.ray.intersectPlane(
-        new THREE.Plane(new THREE.Vector3(0, 0, 1), 1.83),
+        new THREE.Plane(new THREE.Vector3(0, 0, 1), -wallPrint.position[2]),
         new THREE.Vector3(),
       );
-      if (!hit || Math.abs(hit.x + 2.05) > 0.39 || Math.abs(hit.y - 3) > 0.52) {
+      const local = hit
+        ?.sub(new THREE.Vector3(...wallPrint.position))
+        .applyAxisAngle(new THREE.Vector3(0, 0, 1), -wallPrint.rotation);
+      if (
+        !local ||
+        Math.abs(local.x) > wallPrint.width / 2 ||
+        Math.abs(local.y) > wallPrint.height / 2
+      ) {
         event.stopPropagation();
         props.onDesk();
       }
@@ -31,15 +41,15 @@ export function useSeatedCamera(props: WorldProps) {
       .sub(deskPosition)
       .normalize();
     const target = deskPosition.clone();
-    if (props.posterFocused || focused) {
+    if (wallPrint || focused) {
       const showDeskPaper = focused && props.assignmentCollected;
-      const width = props.posterFocused
-        ? 0.78
+      const width = wallPrint
+        ? wallPrint.width
         : showDeskPaper
           ? 2.8
           : CRT.width;
-      const height = props.posterFocused
-        ? 1.04
+      const height = wallPrint
+        ? wallPrint.height
         : showDeskPaper
           ? 1.3
           : CRT.height;
@@ -51,8 +61,8 @@ export function useSeatedCamera(props: WorldProps) {
             (size.width / size.height) *
             0.8),
       );
-      const center = props.posterFocused
-        ? new THREE.Vector3(-2.05, 3, -1.83)
+      const center = wallPrint
+        ? new THREE.Vector3(...wallPrint.position)
         : new THREE.Vector3(
             showDeskPaper ? 0.3 : 0,
             CRT.centerY - (showDeskPaper ? 0.15 : 0),
@@ -93,7 +103,7 @@ export function useSeatedCamera(props: WorldProps) {
       drag.current.down = false;
     },
     onPointerMove: (e) => {
-      if (!drag.current.down || focused || props.posterFocused) return;
+      if (!drag.current.down || focused || props.wallFocus) return;
       drag.current.yaw = THREE.MathUtils.clamp(
         drag.current.yaw + (drag.current.x - e.clientX) * 0.008,
         -1.1,

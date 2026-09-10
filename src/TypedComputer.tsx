@@ -7,6 +7,7 @@ import RetroEditor, { type RetroEditorHandle } from "./RetroEditor";
 import { browserDocument } from "./sandbox/document";
 import type { Compiled } from "./typed-engine";
 import { FileDialog } from "./computer/FileDialog";
+import { RunProgress } from "./computer/RunProgress";
 import { ENTRY_FILE, type CodeProject } from "./project";
 export const TAGS = [
   "div",
@@ -32,6 +33,7 @@ type Props = {
   onChange: (project: CodeProject) => void;
   onPass: () => void;
   onActivity: (event: StoryEvent, detail?: string) => void;
+  onBug: () => void;
   onKey: () => void;
   reduced: boolean;
   onHelp: () => void;
@@ -49,6 +51,7 @@ export default function TypedComputer({
   onChange,
   onPass,
   onActivity,
+  onBug,
   onKey,
   reduced,
   onHelp,
@@ -57,6 +60,7 @@ export default function TypedComputer({
   const [draft, setDraft] = useState(project);
   const [fileDialog, setFileDialog] = useState<"new" | "open" | null>(null);
   const [page, setPage] = useState("");
+  const [browserTitle, setBrowserTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Ready");
   const [accepted, setAccepted] = useState(false);
@@ -73,6 +77,10 @@ export default function TypedComputer({
   const pending = useRef<Compiled | null>(null);
   const generation = useRef(0);
   const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const revealTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const runStarted = useRef(0);
   const latestSource = useRef(draft);
   latestSource.current = draft;
   useEffect(() => {
@@ -83,6 +91,7 @@ export default function TypedComputer({
     return () => {
       worker.current?.terminate();
       clearTimeout(timeout.current);
+      clearTimeout(revealTimeout.current);
     };
   }, []);
   useEffect(() => {
@@ -96,6 +105,20 @@ export default function TypedComputer({
     setMenu(null);
     requestAnimationFrame(() => editor.current?.focus());
   }
+  function finishRun(reveal: () => void) {
+    clearTimeout(timeout.current);
+    clearTimeout(revealTimeout.current);
+    const id = generation.current;
+    const finish = () => {
+      if (generation.current !== id) return;
+      setBusy(false);
+      reveal();
+    };
+    // Keep even fast runs readable, with one panel across compilation and checks.
+    const remaining = 1500 - (performance.now() - runStarted.current);
+    if (remaining > 0) revealTimeout.current = setTimeout(finish, remaining);
+    else finish();
+  }
   useEffect(() => {
     const receive = (event: MessageEvent) => {
       if (
@@ -108,13 +131,19 @@ export default function TypedComputer({
         backToEditor();
         return;
       }
-      clearTimeout(timeout.current);
-      setBusy(false);
+      if (event.data.type === "title") {
+        if (typeof event.data.detail === "string")
+          setBrowserTitle(event.data.detail);
+        return;
+      }
       if (event.data.type === "error") {
-        setAccepted(false);
-        setError(String(event.data.detail));
-        setStatus("Runtime error");
-        onActivity("retry", String(event.data.detail).slice(0, 700));
+        finishRun(() => {
+          onBug();
+          setAccepted(false);
+          setError(String(event.data.detail));
+          setStatus("Runtime error");
+          onActivity("retry", String(event.data.detail).slice(0, 700));
+        });
       }
       if (event.data.type === "rendered") {
         const runtime = JSON.parse(event.data.detail) as {
@@ -127,36 +156,39 @@ export default function TypedComputer({
         ];
         const ok =
           checks.length > 0 && checks.every((c) => c.pass) && runtime.valid;
-        setAccepted(ok);
-        setStatus(
-          ok
-            ? "Program ran successfully. Assignment checks passed."
-            : "Program running. Assignment needs another look.",
-        );
-        onActivity(
-          ok ? "passed" : "retry",
-          ok
-            ? undefined
-            : `Next: ${
-                checks.find((check) => !check.pass)?.label ||
-                "Check the printed assignment"
-              }. Press F6 to return to your code.`,
-        );
+        const failure = checks.find((check) => !check.pass);
+        finishRun(() => {
+          setAccepted(ok);
+          setStatus(
+            ok
+              ? "Program ran successfully. Assignment checks passed."
+              : "Program running. Assignment needs another look.",
+          );
+          onActivity(
+            ok ? "passed" : "retry",
+            ok
+              ? undefined
+              : `${failure?.detail ?? `Next: ${failure?.label || "Check the printed assignment"}.`} Press F6 to return to your code.`,
+          );
+        });
       }
     };
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [onActivity]);
+  }, [onActivity, onBug]);
   function run() {
     if (!worker.current || busy || fileDialog) return;
     onKey();
     onActivity("run");
     setMenu(null);
     setActive("browser");
+    clearTimeout(revealTimeout.current);
+    runStarted.current = performance.now();
     setBusy(true);
     token.current = "";
     pending.current = null;
     setPage("");
+    setBrowserTitle("");
     setAccepted(false);
     setError("");
     setStatus("Compiling App.tsx ...");
@@ -173,11 +205,13 @@ export default function TypedComputer({
       const result = e.data.result as Compiled;
       pending.current = result;
       if (result.errors.length) {
-        setBusy(false);
-        setStatus("Compile error");
-        setError(result.errors[0]);
-        setPage("");
-        onActivity("retry", result.errors[0]);
+        finishRun(() => {
+          onBug();
+          setStatus("Compile error");
+          setError(result.errors[0]);
+          setPage("");
+          onActivity("retry", result.errors[0]);
+        });
         return;
       }
       token.current = `${exercise.id}-${id}-${Date.now()}`;
@@ -191,10 +225,12 @@ export default function TypedComputer({
       );
       clearTimeout(timeout.current);
       timeout.current = setTimeout(() => {
+        onBug();
         setBusy(false);
         setAccepted(false);
         setPage("");
         setError("Program did not respond. Check for endless recursion.");
+        setBrowserTitle("");
         onActivity(
           "retry",
           "Your program did not respond. Check for a function that calls itself forever.",
@@ -213,6 +249,7 @@ export default function TypedComputer({
     generation.current++;
     token.current = "";
     clearTimeout(timeout.current);
+    clearTimeout(revealTimeout.current);
     setBusy(false);
     setAccepted(false);
     setStatus("Modified — saved locally");
@@ -493,7 +530,10 @@ export default function TypedComputer({
             </div>
             <div className="retro-browser" hidden={active !== "browser"}>
               <div className="retro-browser-title">
-                <b>▣ BUGSCAPE Navigator 1.0 — Local Intranet</b>
+                <b>
+                  ▣ BUGSCAPE Navigator 1.0 —{" "}
+                  {(!busy && browserTitle) || "Local Intranet"}
+                </b>
                 <button onClick={backToEditor} aria-label="Close browser">
                   [×]
                 </button>
@@ -509,7 +549,7 @@ export default function TypedComputer({
                 <span className="retro-url">human://office/{exercise.id}</span>
                 <b>▦</b>
               </div>
-              <div className="retro-browser-page">
+              <div className="retro-browser-page" aria-busy={busy}>
                 {error ? (
                   <div className="retro-error" role="alert">
                     <h2>[ {status.toUpperCase()} ]</h2>
@@ -517,32 +557,22 @@ export default function TypedComputer({
                     <button onClick={backToEditor}>Return to editor</button>
                   </div>
                 ) : page ? (
-                  <>
-                    <iframe
-                      ref={frame}
-                      title="Your retro browser"
-                      sandbox="allow-scripts"
-                      srcDoc={page}
-                      inert={busy}
-                    />
-                    {busy && (
-                      <div
-                        className="retro-preview-checking"
-                        aria-live="polite"
-                      >
-                        Checking your program…
-                      </div>
-                    )}
-                  </>
-                ) : (
+                  <iframe
+                    ref={frame}
+                    title="Your retro browser"
+                    sandbox="allow-scripts"
+                    srcDoc={page}
+                    inert={busy}
+                    aria-hidden={busy}
+                  />
+                ) : !busy ? (
                   <div className="retro-loading">
                     <pre>
-                      {busy
-                        ? "Compiling program...\nLoading BUGSCAPE.EXE ...\nPlease enjoy this productive pause."
-                        : "No page loaded.\nPress F5 to run your program."}
+                      {"No page loaded.\nPress F5 to run your program."}
                     </pre>
                   </div>
-                )}
+                ) : null}
+                {busy && <RunProgress />}
               </div>
               <div className="retro-browser-status">
                 <span>● {status}</span>
@@ -570,7 +600,7 @@ export default function TypedComputer({
           <button onClick={getHint}>Hint</button>
           <span>
             {busy
-              ? "Compiling..."
+              ? "Processing..."
               : active === "editor"
                 ? status
                 : "Program output"}

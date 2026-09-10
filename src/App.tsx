@@ -38,6 +38,7 @@ export default function App() {
       }}
     >
       <Scene
+        officeClock={game.officeClock}
         completedAssignments={save.completed}
         assignment={game.assignment}
         assignmentOpen={game.assignmentOpen}
