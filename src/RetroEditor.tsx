@@ -31,6 +31,7 @@ import {
 } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import terminalControls from "./terminal-controls.css?inline";
 export type RetroEditorHandle = {
   focus: () => void;
   undo: () => void;
@@ -46,8 +47,7 @@ type Props = {
   onCursor: (line: number, column: number) => void;
 };
 
-// Keep numbers in the code rows. A separate gutter uses measured screen-space
-// heights, which drift under the CRT's perspective transform.
+// Keep line numbers in the code rows so they scroll together horizontally.
 function numberRows(view: EditorView) {
   const rows = new RangeSetBuilder<Decoration>();
   let previous = -1;
@@ -84,33 +84,6 @@ const rowNumbers = ViewPlugin.fromClass(
   { decorations: (plugin) => plugin.decorations },
 );
 
-const caretScrollKey = {};
-function keepCaretVisible(view: EditorView) {
-  view.requestMeasure({
-    key: caretScrollKey,
-    read(view) {
-      const { node } = view.domAtPos(view.state.selection.main.head);
-      const element = node instanceof Element ? node : node.parentElement;
-      const row = element?.closest<HTMLElement>(".cm-line");
-      if (!row || !view.scrollDOM.clientHeight) return null;
-      return {
-        top: view.contentDOM.offsetTop + row.offsetTop,
-        height: row.offsetHeight,
-      };
-    },
-    write(row, view) {
-      if (!row) return;
-      // Use layout coordinates, not the perspective-distorted screen rectangle.
-      const viewport = view.scrollDOM;
-      if (row.top < viewport.scrollTop) viewport.scrollTop = row.top;
-      else if (
-        row.top + row.height >
-        viewport.scrollTop + viewport.clientHeight
-      )
-        viewport.scrollTop = row.top + row.height - viewport.clientHeight;
-    },
-  });
-}
 const colors = HighlightStyle.define([
   {
     tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword],
@@ -154,13 +127,57 @@ export default forwardRef<RetroEditorHandle, Props>(
     );
     useEffect(() => {
       if (!host.current) return;
+      // An iframe keeps the editor's viewport, text measurements, and input
+      // coordinates in one flat space while the CRT projects the whole frame.
+      const container = host.current;
+      const frame = document.createElement("iframe");
+      frame.title = "Code editor";
+      frame.style.cssText = "display:block;width:100%;height:100%;border:0";
+      container.appendChild(frame);
+      const doc = frame.contentDocument!;
+      doc.open();
+      doc.write(
+        "<!doctype html><html><head><style>html,body{height:100%;margin:0;overflow:hidden;background:#000080}</style></head><body></body></html>",
+      );
+      doc.close();
+      const controls = doc.createElement("style");
+      controls.textContent = terminalControls;
+      doc.head.appendChild(controls);
+      doc.body.className = "machine-screen";
+      const syncFont = () => {
+        const style = getComputedStyle(container);
+        for (const name of ["--terminal-font-size", "--terminal-line-height"])
+          doc.documentElement.style.setProperty(
+            name,
+            style.getPropertyValue(name),
+          );
+      };
+      syncFont();
+      const resize = new ResizeObserver(syncFont);
+      resize.observe(container);
+      // Keyboard events do not bubble across frames. Preserve the computer's
+      // menu shortcuts and Escape handling before CodeMirror processes the key.
+      const forwardKey = (event: KeyboardEvent) => {
+        const forwarded = new KeyboardEvent("keydown", {
+          key: event.key,
+          code: event.code,
+          ctrlKey: event.ctrlKey,
+          metaKey: event.metaKey,
+          altKey: event.altKey,
+          shiftKey: event.shiftKey,
+          repeat: event.repeat,
+          isComposing: event.isComposing,
+          bubbles: true,
+          cancelable: true,
+        });
+        if (!container.dispatchEvent(forwarded)) event.preventDefault();
+      };
+      doc.addEventListener("keydown", forwardKey, true);
       const editor = new EditorView({
-        parent: host.current,
+        parent: doc.body,
         state: EditorState.create({
           doc: callbacks.current.initialSource,
           extensions: [
-            // Native caret and selection follow the CRT's perspective transform exactly.
-            // CodeMirror's separately measured selection layer drifts on a 3D surface.
             rowNumbers,
             EditorView.editorAttributes.compute(["doc"], (state) => ({
               style: `--line-number-width: ${Math.max(3, String(state.doc.lines).length) + 2}ch`,
@@ -213,7 +230,6 @@ export default forwardRef<RetroEditorHandle, Props>(
                 const pos = update.state.selection.main.head;
                 const line = update.state.doc.lineAt(pos);
                 callbacks.current.onCursor(line.number, pos - line.from + 1);
-                keepCaretVisible(update.view);
               }
             }),
             EditorView.theme({
@@ -292,9 +308,18 @@ export default forwardRef<RetroEditorHandle, Props>(
       view.current = editor;
       return () => {
         editor.destroy();
+        doc.removeEventListener("keydown", forwardKey, true);
+        resize.disconnect();
+        frame.remove();
         view.current = null;
       };
     }, []);
-    return <div className="qbasic-editor" ref={host} />;
+    return (
+      <div
+        className="qbasic-editor"
+        style={{ position: "relative" }}
+        ref={host}
+      />
+    );
   },
 );

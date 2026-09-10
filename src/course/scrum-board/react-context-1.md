@@ -1,21 +1,32 @@
-Context lets a component read a value supplied by an ancestor without threading that value through every intermediate component. It does not replace state; the provider still needs a state owner.
+Context supplies a value to components below a provider without forwarding it through every intermediate component. The value can contain both state and action functions.
+
+This example uses `useCounter` from the Custom hooks topic, defined in the same file:
 
 ```tsx
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import type { ReactNode } from "react";
-const TaskContext = createContext<ReturnType<typeof useTaskBoard> | null>(null);
-function TasksProvider({ children }: { children: ReactNode }) {
-  const board = useTaskBoard();
-  return <TaskContext.Provider value={board}>{children}</TaskContext.Provider>;
+
+const CounterContext = createContext<ReturnType<typeof useCounter> | null>(
+  null,
+);
+
+interface CounterProviderProps {
+  children: ReactNode;
+}
+
+function CounterProvider({ children }: CounterProviderProps) {
+  const counter = useCounter();
+
+  return (
+    <CounterContext.Provider value={counter}>
+      {children}
+    </CounterContext.Provider>
+  );
 }
 ```
 
-Create the context outside components so its identity is stable. TasksProvider calls useTaskBoard once. App wraps Board in TasksProvider, and the input, cards and columns are descendants of that provider. The children prop represents the nested JSX.
+Create the context outside components. `ReturnType<typeof useCounter>` describes the object returned by the hook, including its actions. `| null` allows a missing-provider value; the argument `null` sets that default.
 
-The nearest matching provider supplies the context value. Placing a separate provider around each column would create separate boards. Putting the provider below a component that needs the value cannot supply that component.
+The provider calls the stateful hook once and supplies its result through `value`. `children` is the nested JSX between the provider's opening and closing tags. `ReactNode` is React's type for renderable content.
 
-**Try it:** sketch App → TasksProvider → Board → columns/cards and locate the one task state owner.
-
-**Apply it:** exercise 9, Share the board with context. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/passing-data-deeply-with-context).
+All components that need this value must be below the same provider. Putting a separate provider around each consumer would create independent counters. The provider supplies an existing state value; context itself does not store the count.

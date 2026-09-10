@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import type { Assignment } from "../curriculum/types";
@@ -13,8 +14,10 @@ export function AssignmentPrintout({
   texture: THREE.Texture;
   onOpen: () => void;
 }) {
+  const highlight = useHoverHighlight();
   return (
     <group
+      {...highlight.mesh}
       position={[1.55, 1.44, -0.35]}
       rotation={[-Math.PI / 2, 0, -0.12]}
       scale={0.55}
@@ -38,6 +41,7 @@ export function AssignmentPrintout({
         zIndexRange={[6, 1]}
       >
         <button
+          {...highlight.html}
           className={`assignment-paper ${unread ? "assignment-attention" : ""}`}
           aria-label={`Read printed assignment: ${assignment.title}`}
           onClick={(event) => {

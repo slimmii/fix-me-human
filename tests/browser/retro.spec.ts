@@ -19,9 +19,15 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   );
   await page.goto("/");
   await page.locator('[data-surface="crt-glass"]').click();
-  const editor = page.getByRole("textbox", { name: "Your React code" });
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByRole("textbox", { name: "Your React code" });
   await expect(editor).toBeVisible();
-  await expect(page.locator('.cm-line[data-line-number="1"]')).toBeVisible();
+  await expect(
+    page
+      .frameLocator('iframe[title="Code editor"]')
+      .locator('.cm-line[data-line-number="1"]'),
+  ).toBeVisible();
   await expect(page.locator(".qbasic-source")).toHaveCSS(
     "background-color",
     "rgba(0, 0, 0, 0)",
@@ -31,7 +37,7 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   await page.screenshot({ path: "test-results/qbasic-editor.png" });
   await page.getByRole("menuitem", { name: "Start F5" }).click();
   await expect(editor).toBeHidden();
-  const browser = page.frameLocator("iframe");
+  const browser = page.frameLocator('iframe[title="Your retro browser"]');
   await expect(
     browser.getByRole("heading", { name: "Hello, Human" }),
   ).toBeVisible({ timeout: 15000 });
@@ -53,5 +59,7 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   await page
     .getByRole("menuitem", { name: "Find / Replace... Ctrl+F" })
     .click();
-  await expect(page.getByPlaceholder("Find")).toBeVisible();
+  await expect(
+    page.frameLocator('iframe[title="Code editor"]').getByPlaceholder("Find"),
+  ).toBeVisible();
 });

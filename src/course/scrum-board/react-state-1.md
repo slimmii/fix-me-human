@@ -1,23 +1,26 @@
-Changing an ordinary local variable does not request another render. State gives React a value to remember between renders and a setter that requests an update.
+State is a component's memory. Changing an ordinary variable does not tell React to update the screen. A state setter does.
 
 ```tsx
 import { useState } from "react";
-// At the top level inside App:
-const [tasks, setTasks] = useState<Task[]>(initialTasks);
+
+export default function App() {
+  const [cups, setCups] = useState(0);
+
+  function addCup() {
+    setCups((current) => current + 1);
+  }
+
+  return (
+    <section>
+      <p>Cups poured: {cups}</p>
+      <button onClick={addCup}>Pour a cup</button>
+    </section>
+  );
+}
 ```
 
-The array destructuring names the current snapshot and its setter. `Task[]` describes an array of tasks. The initial value is used when the component first mounts; it is not reapplied whenever the component renders.
+`useState(0)` gives the initial value. Array destructuring names the current value `cups` and the setter `setCups`. The setter requests another render with the new value. The initial value is used when the component mounts, not on every render.
 
-A click handler runs in response to a user action:
+`onClick={addCup}` passes a function for React to call after a click. `onClick={addCup()}` calls it while rendering. When a handler needs arguments, wrap the call in a function, such as `onClick={() => changeAmount(2)}`.
 
-```tsx
-<button onClick={() => addTask("Review backlog")}>Add sample task</button>
-```
-
-Pass a function to onClick. Writing `onClick={addTask("Review backlog")}` invokes addTask during render instead, which can repeatedly update state. Hooks such as useState must be called at the top level of a component or custom hook, before any conditional early return. Do not call them in loops, conditions or event handlers.
-
-**Try it:** click the sample button twice. Predict the total number of tasks before reading the result.
-
-**Apply it:** exercise 4, Give the board a memory. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/state-a-components-memory).
+Functions starting with `use`, such as `useState`, are hooks. Call hooks at the top level of a component or custom hook, before any early return. Keep them out of loops, conditions and event handlers.

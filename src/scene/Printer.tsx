@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
@@ -56,6 +57,7 @@ export function Printer({
           ? "printing"
           : "idle";
   const [stage, setStage] = useState<PrinterStage>(initialStage);
+  const highlight = useHoverHighlight(undefined, stage === "ready");
   const stageRef = useRef<PrinterStage>(initialStage);
   const startedAt = useRef(performance.now());
   const stopSound = useRef<(() => void) | undefined>(undefined);
@@ -108,7 +110,11 @@ export function Printer({
           onOpen={onAssignment}
         />
       )}
-      <group position={[2.7, 1.6, 0.2]} onClick={handlePickup}>
+      <group
+        {...highlight.mesh}
+        position={[2.7, 1.6, 0.2]}
+        onClick={handlePickup}
+      >
         {stage !== "placed" && stage !== "idle" && (
           <Html
             transform
@@ -118,6 +124,7 @@ export function Printer({
             zIndexRange={[6, 1]}
           >
             <button
+              {...highlight.html}
               className={`printer-button ${stage === "ready" ? "assignment-attention" : ""}`}
               aria-label={`Grab new assignment: ${assignment.title}`}
               disabled={stage !== "ready"}

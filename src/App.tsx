@@ -51,6 +51,7 @@ export default function App() {
         mute={save.settings.mute}
         focused={focused}
         reduced={save.settings.reducedMotion}
+        graphicsQuality={save.settings.graphicsQuality}
         onComputer={enter}
         onProp={say}
         celebrate={false}

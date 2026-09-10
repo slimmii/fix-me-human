@@ -21,12 +21,12 @@ export const scrumTopics: CourseTopic[] = [
   {
     id: "component-props",
     title: "Components and props",
-    description: "Reusable cards, JSX expressions, and typed inputs.",
+    description: "Reusable components, JSX expressions, and typed inputs.",
     unlockAfter: ["board-shell"],
     pages: [
       {
         id: "component-props-page-1",
-        title: "Give each card its inputs",
+        title: "One component, different inputs",
         markdown: "course/scrum-board/component-props-1.md",
       },
       {
@@ -38,14 +38,14 @@ export const scrumTopics: CourseTopic[] = [
   },
   {
     id: "rendering-lists",
-    title: "Lists and board columns",
+    title: "Lists and identity",
     description:
-      "Model tasks, filter by status, map to components, and choose stable keys.",
+      "Model collections, filter and map items, and choose stable keys.",
     unlockAfter: ["task-card"],
     pages: [
       {
         id: "rendering-lists-page-1",
-        title: "Turn task data into columns",
+        title: "Turn data into a list",
         markdown: "course/scrum-board/rendering-lists-1.md",
       },
       {
@@ -106,7 +106,7 @@ export const scrumTopics: CourseTopic[] = [
       },
       {
         id: "component-callbacks-page-2",
-        title: "Move one task, preserve the rest",
+        title: "Request a change by ID",
         markdown: "course/scrum-board/component-callbacks-2.md",
       },
     ],
@@ -138,7 +138,7 @@ export const scrumTopics: CourseTopic[] = [
     pages: [
       {
         id: "custom-hooks-page-1",
-        title: "Extract the board operations",
+        title: "Extract reusable stateful logic",
         markdown: "course/scrum-board/custom-hooks-1.md",
       },
       {
@@ -152,17 +152,17 @@ export const scrumTopics: CourseTopic[] = [
     id: "react-context",
     title: "Context and providers",
     description:
-      "Share one board through a provider and a guarded consumer hook.",
+      "Share a value and its actions through a provider and a consumer hook.",
     unlockAfter: ["use-task-board"],
     pages: [
       {
         id: "react-context-page-1",
-        title: "Put one board above its consumers",
+        title: "One provider for shared state",
         markdown: "course/scrum-board/react-context-1.md",
       },
       {
         id: "react-context-page-2",
-        title: "A guarded useTasks consumer",
+        title: "Read context with a guard",
         markdown: "course/scrum-board/react-context-2.md",
       },
     ],
@@ -207,19 +207,19 @@ export const scrumTopics: CourseTopic[] = [
   },
   {
     id: "board-integration",
-    title: "Integrating the Scrum board",
+    title: "Layout and review",
     description:
       "Complete workflows, accessible controls, responsive layout, and review.",
     unlockAfter: ["board-effects"],
     pages: [
       {
         id: "board-integration-page-1",
-        title: "One application, clear responsibilities",
+        title: "Flexible layouts",
         markdown: "course/scrum-board/board-integration-1.md",
       },
       {
         id: "board-integration-page-2",
-        title: "Ship with a workflow test",
+        title: "Check a complete workflow",
         markdown: "course/scrum-board/board-integration-2.md",
       },
     ],

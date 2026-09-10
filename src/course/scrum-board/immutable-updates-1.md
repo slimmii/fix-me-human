@@ -1,22 +1,25 @@
-A card needs a temporary editing mode and an unsaved title. Those values belong to that card. The saved title still belongs to the shared task array.
+An editor often needs two kinds of data: a saved value and an unfinished draft. For example, a profile owns the saved display name, while its name editor owns the draft and whether editing is open.
+
+This excerpt belongs at the top of an editor component with `useState` imported and a `savedName` prop:
 
 ```tsx
 const [editing, setEditing] = useState(false);
-const [draft, setDraft] = useState(task.title);
+const [draft, setDraft] = useState(savedName);
+
 function beginEdit() {
-  setDraft(task.title);
+  setDraft(savedName);
   setEditing(true);
 }
 ```
 
-Initialize the draft again when Edit is clicked, so a previous cancellation does not reappear. During editing, render a controlled input and Save task / Cancel edit buttons. A blank save keeps the editor open. A valid save calls onUpdate with the task ID and trimmed draft, then closes editing. Cancel closes editing without calling onUpdate.
+`useState(savedName)` supplies only the initial value. It does not keep the draft synchronized with later props. Copy the latest saved value when opening the editor so a canceled draft does not reappear.
 
-`useState(task.title)` is an initial value, not continuous synchronization with props. Do not add an effect merely to keep every edit keystroke in the shared task list. The distinction between draft and saved title is intentional.
+Use `editing` to choose between the saved display and a controlled input. The input reads `draft` and updates it through `setDraft`. Keep both hooks above any conditional return.
 
-Call hooks before any early return for editing mode. Stable card keys ensure deleting a neighbor does not transplant the wrong local draft into another card.
+The actions have different jobs:
 
-**Try it:** type a replacement, cancel it, and reopen editing. The input should contain the saved title.
+- **Save:** trim the draft and check it. If it is blank, keep editing open. Otherwise call the parent's save callback with the item's ID and cleaned value, then close the editor.
+- **Cancel:** close the editor without calling the save callback. The saved value stays unchanged.
+- **Edit again:** start from the currently saved value.
 
-**Apply it:** exercise 7, Edit and delete safely. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/choosing-the-state-structure).
+Save and Cancel need separate handlers. Sending every keystroke to the saved data would leave Cancel with nothing to discard. Stable list keys also keep one item's local draft from being reused for a different item after a deletion.

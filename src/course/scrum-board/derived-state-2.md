@@ -1,20 +1,24 @@
-The board has two useful quantities: all tasks in a column and the tasks visible under the current search. Choose deliberately which one your UI communicates.
+A total and a visible count answer different questions. If a library has 8 books and a search matches 2, its inventory is still 8 books. Decide which number the interface promises to show.
 
-For this project, show `columnTasks.length` as N tasks. Show the cards from visibleTasks. When visibleTasks is empty, render No matching tasks. A column can therefore display 2 tasks while showing no cards under a restrictive search. Clearing search makes those cards visible again.
+Using `books` and `matches` from the previous page, this excerpt belongs inside the component's return:
 
 ```tsx
-<p aria-label="Task count">{columnTasks.length} tasks</p>;
-{
-  visibleTasks.length === 0 && <p>No matching tasks</p>;
-}
+<section>
+  <p>{books.length} books in the library</p>
+  {matches.length === 0 ? (
+    <p>No books found.</p>
+  ) : (
+    <ul>
+      {matches.map((book) => (
+        <li key={book.id}>{book.name}</li>
+      ))}
+    </ul>
+  )}
+</section>
 ```
 
-Use an explicit length comparison before `&&`; writing `visibleTasks.length && ...` can render a stray zero. Recompute counts from the task array after every operation, rather than adjusting separate counters in several handlers.
+`.length` counts array entries. The ternary renders an empty message when there are no matches, and a list otherwise. With grouped data, calculate the group's total before applying the search filter and render items from the filtered result.
 
-The assignment uses the exact N tasks format for consistent checks, including 1 tasks. A production polish pass could add grammatical singular/plural handling after updating the public contract and its checks.
+For a message without an alternative, use `matches.length === 0 && <p>No books found.</p>`. Avoid using a number directly as the left side of `&&`: `matches.length && ...` can display a stray 0.
 
-**Try it:** search for an impossible title, clear search, move a card, and delete another. Counts should describe the saved board throughout.
-
-**Apply it:** exercise 10, Find work and count it. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/conditional-rendering).
+Calculate counts from the saved data on each render. Separate counters can drift out of sync when one handler forgets to update them. Clearing search should reveal the same saved items, including any changes made while searching. Use the exact count format and empty message requested by the brief.

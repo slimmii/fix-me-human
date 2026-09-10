@@ -314,7 +314,7 @@ describe("v4 saves", () => {
       expect(loaded.phase).toBe("coding");
       expect(loaded.drafts[assignment.id]).toBe("unfinished");
       expect(loaded.completed).toEqual([assignment.id]);
-      expect(loaded.settings).toEqual(old.settings);
+      expect(loaded.settings).toEqual({ ...old.settings, graphicsQuality: 2 });
       expect(loaded).not.toHaveProperty("screenId");
     }
   });
@@ -322,6 +322,21 @@ describe("v4 saves", () => {
     const save = codingSave(assignment.solution);
     save.settings.crt = true;
     expect(decode(JSON.stringify(save))).toEqual(save);
+  });
+  it("preserves graphics quality and defaults invalid values without losing drafts", () => {
+    const save = codingSave(assignment.solution);
+    for (const graphicsQuality of [0, 1, 2, -1, 3, 1.5, "low", null]) {
+      const loaded = decode(
+        JSON.stringify({
+          ...save,
+          settings: { ...save.settings, graphicsQuality },
+        }),
+      );
+      expect(loaded.settings.graphicsQuality).toBe(
+        graphicsQuality === 0 || graphicsQuality === 1 ? graphicsQuality : 2,
+      );
+      expect(loaded.drafts).toEqual(save.drafts);
+    }
   });
   it("starts fresh for old and corrupt saves", () => {
     for (const raw of [

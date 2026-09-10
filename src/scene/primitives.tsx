@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { RoundedBox } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useRef, type ReactNode } from "react";
@@ -45,6 +46,7 @@ export function Prop({
 }) {
   const group = useRef<THREE.Group>(null),
     remaining = useRef(0);
+  const highlight = useHoverHighlight(group);
   useFrame((_, dt) => {
     remaining.current = Math.max(0, remaining.current - dt);
     if (group.current)
@@ -54,7 +56,7 @@ export function Prop({
   });
   return (
     <group
-      ref={group}
+      {...highlight.mesh}
       position={position}
       onClick={(e) => {
         e.stopPropagation();

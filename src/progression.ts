@@ -1,3 +1,8 @@
+import {
+  DEFAULT_GRAPHICS_QUALITY,
+  isGraphicsQuality,
+  type GraphicsQuality,
+} from "./graphics";
 import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
 import { decodeStory, type AssignmentStory } from "./game/story";
@@ -13,7 +18,12 @@ export type Save = {
   revisitingAssignment: boolean;
   drafts: Record<string, string>;
   story: Record<string, AssignmentStory>;
-  settings: { mute: boolean; reducedMotion: boolean; crt: boolean };
+  settings: {
+    mute: boolean;
+    reducedMotion: boolean;
+    crt: boolean;
+    graphicsQuality: GraphicsQuality;
+  };
 };
 export const KEY = "please-fix-human:v4";
 export const fresh = (lessons = curriculum): Save => ({
@@ -33,6 +43,7 @@ export const fresh = (lessons = curriculum): Save => ({
       typeof matchMedia !== "undefined" &&
       matchMedia("(prefers-reduced-motion: reduce)").matches,
     crt: false,
+    graphicsQuality: DEFAULT_GRAPHICS_QUALITY,
   },
 });
 export const lessonDone = (save: Save, lesson: Lesson) =>
@@ -71,6 +82,24 @@ export type Action =
   | { type: "enter" | "pass" | "submit" | "continue" }
   | { type: "open-assignment" | "replay"; id: string }
   | { type: "draft"; code: string };
+export function assignmentSource(
+  save: Save,
+  id: string,
+  lessons = curriculum,
+): string {
+  const assignments = lessons.flatMap((lesson) => lesson.assignments);
+  const index = assignments.findIndex((assignment) => assignment.id === id);
+  const previous = assignments[index - 1];
+  return (
+    save.drafts[id] ??
+    (previous && save.completed.includes(previous.id)
+      ? save.drafts[previous.id]
+      : undefined) ??
+    assignments[index]?.starterCode ??
+    ""
+  );
+}
+
 export function transition(
   save: Save,
   action: Action,
@@ -109,13 +138,17 @@ export function transition(
             ...save,
             phase: "review",
             completed: [...new Set([...save.completed, assignment.id])],
+            drafts: {
+              ...save.drafts,
+              [assignment.id]: assignmentSource(save, assignment.id, lessons),
+            },
           }
         : save;
     case "continue": {
       if (save.phase === "review") {
         const next = lesson.assignments[assignmentIndex + 1];
         return next
-          ? { ...save, phase: "coding", assignmentId: next.id }
+          ? transition(save, { type: "open-assignment", id: next.id }, lessons)
           : { ...save, phase: "complete" };
       }
       if (save.phase === "complete") {
@@ -141,6 +174,14 @@ export function transition(
             assignmentId: target.assignment.id,
             revisitingAssignment: save.completed.includes(target.assignment.id),
             phase: "coding",
+            drafts: {
+              ...save.drafts,
+              [target.assignment.id]: assignmentSource(
+                save,
+                target.assignment.id,
+                lessons,
+              ),
+            },
           }
         : save;
     }
@@ -228,6 +269,8 @@ export function decode(raw: string | null, lessons = curriculum): Save {
     for (const key of ["mute", "reducedMotion", "crt"] as const)
       if (typeof value.settings?.[key] === "boolean")
         result.settings[key] = value.settings[key];
+    if (isGraphicsQuality(value.settings?.graphicsQuality))
+      result.settings.graphicsQuality = value.settings.graphicsQuality;
     // Unknown teaching/brief positions normalize to coding. Course access now
     // comes only from completed tasks, never from a lesson's reading position.
     result.phase =

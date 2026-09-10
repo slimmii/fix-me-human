@@ -1,24 +1,24 @@
-React uses keys to match siblings between renders. A task's ID stays with the task as its title changes. Titles can repeat. Array positions can shift after deletion. Neither title nor array index is a reliable identity for this board.
+A key tells React which item is which when a list changes. Use an ID stored in the data. Names can repeat, positions shift when an item is removed, and a random key generated during render changes every time.
 
-`key={task.id}` belongs on the element directly returned by map. React consumes key internally; it does not appear as a normal prop. Pass `task` separately and expose `data-task-id={task.id}` on the card's li so the assignment checks can locate the same card after a move.
+The key belongs on the element directly returned by `map`. React uses it internally; a child cannot read it as a normal prop. Pass the item's data separately.
+
+Use HTML elements that describe the content. This excerpt belongs inside a component's return and uses the books from the previous page:
 
 ```tsx
-<section aria-label={status}>
-  <h2>{status}</h2>
+<section aria-label="Library">
+  <h2>Library</h2>
   <ul>
-    {columnTasks.map((task) => (
-      <TaskCard key={task.id} task={task} />
+    {books.map((book) => (
+      <li key={book.id} data-book-id={book.id}>
+        <p>{book.name}</p>
+      </li>
     ))}
   </ul>
 </section>
 ```
 
-The heading communicates the column visually; the aria-label gives the section an accessible name. A list contains list items. Keep the exact TODO, IN PROGRESS and DONE labels from the brief. Their consistency matters both to people and to the board logic.
+A `ul` contains `li` list items. An `h2` names a section visually; `aria-label` supplies its accessible name. With a variable, use `aria-label={name}`. Keep `aria-*` and `data-*` attribute names hyphenated in JSX.
 
-A key is local to its sibling list. Moving a card into a different column unmounts it from the old list and mounts it in the new list. Later, saved task data belongs above the columns so it survives that move. Unsaved card editing state remains local.
+A `data-*` attribute exposes a value on the HTML element so tools can find it. It has a different purpose from React's key. The assignment brief specifies the attributes its checks use.
 
-**Try it:** give two cards the same title but different IDs. Explain why they must remain separate tasks.
-
-**Apply it:** exercise 3, Three columns, one board. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/preserving-and-resetting-state).
+Keys identify siblings within one list. Removing an item, or moving it into a different list, removes that component's local state too. Data that must survive belongs in a shared parent.

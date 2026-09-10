@@ -1,13 +1,13 @@
-Dependencies describe the values your effect reads; they are not a switch for suppressing updates you dislike. If an effect reads tasks directly, it depends on tasks. Our effect reads a derived number, so [done] captures what it uses.
+Choose where work belongs based on what causes it:
 
-Some effects acquire resources: subscriptions, timers or event listeners. Those need a returned cleanup function to release the previous resource before re-synchronizing and when unmounting. Assigning this preview's owned title acquires no continuing resource, so this exercise needs no cleanup. In a shared document, an application may choose to restore a previous title when a screen closes.
+- An **event handler** handles a user action, such as confirming a name or removing an item.
+- A **render calculation** filters a list, counts its entries or chooses which button to display.
+- An **effect** keeps an external system, such as the document title, synchronized with the current data.
 
-React development checks may run an extra setup/cleanup cycle to reveal missing cleanup. Effects should tolerate repeated synchronization. Keep user-triggered operations such as addTask in their event handlers, not in an effect watching an input value.
+An effect can depend on a calculated number. Calculate that number from the relevant saved data during render, read it in the effect, and include it in the dependency array. If it describes a collection total, a search query should not change the number's source.
 
-For the board, filtering tasks, counting statuses and deciding which button to display are all render calculations. Only synchronizing the external document title calls for this effect.
+Dependencies follow the reactive values the effect uses. An effect reading `city` depends on `city`; one reading a calculated `total` depends on `total`. Do not omit a dependency to suppress updates. Avoid an effect that sets state only to calculate another value from existing state.
 
-**Try it:** classify each action: typing into a field, computing a count, updating the document title, deleting a task. Which are state updates, render calculations and external synchronization?
+Some effects create ongoing work, such as a subscription or timer. Those return a cleanup function that stops the old work before setup runs again and when the component is removed. The title assignment creates no ongoing resource, so it needs no such cleanup. React's development checks can repeat setup and cleanup; effects should handle that safely.
 
-**Apply it:** exercise 11, Synchronize with an effect. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/lifecycle-of-reactive-effects).
+Keep user actions in their handlers. An effect watching an input is not a substitute for a confirmation button: typing and confirming are different events.

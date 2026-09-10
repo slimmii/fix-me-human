@@ -73,9 +73,10 @@ export function EditorHelp({
           <>
             <div className="lesson-markdown">
               <p>
-                Choose a topic to read. Complete tasks to unlock more course
-                material. Once unlocked, topics stay available when you revisit
-                earlier tasks.
+                Choose a topic to learn the concepts through small examples.
+                Your printed brief describes what to build. Complete tasks to
+                unlock more topics; unlocked material stays available when you
+                revisit earlier tasks.
               </p>
             </div>
             <ul className="terminal-list" aria-label="Unlocked course topics">

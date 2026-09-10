@@ -1,26 +1,34 @@
-Editing and deletion are parent operations, requested through callbacks:
+Treat arrays and their objects in state as read-only. To replace one item, create a new array and a new object for that item. To remove one, create an array without it.
+
+These excerpts belong inside a component with `useState` imported:
 
 ```tsx
-function updateTask(id: number, title: string) {
-  const trimmed = title.trim();
-  if (!trimmed) return;
-  setTasks((current) =>
-    current.map((task) =>
-      task.id === id ? { ...task, title: trimmed } : task,
+interface Plant {
+  id: number;
+  name: string;
+  watered: boolean;
+}
+
+const [plants, setPlants] = useState<Plant[]>([
+  { id: 7, name: "Fern", watered: false },
+  { id: 12, name: "Fern", watered: false },
+]);
+
+function markWatered(id: number) {
+  setPlants((current) =>
+    current.map((plant) =>
+      plant.id === id ? { ...plant, watered: true } : plant,
     ),
   );
 }
-function removeTask(id: number) {
-  setTasks((current) => current.filter((task) => task.id !== id));
+
+function removePlant(id: number) {
+  setPlants((current) => current.filter((plant) => plant.id !== id));
 }
 ```
 
-Map describes replacement; filter describes removal. Avoid mutating an existing task object, using splice on state, or deleting every task whose title matches. Two cards called Plan sprint must remain independent.
+`map` keeps one entry for each original entry, replacing only the match. Object spread preserves `id` and `name` while changing `watered`. `filter` keeps only entries whose IDs differ from the requested ID.
 
-Keep the existing move and add actions working while adding editing. A refactor should preserve useful behavior unless the exercise explicitly changes it.
+The two plants have the same name but different IDs. Removing ID 7 leaves ID 12 intact. Matching by display text could change or remove both accidentally.
 
-**Try it:** add a duplicate title, delete the original by ID, then move the remaining copy. Next delete the last card in a column and add another task. Empty arrays are normal data, not an error.
-
-**Apply it:** exercise 7, Edit and delete safely. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/updating-arrays-in-state).
+Copying the array alone is insufficient if you then change an existing object inside it. Avoid assignments to an item's fields, `push`, and `splice` on state. Keep additions and other callbacks using the same shared state owner. An empty array is a normal result of removing the last item and must still allow future additions.

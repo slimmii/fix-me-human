@@ -20,7 +20,9 @@ test("course Help fills the terminal with retro scroll controls and arrow naviga
     .locator("p")
     .click();
   await expect(page.locator("main")).toHaveClass(/focused/);
-  const editor = page.getByLabel("Your React code");
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code");
   await editor.fill("const greeting = 'Hello';");
   await expect(page.locator(".machine-menubar")).toHaveCount(0);
   await page.getByRole("menuitem", { name: "File", exact: true }).click();

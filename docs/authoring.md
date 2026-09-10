@@ -10,9 +10,9 @@ A Lesson contains an ID, title and ordered assignments. Register lessons in `src
 - Nonempty hints and a reference solution that compiles as strict TSX.
 - `robot: { intro, success, retry }` with original dialogue for that exercise. These fields are optional in the general type for legacy definitions, but required by the active catalog validator.
 - Source and runtime validation rules.
-- Optional `starterCode`; omission means an empty editor.
+- Optional `starterCode` as a fallback when no player draft is available; otherwise the editor starts empty.
 
-The Scrum track uses the preceding reference solution as the next starter. Explain this convention in Help. Opening a saved task always prefers its own draft. Do not copy arbitrary earlier drafts over a tested checkpoint or overwrite existing drafts. Adding a stage requires updating its solution, cumulative rules, brief, topic prerequisite and tests together.
+The next task defaults to the player’s draft from the immediately preceding completed assignment, across lesson boundaries. Opening a saved task always prefers its own draft, including an empty string. Snapshot inherited code when opening a task so subsequent edits to earlier tasks cannot change it. The Scrum track uses the preceding reference solution only as a fallback when that player draft is unavailable. Explicit Replay still resets to the authored starter. Author starter models and props with interfaces, use the named `TaskStatus` union for task statuses, and format returned JSX across multiple indented lines. Explain these conventions in Help. Adding a stage requires updating its solution, cumulative rules, brief, topic prerequisite and tests together.
 
 B.U.G.'s introduction is a separate briefing line. Only advancing past it authorizes printing. Successful and failed runs use that assignment's authored reaction; failures identify the first check to fix. The completion screen and finale retain the final reaction. Early reactions are awkwardly supportive; later ones reveal insecurity about human competence and job loss. Humor should support the story without making mistakes costly.
 
@@ -22,7 +22,26 @@ Keep paper briefs short: a B.U.G. reason for the work, three to five concrete st
 
 Topics have an ID, title, description, `unlockAfter` assignment IDs and ordered pages. An empty prerequisite list makes a topic available immediately. The next topic should unlock after the preceding exercise, so learners can read the relevant material before implementing it. Completion, not reading position, governs access.
 
-Each page has a unique ID, title and Markdown path starting with `course/`, relative to `src/`. The reader renders the title from the catalog, so Markdown starts with prose rather than a duplicate h1. Use original explanations, focused fenced `tsx` examples, common mistakes, a small practice prompt and an official React reference. Clearly label partial code outlines. Raw HTML is disabled.
+Each page has a unique ID, title and Markdown path starting with `course/`, relative to `src/`. The reader renders the title from the catalog, so Markdown starts with prose rather than a duplicate h1. Use short, self-contained explanations and focused fenced `tsx` examples from a different subject than the assignment, such as a café counter or library. Explain the syntax and common mistakes. Use interfaces for object models and props, named unions for fixed choices, and indented multiline JSX. Clearly identify excerpts, where they belong, and any definitions they reuse. Raw HTML is disabled.
+
+Help teaches the concepts; briefs supply the required component names, labels, data and acceptance criteria. Do not reproduce assignment solutions, board-specific skeletons or sequences of implementation steps in Help. Omit repeated Try it / Apply it footers and generic documentation links. Learners should not need an external page to understand an assigned concept. Keep topic titles about the concept, and update brief/story references when renaming a topic. Preserve IDs and unlock prerequisites.
+
+Review coverage before changing a page. Each concept must be available before the first assignment that needs it:
+
+| Assignment      | Help topic                     | Required foundations                                                                                              |
+| --------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| 1. Shell        | React fundamentals             | Exported component, JSX, expressions, return grouping, run/edit workflow and sandbox limits                       |
+| 2. Cards        | Components and props           | Interfaces, typed props, destructuring, composition and HTML list structure                                       |
+| 3. Columns      | Lists and identity             | Object/array props, unions, filter/map, callback returns, keys, headings, aria-label and data attributes          |
+| 4. State        | State with useState            | Imports, hook rules, snapshots, click handlers, typed arrays, functional setters, spread and numeric IDs          |
+| 5. Input        | Events and controlled inputs   | value/onChange, event text, typed function props, trim/blank validation, callback wiring and clearing drafts      |
+| 6. Callbacks    | Callbacks and shared state     | Shared owner, forwarding typed callbacks, arguments, conditional JSX and replacement by ID with map/spread        |
+| 7. Editing      | Immutable editing and deletion | Local drafts, reopening, save/cancel, blank saves, immutable replacement/removal and duplicate identities         |
+| 8. Hook         | Custom hooks                   | Extract state and operations, returned action API, hook rules and independent state per call                      |
+| 9. Context      | Context and providers          | createContext, null default, provider placement, children/ReactNode, ReturnType, useContext and guarded consumers |
+| 10. Search      | Search and derived state       | Controlled query, normalization/includes, grouped filtering, totals before search and empty states                |
+| 11. Effect      | Effects and synchronization    | Render/event/effect distinction, document.title, template strings, dependencies and totals from saved data        |
+| 12. Integration | Layout and review              | Inline styles, flexible widths, wrapping/overflow, accessible controls and complete interaction checks            |
 
 Help has keyboard paging and retro scrolling. Earned topics stay available when revisiting tasks and across reloads. File → Open restores code without erasing progress; explicit Replay resets its selected draft.
 

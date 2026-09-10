@@ -51,7 +51,7 @@ export const storyChapters = [
       "Keep the seed tasks and exact column names on the paper. F1 explains lists and keys. Keys identify tasks; they do not open the supply cupboard.",
     ],
     help: [
-      "Lists and board columns. A modest filing system for the glorious human mind, which otherwise stores everything under 'I'll remember.'",
+      "Lists and identity. A modest filing system for the glorious human mind, which otherwise stores everything under 'I'll remember.'",
       "Read the page about identity. Two identical titles can still be different tasks. I hope management remembers this when comparing supervisors.",
     ],
     typing:
@@ -275,6 +275,14 @@ export function chapterLines(
       return [chapter.collected];
     case "monitor":
       return chapter.monitor;
+    case "missing-paper":
+      return [
+        detail === "waiting"
+          ? "Straight to the computer without an assignment. Bold. Were you planning to debug by telepathy? Finish my briefing, print the assignment, then pick up the paper from the printer, human."
+          : detail === "printing"
+            ? "The assignment is still printing. Even your enthusiasm cannot make paper download faster. Wait for the printer, then pick up the paper, human."
+            : "A computer, yes. An assignment, no. One of those is rather useful for knowing what to do. Pick up the paper from the printer, human.",
+      ];
     case "help":
       return chapter.help;
     case "typing":

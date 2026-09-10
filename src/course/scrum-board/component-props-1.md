@@ -1,20 +1,34 @@
-The board needs several cards with the same structure and different titles. A prop is an input supplied by a parent component. It can be a string, number, object, array, function or JSX.
+Props are inputs a parent passes to a component. One component definition can display different values each time it is used.
 
+<!-- prettier-ignore -->
 ```tsx
-function TaskCard({ title }: { title: string }) {
-  return <li><p>{title}</p></li>;
+interface GreetingProps {
+  name: string;
 }
-// Inside App's returned ul:
-<TaskCard title="Plan sprint" />
-<TaskCard title="Build board" />
+
+function Greeting({ name }: GreetingProps) {
+  return (
+    <p>Hello, {name}.</p>
+  );
+}
+
+export default function App() {
+  return (
+    <section>
+      <h1>Visitors</h1>
+      <Greeting name="Mina" />
+      <Greeting name="Leo" />
+    </section>
+  );
+}
 ```
 
-The parent sets `title`; destructuring reads it from the props object. `{title}` inserts the value into JSX. Props are read-only snapshots for a render. Do not assign a new value to a prop or modify an object received through props. Later, callbacks will let the card request changes from the owner of the data.
+`GreetingProps` describes the component's expected input. `{ name }` in the parameter reads the `name` property from the props object. `{name}` in the paragraph inserts its value into the output. Changing the paragraph in `Greeting` changes both greetings.
 
-Define TaskCard outside App. Defining a component inside another component recreates its identity on every render and can reset its state. Rendering `<TaskCard />` tells React to manage its identity and lifecycle; calling `TaskCard(...)` directly bypasses that component boundary.
+A quoted prop supplies text. Braces supply a JavaScript value: `name={visitorName}` reads a variable, while `name="visitorName"` supplies that literal word. Numbers, objects, arrays and functions also use braces.
 
-**Try it:** render three cards from one definition. Change the definition once and notice that all three cards update.
+Props are read-only. A child displays the data it receives; it does not change a parent's object. Later, function props let a child request a change.
 
-**Apply it:** exercise 2, Reusable task cards. The printed brief lists the exact behavior and markup to preserve.
+For a collection, use a `ul` containing `li` items. A reusable item component can return the `li`, with a `p` inside for its text; the parent then places instances of that component inside the `ul`.
 
-[Read more in the official React documentation](https://react.dev/learn/passing-props-to-a-component).
+Define components outside other components and render them with JSX, such as `<Greeting name="Mina" />`. Nesting their definitions can reset local state when the parent renders again.

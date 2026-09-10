@@ -1,24 +1,37 @@
-A type tells callers what a component expects. A small props type can appear inline, or have a reusable name:
+Use an `interface` to describe object shapes and component props. Each property has a name and a type. An object prop lets a component receive related values together.
 
+<!-- prettier-ignore -->
 ```tsx
-type CardProps = { title: string };
-function TaskCard({ title }: CardProps) {
+interface Reading {
+  city: string;
+  degrees: number;
+}
+
+interface TemperatureProps {
+  reading: Reading;
+}
+
+function Temperature({ reading }: TemperatureProps) {
   return (
-    <li>
-      <p>{title}</p>
-    </li>
+    <p>{reading.city}: {reading.degrees} degrees</p>
   );
 }
 ```
 
-`{ title: string }` in the parameter annotation is a type description. `{ title }` before the colon is JavaScript destructuring. `{title}` inside the p is a JSX expression. They look similar but perform different jobs.
+This JSX belongs inside a parent's return:
 
-Later the card receives a Task object with `id`, `title` and `status`. Use a union such as `"TODO" | "IN PROGRESS" | "DONE"` to describe the allowed statuses. This prevents a typo from creating an accidental fourth column.
+```tsx
+<Temperature reading={{ city: "Brussels", degrees: 18 }} />
+```
 
-Props should describe the component's useful inputs. A TaskCard should not need the whole application's settings or all tasks merely to display one title. Start with the smallest boundary that makes reuse clear.
+The outer braces enter JavaScript; the inner braces create an object. You can also create the object in a variable and pass `reading={weather}`. Dot notation, such as `reading.city`, reads an object's property.
 
-**Try it:** explain why `<TaskCard title="Plan sprint" />` and `<TaskCard title={"Plan sprint"} />` render the same value. Then identify which part of the code documents the type.
+A union lists the values a field may hold:
 
-**Apply it:** exercise 2, Reusable task cards. The printed brief lists the exact behavior and markup to preserve.
+```tsx
+type Unit = "celsius" | "fahrenheit";
+```
 
-[Read more in the official React documentation](https://react.dev/learn/typescript).
+`Unit` allows either of those strings. It does not allow a misspelled alternative. Use a named union for a fixed set of choices and an interface for the object containing those choices. `Reading[]` means an array of Reading objects.
+
+Types describe the data; they do not create it or validate text someone types at runtime. Keep props focused on the values the component actually needs.

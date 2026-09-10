@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
@@ -9,6 +10,7 @@ export function CoffeeMug({
   onProp,
 }: Pick<Props, "reduced" | "onProp">) {
   const mug = useRef<THREE.Group>(null);
+  const highlight = useHoverHighlight(mug);
   const [pulse, setPulse] = useState(0);
   useFrame(({ clock }) => {
     if (mug.current)
@@ -21,7 +23,7 @@ export function CoffeeMug({
 
   return (
     <group
-      ref={mug}
+      {...highlight.mesh}
       position={[-1.9, 1.7, 0.65]}
       onClick={(e) => {
         e.stopPropagation();

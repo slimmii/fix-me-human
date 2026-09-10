@@ -65,6 +65,61 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/course-check");
 });
 
+for (const passes of [true, false]) {
+  test(`automated checks keep console output quiet and player logs visible (passes: ${passes})`, async ({
+    page,
+  }) => {
+    const assignment: Assignment = {
+      ...assignments[0],
+      validation: {
+        source: [],
+        runtime: [
+          {
+            type: "interaction",
+            label: "Click the counter",
+            steps: [
+              { action: "click", selector: "button" },
+              {
+                action: "expect",
+                selector: "button",
+                text: passes ? "1" : "99",
+              },
+            ],
+          },
+        ],
+      },
+    };
+    for (const initialLog of [false, true]) {
+      const checks = await preview(
+        page,
+        assignment,
+        `
+        import { useState, useEffect } from "react";
+        ${initialLog ? 'console.log("Ready");' : ""}
+        export default function App() {
+          const [count, setCount] = useState(0);
+          useEffect(() => {
+            if (count > 0) console.log("Count", count);
+          }, [count]);
+          return <button onClick={() => {
+            console.log("Clicked");
+            setCount(value => value + 1);
+          }}>{count}</button>;
+        }
+      `,
+      );
+      expect(checks.runtime[0].pass).toBe(passes);
+      const browser = page.frameLocator("iframe");
+      const output = browser.locator("#browser-console");
+      await expect(output).toHaveText(initialLog ? "BROWSER SAYS: Ready" : "");
+      await browser.getByRole("button", { name: "0", exact: true }).click();
+      await expect(output).toHaveText("BROWSER SAYS: Count 1");
+      await browser.getByRole("button", { name: "1", exact: true }).click();
+      await expect(output).toHaveText("BROWSER SAYS: Count 2");
+    }
+  });
+}
+
 test("all 12 reference solutions pass their actual sandbox interaction scenarios", async ({
   page,
 }) => {
@@ -176,7 +231,10 @@ test("final submission completes the course, retains all drafts and never prints
   );
   await page.goto("/");
   await page.locator('[data-surface="crt-glass"]').click();
-  await page.getByLabel("Your React code").press("F5");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("F5");
   await expect(page.getByRole("status")).toContainText(last.robot!.success, {
     timeout: 20000,
   });

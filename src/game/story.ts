@@ -8,6 +8,7 @@ export const storyEvents = [
   "ready",
   "collected",
   "monitor",
+  "missing-paper",
   "paper",
   "help",
   "typing",
@@ -77,6 +78,19 @@ export function tellStory(
   detail?: string,
   mood?: StoryMood,
 ): AssignmentStory {
+  if (event === "monitor" && !context.collected && !context.completed)
+    return {
+      ...story,
+      aside: {
+        event: "missing-paper",
+        page: 0,
+        detail: story.delivery,
+      },
+    };
+  if (event === "collected" && story.aside?.event === "missing-paper") {
+    const { aside, ...script } = story;
+    story = script;
+  }
   if (once.includes(event) && story.seen.includes(event)) return story;
   const cue: StoryCue = {
     event,
@@ -193,7 +207,7 @@ export function decodeStory(
   let current = cue(data.current) ?? fallback.current;
   const remark = cue(data.aside);
   const aside =
-    remark?.event === "aside"
+    remark?.event === "aside" || remark?.event === "missing-paper"
       ? remark
       : current.event === "aside"
         ? current
@@ -245,6 +259,7 @@ export function decodeStory(
               "collected",
               "finale",
               "aside",
+              "missing-paper",
             ].includes(item.event),
         )
         .slice(0, 12)

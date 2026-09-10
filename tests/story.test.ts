@@ -25,7 +25,7 @@ describe("B.U.G. story director", () => {
     let story = initialStory(context);
     expect(story.delivery).toBe("waiting");
     expect(finishPrinting(story, context)).toBe(story);
-    for (const event of ["monitor", "help", "typing", "run", "passed"] as const)
+    for (const event of ["help", "typing", "run", "passed"] as const)
       story = tellStory(story, event, context);
     expect(story.current.event).toBe("briefing");
     expect(story.delivery).toBe("waiting");
@@ -35,6 +35,40 @@ describe("B.U.G. story director", () => {
     expect(story.delivery).toBe("ready");
     expect(story.current.event).toBe("ready");
     expect(finishPrinting(story, context)).toBe(story);
+  });
+  it("reminds early computer visitors to collect the paper without consuming the monitor tutorial", () => {
+    for (const delivery of ["waiting", "printing", "ready"] as const) {
+      const story = { ...initialStory(context), delivery };
+      const reminded = tellStory(story, "monitor", context);
+      expect(reminded.aside?.event).toBe("missing-paper");
+      expect(dialogueLines(reminded.aside!, context)[0]).toMatch(
+        /pick up the paper/i,
+      );
+      expect(reminded.current).toEqual(story.current);
+      expect(reminded.delivery).toBe(delivery);
+      expect(reminded.seen).not.toContain("monitor");
+      expect(reminded.pending).toEqual(story.pending);
+      expect(decodeStory(reminded, context).aside).toEqual(reminded.aside);
+      expect(continueStory(reminded, context)).toEqual(story);
+      expect(tellStory(reminded, "monitor", context)).toEqual(reminded);
+      const collected = { ...context, collected: true };
+      const pickedUp = tellStory(
+        { ...reminded, delivery: "ready" },
+        "collected",
+        collected,
+      );
+      expect(pickedUp.aside).toBeUndefined();
+      const entered = tellStory(
+        { ...pickedUp, delivery: "ready" },
+        "monitor",
+        collected,
+      );
+      expect(entered.current.event).toBe("monitor");
+    }
+    const completed = { ...context, completed: true };
+    expect(
+      tellStory(initialStory(completed), "monitor", completed).aside,
+    ).toBeUndefined();
   });
   it("plays a handoff and briefing before every subsequent print", () => {
     for (const [chapter, assignment] of assignments.entries()) {

@@ -1,21 +1,39 @@
-A custom hook is a function whose name begins with use and that may call React hooks. Extract the board's task state and operations without changing their behavior.
+A custom hook groups related state and operations in a function. Its name starts with `use`, and it follows the same calling rules as React's hooks.
 
 ```tsx
-function useTaskBoard() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  // Define addTask, moveTask, updateTask, removeTask here.
-  return { tasks, addTask, moveTask, updateTask, removeTask };
+import { useState } from "react";
+
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  function increment() {
+    setCount((current) => current + 1);
+  }
+
+  function reset() {
+    setCount(0);
+  }
+
+  return { count, increment, reset };
 }
-// App:
-const { tasks, addTask, moveTask, updateTask, removeTask } = useTaskBoard();
 ```
 
-This is a structural outline: reuse the complete operation bodies from your previous exercise. The returned API describes board actions, keeping array manipulation out of presentation components. Call the hook unconditionally at the top level, just like useState.
+The hook returns an object containing the current value and two actions. Returning functions does not call them. A component can read the result with object destructuring:
 
-Leave input and edit drafts in the components that own them. Extracting a hook does not mean moving every state variable into one giant object.
+```tsx
+export default function App() {
+  const { count, increment, reset } = useCounter();
 
-**Try it:** compare the page before and after extraction. Every existing interaction should produce the same result.
+  return (
+    <section>
+      <p>Visitors: {count}</p>
+      <button onClick={increment}>Count a visitor</button>
+      <button onClick={reset}>Reset</button>
+    </section>
+  );
+}
+```
 
-**Apply it:** exercise 8, Extract useTaskBoard. The printed brief lists the exact behavior and markup to preserve.
+The hook owns the state changes; the component decides how to display the value and trigger the actions. Call the hook at the component's top level, before conditional returns.
 
-[Read more in the official React documentation](https://react.dev/learn/reusing-logic-with-custom-hooks).
+To extract existing logic, move its state and related handlers together, return the values and actions the UI needs, and reconnect the existing callers. Keep the behavior unchanged during extraction. Unrelated input drafts can stay in their own components.

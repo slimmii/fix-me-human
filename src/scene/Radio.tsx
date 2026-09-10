@@ -1,16 +1,26 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { Html } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import { Box, cream, dark } from "./primitives";
 import type { SceneProps } from "./types";
 import "./radio.css";
 
+const tracks = [
+  { title: "Focus Flow", file: "focus-flow.mp3" },
+  { title: "All Vibes", file: "all-vibes.mp3" },
+];
+
 export function Radio({
   mute,
   focused,
   onProp,
 }: Pick<SceneProps, "mute" | "focused" | "onProp">) {
+  const highlight = useHoverHighlight(undefined, !focused);
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [trackIndex, setTrackIndex] = useState(0);
+  const wantsPlayback = useRef(false);
+  const track = tracks[trackIndex];
 
   useEffect(() => {
     const player = audio.current;
@@ -21,17 +31,27 @@ export function Radio({
     const player = audio.current;
     if (!player) return;
     if (!player.paused) {
+      wantsPlayback.current = false;
       player.pause();
       onProp(
         "Radio off. How brave. Just you and that single train of thought.",
       );
       return;
     }
+    wantsPlayback.current = true;
+    await startTrack(player, track.title, true);
+  }
+
+  async function startTrack(
+    player: HTMLAudioElement,
+    title: string,
+    announce = false,
+  ) {
     try {
       await player.play();
-      if (!player.paused)
+      if (announce && !player.paused)
         onProp(
-          "Ah, ‘Focus Flow.’ A soundtrack for your little attempt at concentration. Do try to keep up with the background music.",
+          `Ah, ‘${title}.’ A soundtrack for your little attempt at concentration. Do try to keep up with the background music.`,
         );
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -41,6 +61,7 @@ export function Radio({
 
   return (
     <group
+      {...highlight.mesh}
       position={[-2.85, 1.79, 0.85]}
       rotation={[0, 0.16, 0]}
       onClick={(event) => {
@@ -133,9 +154,16 @@ export function Radio({
       >
         <audio
           ref={audio}
-          src={`${import.meta.env.BASE_URL}audio/focus-flow.mp3`}
-          preload="none"
-          loop
+          src={`${import.meta.env.BASE_URL}audio/${track.file}`}
+          preload="auto"
+          onEnded={() => {
+            if (wantsPlayback.current)
+              setTrackIndex((index) => (index + 1) % tracks.length);
+          }}
+          onCanPlay={(event) => {
+            if (wantsPlayback.current && event.currentTarget.paused)
+              void startTrack(event.currentTarget, track.title);
+          }}
           muted={mute}
           onPlaying={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
@@ -147,11 +175,12 @@ export function Radio({
           }}
         />
         <button
+          {...highlight.html}
           className="radio-control"
           style={{ visibility: focused ? "hidden" : "visible" }}
-          aria-label={`${playing ? "Pause" : "Play"} Focus Flow on the radio`}
+          aria-label={`${playing ? "Pause" : "Play"} ${track.title} on the radio`}
           aria-pressed={playing}
-          title={`${playing ? "Pause" : "Play"} Focus Flow${mute ? " (sound is muted)" : ""}`}
+          title={`${playing ? "Pause" : "Play"} ${track.title}${mute ? " (sound is muted)" : ""}`}
           onClick={(event) => {
             event.stopPropagation();
             void toggle();
@@ -159,7 +188,11 @@ export function Radio({
         >
           <span className="radio-brand">BUG • FM</span>
           <span className="radio-track">
-            {playing ? (mute ? "MUTED" : "♫ FOCUS FLOW") : "FOCUS FLOW"}
+            {playing
+              ? mute
+                ? "MUTED"
+                : `♫ ${track.title.toUpperCase()}`
+              : track.title.toUpperCase()}
           </span>
         </button>
       </Html>

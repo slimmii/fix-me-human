@@ -1,19 +1,19 @@
-The query is new information entered by the user, so keep it in state. Filtered tasks are a calculation from tasks and query, so calculate them during render.
+Store values that can change independently. Calculate values you can work out from that state during render.
+
+A library search needs the book collection and the user's query. The matching books are a calculation, not another state variable. This excerpt belongs inside a component with `useState` imported and the `books` array from Lists and identity available:
 
 ```tsx
 const [query, setQuery] = useState("");
-const columnTasks = tasks.filter((task) => task.status === status);
-const visibleTasks = columnTasks.filter((task) =>
-  task.title.toLowerCase().includes(query.trim().toLowerCase()),
+const normalizedQuery = query.trim().toLowerCase();
+const matches = books.filter((book) =>
+  book.name.toLowerCase().includes(normalizedQuery),
 );
 ```
 
-Pass query to each column. A controlled Search tasks input updates it. Lowercasing both sides makes matching case-insensitive; trimming ignores accidental spaces around the query. An empty query matches every title.
+Connect a controlled search input using `value={query}` and an `onChange` handler that calls `setQuery(event.target.value)`. Give it a visible label and an accessible name.
 
-Do not put visibleTasks in another state variable and synchronize it with an effect. That creates a second representation that can briefly lag behind the actual board or be forgotten during an edit/delete action. A small array filter does not need useMemo for correctness.
+`trim()` removes spaces at the edges of the query. Lowercasing both strings makes matching case-insensitive. `includes` checks for a substring. An empty query matches every name, so clearing the input restores the whole list.
 
-**Try it:** search for BUILD, then edit a matching title. The view should reflect the saved data immediately.
+For a grouped view, first filter the collection to the current group, then search within that group. Work from the saved collection each render. Searching should never delete items from it.
 
-**Apply it:** exercise 10, Find work and count it. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/you-might-not-need-an-effect).
+When the collection changes through an edit, addition or deletion, the next render recalculates the matches. Storing the result in another state variable would create a second value to keep synchronized. A simple filter needs neither an effect nor a memoization hook to work correctly.

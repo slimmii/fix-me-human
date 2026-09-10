@@ -1,20 +1,26 @@
-An effect synchronizes a component with a system outside its rendered JSX. The document title is an example: it belongs to the preview document rather than a returned element.
+Rendering calculates JSX. An effect synchronizes something outside that JSX after React updates the screen. A document title is one example: it belongs to the browser document, not a returned element.
 
 ```tsx
-const done = tasks.filter((task) => task.status === "DONE").length;
-useEffect(() => {
-  document.title = `Sprint board — ${done} done`;
-}, [done]);
+import { useEffect, useState } from "react";
+
+export default function App() {
+  const [city, setCity] = useState("Brussels");
+
+  useEffect(() => {
+    document.title = `Weather in ${city}`;
+  }, [city]);
+
+  return (
+    <section>
+      <h1>Weather in {city}</h1>
+      <button onClick={() => setCity("Ghent")}>Show Ghent</button>
+    </section>
+  );
+}
 ```
 
-Compute done during render. The effect runs after a commit and again when its dependency changes. Include every reactive value read by an effect; here that value is done. An empty dependency array would leave a stale count after moving cards.
+The first function is the effect's setup. `[city]` is its dependency array. The effect runs after the initial render is committed and again after a render where `city` changed. The backticks make a template string; `${city}` inserts the current city into it.
 
-Call useEffect at the top level. Do not set task state in this effect just to recalculate a count. Do not assign document.title during render, which should stay a pure calculation of UI.
+Keep `useEffect` at the top level, like other hooks. Include the reactive values it reads. With an empty dependency array, this title would keep its initial city after the button is clicked. Assigning the title during render would put a side effect in a calculation that should remain pure.
 
-This sandbox permits document.title. It does not permit localStorage or network requests. The embedded document's title changes; the outer office tab does not.
-
-**Try it:** finish Build board, then reopen Ship demo. The title should follow the DONE total; typing a search query should not change it.
-
-**Apply it:** exercise 11, Synchronize with an effect. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/synchronizing-with-effects).
+The office sandbox permits `document.title`. It changes the embedded preview's title, not the outer office tab. It does not permit network or browser storage access.

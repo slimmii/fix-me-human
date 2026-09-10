@@ -1,3 +1,4 @@
+import { GRAPHICS_QUALITY } from "./graphics";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -5,6 +6,7 @@ import type { SceneProps as Props } from "./scene/types";
 import { World } from "./scene/World";
 import { PRINT_DURATION } from "./scene/printerAnimation";
 export default function Scene(props: Props) {
+  const quality = GRAPHICS_QUALITY[props.graphicsQuality];
   const [posterFocused, setPosterFocused] = useState(false);
   const posterClick = useRef<
     | ((pointer: THREE.Vector2, event: { stopPropagation: () => void }) => void)
@@ -57,6 +59,7 @@ export default function Scene(props: Props) {
   ]);
   return webgl ? (
     <Canvas
+      key={String(quality.antialias)}
       onPointerMissed={() => setPosterFocused(false)}
       onClickCapture={(e) => {
         if (!posterFocused) return;
@@ -68,10 +71,10 @@ export default function Scene(props: Props) {
         posterClick.current?.(pointer, e);
       }}
       frameloop={props.reduced && idle ? "demand" : "always"}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      gl={{ antialias: quality.antialias, powerPreference: "high-performance" }}
       shadows
       camera={{ position: [0, 3.45, 6.8], fov: 44 }}
-      dpr={[1, 2]}
+      dpr={[1, quality.maxDpr]}
     >
       <Suspense fallback={null}>
         <World

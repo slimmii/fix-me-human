@@ -21,6 +21,7 @@ export function World(props: WorldProps) {
       <Cubicle />
       <CompletedAssignments completed={props.completedAssignments} />
       <Workstation
+        reduced={reduced}
         focused={focused}
         onComputer={onComputer}
         onProp={onProp}

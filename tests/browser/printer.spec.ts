@@ -122,7 +122,10 @@ test("reload advances completed work to a real new printout and preserves collec
   ).toContainText(next.title);
   await page.getByRole("button", { name: "Put assignment down" }).click();
   await page.locator('[data-surface="crt-glass"]').click();
-  await page.getByLabel("Your React code").press("ControlOrMeta+o");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("ControlOrMeta+o");
   await page
     .getByRole("button", { name: "Open task: Sprint board", exact: true })
     .click();

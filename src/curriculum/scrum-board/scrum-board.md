@@ -11,4 +11,4 @@ The board is nearly ready to replace several spreadsheets and, apparently, my se
 
 **Try it:** Run the checks and submit your finished board. I will be nearby, updating my résumé.
 
-**F1:** Integrating the Scrum board.
+**F1:** Layout and review.

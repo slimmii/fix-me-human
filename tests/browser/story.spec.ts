@@ -44,6 +44,15 @@ test("player-led story prints, remembers delivery and reacts to the whole first 
   await page.screenshot({
     path: "test-results/bug-story-awaiting-continue.png",
   });
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "missing-paper");
+  await expect(caption).toContainText("pick up the paper");
+  await next.click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "briefing");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("Escape");
   await next.focus();
   await next.press("Enter");
   await expect(dialogue).toHaveAttribute("data-story-event", "printing");
@@ -72,7 +81,9 @@ test("player-led story prints, remembers delivery and reacts to the whole first 
   await next.click();
   await expect(caption).toHaveText(storyChapters[0].help[1]);
   await page.getByRole("button", { name: "Close course material" }).click();
-  const editor = page.getByLabel("Your React code");
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code");
   await editor.fill(first.solution);
   await expect(caption).toHaveText(storyChapters[0].typing);
   await editor.press("End");
@@ -138,11 +149,24 @@ test("early actions cannot skip the briefing; the fallback printer also waits fo
   });
   await page.goto("/");
   await page.getByRole("button", { name: "Start", exact: true }).click();
-  await page.getByLabel("Your React code").fill("// already typing");
-  await page.getByLabel("Your React code").press("F1");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .fill("// already typing");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("F1");
   const dialogue = page.getByRole("region", {
     name: "Conversation with B.U.G.",
   });
+  await expect(dialogue).toHaveAttribute("data-story-event", "missing-paper");
+  await expect(dialogue).toContainText("debug by telepathy");
+  await expect(dialogue).toContainText("pick up the paper");
+  await expect(
+    page.getByRole("button", { name: /^Grab new assignment:/ }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Continue B.U.G. dialogue" }).click();
   await expect(dialogue).toHaveAttribute("data-story-event", "briefing");
   await expect(
     page.getByRole("button", { name: /^Grab new assignment:/ }),
@@ -152,7 +176,10 @@ test("early actions cannot skip the briefing; the fallback printer also waits fo
     page.getByRole("button", { name: /^Grab new assignment:/ }),
   ).toBeEnabled({ timeout: 6000 });
   await page.getByRole("button", { name: "Close course material" }).click();
-  await page.getByLabel("Your React code").press("Escape");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("Escape");
   await page.getByRole("button", { name: /^Grab new assignment:/ }).click();
   await expect(dialogue).toHaveAttribute("data-story-event", "collected");
 });

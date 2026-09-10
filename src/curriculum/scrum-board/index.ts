@@ -35,7 +35,7 @@ const track = [
         brief: "scrum-board/task-card.md",
         hints: [
           "Define TaskCard once with a title prop, then render it three times inside a ul.",
-          "Use {title} inside a p in each li. Describe the prop as { title: string }.",
+          "Use {title} inside a p in each li. Describe the prop with interface TaskCardProps { title: string; }.",
         ],
         robot: {
           intro:

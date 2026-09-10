@@ -4,10 +4,16 @@ import * as THREE from "three";
 import { CRT, DISPLAY } from "../monitor";
 import type { SceneProps as Props } from "./types";
 export function MonitorDisplay({
+  hoverHandlers,
   focused,
   computer,
   onComputer,
-}: Pick<Props, "focused" | "computer" | "onComputer">) {
+}: Pick<Props, "focused" | "computer" | "onComputer"> & {
+  hoverHandlers: Pick<
+    React.HTMLAttributes<HTMLDivElement>,
+    "onPointerEnter" | "onPointerLeave"
+  >;
+}) {
   const glass = useMemo(() => {
     const w = CRT.width / 2,
       h = CRT.height / 2,
@@ -41,6 +47,7 @@ export function MonitorDisplay({
         zIndexRange={[20, 10]}
       >
         <div
+          {...hoverHandlers}
           className="crt-display"
           data-surface="crt-glass"
           style={size}
@@ -53,7 +60,6 @@ export function MonitorDisplay({
           <div className="crt-contents" inert={!focused}>
             {computer}
           </div>
-          <div className="crt-glass-finish" aria-hidden="true" />
         </div>
       </Html>
     </group>

@@ -1,3 +1,5 @@
+@import "./terminal-controls.css";
+
 /* EGA text-mode applications; only the physical CRT glass has rounded edges. */
 .machine-screen {
   --terminal-font-size: 14px;
@@ -281,10 +283,6 @@
     monospace;
   color: #55ffff;
   letter-spacing: 2px;
-}
-.machine-screen ::selection {
-  background: #aaaaaa;
-  color: #000080;
 }
 .qbasic-work {
   display: flex;
@@ -613,15 +611,6 @@
     17px/1.7 "Courier New",
     monospace;
 }
-.crt-glass-finish {
-  background:
-    linear-gradient(125deg, #c2d7ff07, transparent 40%, #00002210),
-    radial-gradient(ellipse at center, transparent 70%, #00001040);
-  box-shadow:
-    inset 0 0 13px 4px #00002066,
-    inset 0 0 3px 1px #bbccee44;
-}
-
 /* Authored lesson pages keep navigation outside the scrolling reading area. */
 .lesson-reader {
   display: flex;
@@ -891,11 +880,7 @@
     .retro-browser-tools small,
     .retro-url,
     .retro-browser-status,
-    .retro-browser-status button,
-    .cm-panels,
-    .cm-panels button,
-    .cm-panels input,
-    .cm-panels label
+    .retro-browser-status button
   ) {
   font-size: var(--terminal-font-size);
   line-height: var(--terminal-line-height);
@@ -918,82 +903,6 @@
 }
 .qbasic-file b {
   padding: 2px 16px;
-}
-.machine-screen .cm-search input[type="checkbox"] {
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  padding: 0;
-  border: 1px solid #000080;
-  border-radius: 0;
-  background: #aaaaaa;
-  vertical-align: middle;
-}
-.machine-screen .cm-search input[type="checkbox"]:checked {
-  background: #000080;
-  box-shadow: inset 0 0 0 3px #aaaaaa;
-}
-.machine-screen .cm-search input:focus-visible {
-  outline: 1px solid #ffff55;
-}
-
-/* Native scrolling with persistent square EGA tracks, thumbs, and arrow buttons. */
-.machine-screen * {
-  scrollbar-color: #aaaaaa #000055;
-  scrollbar-width: auto;
-}
-@supports selector(::-webkit-scrollbar) {
-  .machine-screen * {
-    scrollbar-color: auto;
-  }
-}
-.machine-screen ::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
-}
-.machine-screen ::-webkit-scrollbar-track {
-  background: repeating-conic-gradient(#aaaaaa 0% 25%, #000080 0% 50%) 0 0 / 4px
-    4px;
-}
-.machine-screen ::-webkit-scrollbar-thumb {
-  min-width: 20px;
-  min-height: 20px;
-  border: 2px outset #eeeeee;
-  border-radius: 0;
-  background: #aaaaaa;
-}
-.machine-screen ::-webkit-scrollbar-thumb:active {
-  border-style: inset;
-  background: #ffffff;
-}
-.machine-screen ::-webkit-scrollbar-corner,
-.machine-screen ::-webkit-scrollbar-button {
-  width: 16px;
-  height: 16px;
-  border: 2px outset #eeeeee;
-  background-color: #aaaaaa;
-}
-.machine-screen ::-webkit-scrollbar-button {
-  display: block;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 8px 8px;
-}
-.machine-screen ::-webkit-scrollbar-button:start:increment,
-.machine-screen ::-webkit-scrollbar-button:end:decrement {
-  display: none;
-}
-.machine-screen ::-webkit-scrollbar-button:vertical:decrement {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 6L4 2L8 6Z'/%3E%3C/svg%3E");
-}
-.machine-screen ::-webkit-scrollbar-button:vertical:increment {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 2L4 6L8 2Z'/%3E%3C/svg%3E");
-}
-.machine-screen ::-webkit-scrollbar-button:horizontal:decrement {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M6 0L2 4L6 8Z'/%3E%3C/svg%3E");
-}
-.machine-screen ::-webkit-scrollbar-button:horizontal:increment {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M2 0L6 4L2 8Z'/%3E%3C/svg%3E");
 }
 .machine-screen .lesson-scroll {
   scrollbar-width: none;

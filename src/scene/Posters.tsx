@@ -1,6 +1,9 @@
+import * as THREE from "three";
+import { useHoverHighlight } from "./useHoverHighlight";
 import { useEffect, useMemo } from "react";
 import { printTexture } from "./printTexture";
 export function MotivationalPoster({ onClick }: { onClick: () => void }) {
+  const highlight = useHoverHighlight<THREE.Mesh>();
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 768;
@@ -74,6 +77,7 @@ export function MotivationalPoster({ onClick }: { onClick: () => void }) {
   useEffect(() => () => texture.dispose(), [texture]);
   return (
     <mesh
+      {...highlight.mesh}
       position={[-2.05, 3, -1.83]}
       onClick={(e) => {
         e.stopPropagation();

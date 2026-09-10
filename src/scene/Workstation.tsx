@@ -1,17 +1,23 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { Box, cream } from "./primitives";
 import type { SceneProps as Props } from "./types";
 
 import { MonitorDisplay } from "./MonitorDisplay";
+import { TissueBox } from "./TissueBox";
 export function Workstation({
   focused,
   onComputer,
   onProp,
   computer,
-}: Pick<Props, "focused" | "onComputer" | "onProp" | "computer">) {
+  reduced,
+}: Pick<Props, "focused" | "onComputer" | "onProp" | "computer" | "reduced">) {
+  const highlight = useHoverHighlight(undefined, !focused);
+  const keyboardHighlight = useHoverHighlight();
   return (
     <>
       {" "}
       <group
+        {...highlight.mesh}
         onClick={(e) => {
           e.stopPropagation();
           onComputer();
@@ -41,6 +47,7 @@ export function Workstation({
           radius={0.1}
         />
         <MonitorDisplay
+          hoverHandlers={highlight.html}
           focused={focused}
           computer={computer}
           onComputer={onComputer}
@@ -52,7 +59,14 @@ export function Workstation({
           radius={0.01}
         />
       </group>
-      <group rotation={[-0.08, 0, 0]}>
+      <group
+        {...keyboardHighlight.mesh}
+        rotation={[-0.08, 0, 0]}
+        onClick={(event) => {
+          event.stopPropagation();
+          onProp("Keyboard: CLACK. A highly productive noise.");
+        }}
+      >
         <Box
           position={[0, 1.52, 1.02]}
           size={[2.45, 0.17, 0.82]}
@@ -66,24 +80,11 @@ export function Workstation({
               size={[0.155, 0.07, 0.13]}
               color={col === 11 ? "#db8157" : "#f5e9c8"}
               radius={0.017}
-              onClick={() =>
-                onProp("Keyboard: CLACK. A highly productive noise.")
-              }
             />
           )),
         )}
       </group>
-      <Box
-        position={[1.78, 1.49, 1]}
-        size={[0.68, 0.04, 0.8]}
-        color="#447b68"
-      />
-      <Box
-        position={[1.8, 1.59, 1.04]}
-        size={[0.3, 0.2, 0.43]}
-        color={cream}
-        radius={0.12}
-      />
+      <TissueBox reduced={reduced} focused={focused} onProp={onProp} />
     </>
   );
 }

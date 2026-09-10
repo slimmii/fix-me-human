@@ -30,7 +30,7 @@ export default function App(){
   await expect(
     page.getByRole("button", { name: "Submit assignment" }),
   ).toBeVisible({ timeout: 15000 });
-  const browser = page.frameLocator("iframe");
+  const browser = page.frameLocator('iframe[title="Your retro browser"]');
   await browser.getByRole("button", { name: "0 coffees" }).click();
   await expect(
     browser.getByRole("button", { name: "2 coffees" }),
@@ -57,7 +57,9 @@ test("only the rendered greeting passes, and errors or stale runs cannot unlock 
   );
   await page.goto("/");
   await page.locator('[data-surface="crt-glass"]').click();
-  const editor = page.getByLabel("Your React code");
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code");
   for (const source of [
     "export default function App(){return <h1>Hello world</h1>}",
     "function Unused(){return <h1>Sprint board</h1>} export default function App(){return <p>Sprint board</p>}",
@@ -135,6 +137,8 @@ test("WebGL and storage failures preserve the simple coding interface", async ({
     page.getByText("This session only · storage unavailable"),
   ).toBeVisible();
   await expect(
-    page.getByRole("textbox", { name: "Your React code" }),
+    page
+      .frameLocator('iframe[title="Code editor"]')
+      .getByRole("textbox", { name: "Your React code" }),
   ).toBeVisible();
 });

@@ -1,20 +1,17 @@
-Verify a complete user story, not only the initial screenshot:
+An interface is ready when its parts work together. Check a sequence of actions, because a feature can work on its own and still break after another feature changes the data.
 
-1. Add Release checklist with spaces around its title. Confirm trimming and a cleared input.
-2. Edit it, cancel once, then save a different title.
-3. Start it, finish it, search for it and reopen it.
-4. Check counts before and during search and verify the document title follows DONE.
-5. Delete it and clear search. The seed cards should remain intact.
-6. Add duplicate titles and remove just one. Try blank additions and blank edits.
+For a library interface, a useful walkthrough would be:
 
-B.U.G.'s automated checks perform independent scenarios on fresh mounts and restore a clean preview afterward. They verify rendered outcomes and a few required source structures. They do not prove that every callback, key, dependency or layout choice is correct, so inspect those deliberately.
+1. Add a book with spaces around its name and confirm the displayed name is clean.
+2. Open an editor, change the draft, cancel, and reopen it. The saved name should remain.
+3. Save a new name, search for it, and then clear the search.
+4. Remove one of two books with the same name. The other book should remain.
+5. Check totals, empty results and long text at both wide and narrow widths.
 
-The final product is an in-memory Scrum-style task board with TODO, IN PROGRESS and DONE columns. This course does not implement accounts, shared server data, reload persistence for board tasks, drag and drop, or a full Scrum process. Source drafts and course completion are saved by the surrounding office.
+Repeat actions on newly created items as well as the initial examples. Include blank input and removal of the last item. Watch for unrelated entries changing or local drafts jumping between items.
 
-Your next independent extensions might be task descriptions, priorities, a reducer for a larger state model, or persistence in a normal React application with suitable storage permissions. Start by preserving the simple operations and their contracts.
+When behavior is wrong, follow the data: which component owns the saved value, which callback changes it, and which components read the result? Shared data needs one owner. Drafts stay local. Filtered views and counts are calculations. Effects handle external synchronization.
 
-**Reflection:** explain to B.U.G. why a custom hook alone did not share state, why context still needed callbacks, and why search did not need an effect. He will pretend this was his explanation all along.
+B.U.G.'s checks cover rendered behavior and some required source structures. Each scenario uses a fresh preview, and the preview resets after checking. Passing checks does not prove every key, callback or dependency is correct, so review the data flow too.
 
-**Apply it:** exercise 12, Ship the Scrum board. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/managing-state).
+Keep the implementation focused on the brief. Complete the existing workflow before adding extra features.

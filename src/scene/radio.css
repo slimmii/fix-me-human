@@ -13,7 +13,7 @@
 .radio-control:hover:not(:disabled) {
   background: transparent;
   transform: none;
-  box-shadow: 0 0 0 2px #f7dfa77a;
+  box-shadow: none;
 }
 .radio-brand,
 .radio-track {
@@ -29,4 +29,9 @@
 .radio-track {
   bottom: 6px;
   font-size: 7px;
+}
+
+.radio-control:focus-visible {
+  outline: none;
+  box-shadow: none;
 }

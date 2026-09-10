@@ -1,23 +1,31 @@
-An input is controlled when React supplies its value and updates that value after user input.
+A controlled input displays a value from React state and updates that state as the user types.
 
 ```tsx
-const [title, setTitle] = useState("");
-<label>
-  Task title
-  <input
-    aria-label="Task title"
-    value={title}
-    onChange={(event) => setTitle(event.target.value)}
-  />
-</label>;
+import { useState } from "react";
+
+export default function App() {
+  const [name, setName] = useState("");
+
+  return (
+    <section>
+      <label>
+        Visitor name
+        <input
+          aria-label="Visitor name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </label>
+      <p>Welcome, {name}.</p>
+    </section>
+  );
+}
 ```
 
-The event supplies the new text through event.target.value. Keep the value a string from the first render onward. A controlled input with no change handler cannot reflect typing. `defaultValue` only supplies an uncontrolled input's initial value; it does not keep React state synchronized.
+`value` controls the text shown. `onChange` receives the input event, and `event.target.value` contains the new text. Updating state causes React to display that text on the next render. Keep the state a string, starting with `""` for an empty field.
 
-The input draft belongs in AddTask because no other component needs every keystroke. The saved task list belongs in App because all columns need it. Local state and shared state can coexist without duplication.
+A controlled input needs both `value` and `onChange`. Supplying only `value` makes it impossible to type a new value. `defaultValue` gives an uncontrolled input its initial text; it does not keep React state up to date.
 
-**Try it:** type several spaces. The draft may contain them while editing, but creating a task should validate the trimmed result.
+The visible label explains the input, and `aria-label` gives it an accessible name. A placeholder is not a replacement for a label.
 
-**Apply it:** exercise 5, Capture a task. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/reference/react-dom/components/input).
+Keep an unfinished draft near its input. Another component usually needs the confirmed value, not every keystroke. The next page explains how to send that confirmed value through a function prop.

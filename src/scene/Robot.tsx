@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
@@ -11,6 +12,7 @@ export function Robot({
   mood,
 }: Pick<Props, "reduced" | "onProp" | "celebrate" | "mood">) {
   const body = useRef<THREE.Group>(null);
+  const highlight = useHoverHighlight(body);
   const [excited, setExcited] = useState(0);
   useFrame(({ clock }) => {
     if (body.current && !reduced) {
@@ -22,7 +24,7 @@ export function Robot({
   });
   return (
     <group
-      ref={body}
+      {...highlight.mesh}
       position={[2.1, 2.9, -0.3]}
       onClick={(e) => {
         e.stopPropagation();

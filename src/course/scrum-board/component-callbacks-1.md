@@ -1,21 +1,37 @@
-Moving a task affects two columns. If each column owned its own independent task state, coordinating a move would become fragile. App is their closest shared parent, so it owns one task array and supplies data down the tree.
+When two components need the same changing value, keep it in their closest shared parent. Pass the value down as a prop and give children callbacks to request updates.
 
-The message path is App → BoardColumn → TaskCard for props, and TaskCard → App for the callback invocation. BoardColumn forwards the function; it does not need to copy state or interpret the event.
-
+<!-- prettier-ignore -->
 ```tsx
-// App:
-<BoardColumn status={status} tasks={tasks} onMove={moveTask} />
-// BoardColumn's map:
-<TaskCard key={task.id} task={task} onMove={onMove} />
-// A TODO card:
-<button aria-label="Start task"
-  onClick={() => onMove(task.id, "IN PROGRESS")}>Start</button>
+import { useState } from "react";
+
+interface AdjusterProps {
+  onIncrease: () => void;
+}
+
+function Adjuster({ onIncrease }: AdjusterProps) {
+  return (
+    <button onClick={onIncrease}>Warmer</button>
+  );
+}
+
+export default function App() {
+  const [degrees, setDegrees] = useState(18);
+
+  function increase() {
+    setDegrees((current) => current + 1);
+  }
+
+  return (
+    <section>
+      <p>Room temperature: {degrees}</p>
+      <Adjuster onIncrease={increase} />
+    </section>
+  );
+}
 ```
 
-This is one-way data flow: the callback asks the owner to update; the resulting render sends the new task data down again. The child never assigns to task.status itself.
+The parent owns `degrees`. Clicking the child's button calls the parent's function. The setter requests a render, and the displayed temperature updates. This is lifting state up: related parts of the screen use one source of truth.
 
-**Try it:** trace a click from the button to the state setter, then trace the new state back to both columns.
+If there is a component between the owner and the button, it can receive `onIncrease` as a prop and forward it with `onIncrease={onIncrease}`. Give its props interface the same callback type. It does not need another state variable.
 
-**Apply it:** exercise 6, Move work with callbacks. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/sharing-state-between-components).
+Keep state local when only one component needs it. Share saved values when multiple components must agree. Copying a prop into another `useState` creates a separate value that will not automatically follow future prop changes.

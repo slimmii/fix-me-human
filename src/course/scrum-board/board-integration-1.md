@@ -1,34 +1,26 @@
-Your finished board combines the course concepts:
+Layout is CSS's job. React's `style` prop accepts an object: the outer braces enter JavaScript, and the inner braces hold CSS properties. Use camelCase names such as `flexWrap`; numeric lengths such as `gap: 12` mean pixels.
 
-- App supplies the provider boundary.
-- TasksProvider owns one useTaskBoard call; useTasks reads its context.
-- useTaskBoard owns tasks and immutable add/move/update/remove operations.
-- AddTask owns its input draft and requests additions.
-- Board owns the search query and synchronizes the document title.
-- BoardColumn derives its count and visible tasks.
-- TaskCard shows a task, owns an edit draft and invokes actions.
-
-Data flows from the owner to consumers. Events request changes through functions. Derived values stay calculations. Effects synchronize external systems. Every task has one stable ID and exactly one status.
-
-Arrange the columns without depending on a fixed monitor size:
+This complete example lets two recipe panels share a row when space permits and wrap when it does not:
 
 ```tsx
-<div
-  style={{
-    display: "grid",
-    gap: 12,
-    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-    alignItems: "start",
-  }}
->
-  {/* Render the three BoardColumn components here. */}
-</div>
+export default function App() {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+      <section style={{ flex: "1 1 220px", minWidth: 0 }}>
+        <h2>Ingredients</h2>
+        <p style={{ overflowWrap: "anywhere" }}>Flour, water, salt.</p>
+      </section>
+      <section style={{ flex: "1 1 220px", minWidth: 0 }}>
+        <h2>Method</h2>
+        <p>Mix, rest, then bake.</p>
+      </section>
+    </div>
+  );
+}
 ```
 
-Keep the retro colors and controls. Let long titles wrap and let the preview scroll. Native buttons support keyboard activation; labels identify inputs. Preserve visible focus indicators and the accessible names defined in the briefs.
+`display: "flex"` arranges children in a row. `flexWrap: "wrap"` allows additional rows. `flex: "1 1 220px"` lets a panel grow and shrink from a preferred width of 220px. `gap` leaves space between panels.
 
-**Try it:** narrow the preview and navigate the controls with Tab. A working board must remain usable when all three columns do not fit side by side.
+Choose widths for the content and required number of panels. Include gaps, padding and borders in the available space. A large fixed width can cause overflow; `minWidth: 0` lets a flex child shrink, and `overflowWrap: "anywhere"` lets long text break.
 
-**Apply it:** exercise 12, Ship the Scrum board. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/thinking-in-react).
+Check the required wide layout and a narrow preview. Keep labels visible, controls reachable and focus indicators intact. Use native buttons so keyboard activation works without custom handlers. In this editor, inline styles let you adjust layout without a separate CSS file.

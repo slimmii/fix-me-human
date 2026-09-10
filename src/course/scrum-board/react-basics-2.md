@@ -1,21 +1,12 @@
-The printed brief describes a small increment of one project. Start with a heading; by the final exercise this file will contain a complete task board. You do not need a project setup or package installation inside the office.
+The examples explain React concepts using small, unrelated interfaces. The printed brief gives your assignment's required names, labels and behavior. Combine the concepts to build your own implementation.
 
-1. Read B.U.G.’s briefing and click **Print assignment →** to start the printer. When it is ready, collect the paper and click the sheet beside the monitor.
-2. Click the monitor and edit Office.tsx. F1 opens this material.
-3. Press F5 to compile and display the page in BUGSCAPE.
-4. Read B.U.G.'s feedback. F6 returns to the code; F5 starts a fresh preview.
-5. When checks pass, try your page and submit. Your work is pinned on the wall. Continue B.U.G.’s story and next briefing when you are ready for the next print.
+1. Continue B.U.G.'s briefing with **Print assignment →**, collect the paper, and click the sheet beside the monitor to read it.
+2. Click the monitor to edit Office.tsx. **F1** opens Help; **Escape** returns to the editor.
+3. Press **F5** to compile and run. Read the feedback and use **F6** to return to your code.
+4. Check the page's behavior, then submit when the checks pass. Continue the next briefing to print the next assignment.
 
-B.U.G. reacts when you open the editor, use Help and start typing. His next arrow continues a conversation; you can still use the computer while he talks. He remembers which tips you have heard and where you left the dialogue.
+Your code is saved automatically. The next assignment begins with your previous completed draft; a reference starter is used if that draft is unavailable. **File → Open** revisits saved work. **Replay** resets the selected draft. Data entered into the preview lasts only for that run; F5 starts a fresh preview.
 
-The next exercise begins with the previous reference solution as a reliable checkpoint. Your own drafts are saved independently: File → Open revisits them. Reading a paper does not remove it from the desk. Board data inside the preview lasts for that run; saved source code lasts across office reloads.
+TypeScript describes values: `const seats: number = 12` declares a number, while `const name: string = "Mina"` declares text. Types help catch mismatched inputs. Read compiler errors from the first one down; a missing closing tag can cause several later errors.
 
-The sandbox supports React imports and these elements: `div`, `section`, `h1`, `h2`, `p`, `span`, `button`, `input`, `label`, `ul`, `li`. Use buttons and controlled inputs instead of forms or selects. There is no network or browser storage access. Later we use `document.title` for a small effect.
-
-TypeScript describes data and catches mismatches during authoring. For example, `const title: string = "Plan sprint"` means title is text. The preview compiler reports syntax and toolbox errors; automated assignment checks inspect source structure and the rendered page. Passing checks is a milestone, not proof of every possible implementation detail.
-
-**Try it:** remove a closing tag, read the error, then restore it. Errors are feedback, not lost progress.
-
-**Apply it:** exercise 1, Sprint board. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/writing-markup-with-jsx).
+The editor already has React. Keep components in this one file; no setup or package installation is needed. Available elements are `div`, `section`, `h1`, `h2`, `p`, `span`, `button`, `input`, `label`, `ul` and `li`, plus fragments. Use inputs and buttons; forms, external packages, network access and browser storage are unavailable. The later effect example can use `document.title`.

@@ -13,6 +13,7 @@ export type SceneProps = {
   mute: boolean;
   focused: boolean;
   reduced: boolean;
+  graphicsQuality: import("../graphics").GraphicsQuality;
   onComputer: () => void;
   onProp: (s: string) => void;
   celebrate: boolean;

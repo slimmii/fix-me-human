@@ -43,7 +43,9 @@ test("start coding immediately, consult the printed brief and integrated Help, s
   await page.screenshot({ path: "test-results/printed-assignment-desk.png" });
   await page.getByRole("button", { name: "Put assignment down" }).click();
   await page.locator('[data-surface="crt-glass"]').click();
-  const editor = page.getByRole("textbox", { name: "Your React code" });
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByRole("textbox", { name: "Your React code" });
   await expect(editor).toBeVisible();
   await expect(editor).toHaveText("");
   await expect(
@@ -102,7 +104,7 @@ test("start coding immediately, consult the printed brief and integrated Help, s
   await expect(submit).toBeVisible({ timeout: 15000 });
   await expect(
     page
-      .frameLocator("iframe")
+      .frameLocator('iframe[title="Your retro browser"]')
       .getByRole("heading", { name: "Sprint board", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
@@ -179,7 +181,10 @@ test("editor and references fit desktop screen sizes", async ({ page }) => {
       page.getByRole("button", { name: "Put assignment down" }),
     ).toBeInViewport();
     await page.getByRole("button", { name: "Put assignment down" }).click();
-    await page.getByLabel("Your React code").press("F1");
+    await page
+      .frameLocator('iframe[title="Code editor"]')
+      .getByLabel("Your React code")
+      .press("F1");
     await page
       .getByRole("button", { name: "Read topic: React fundamentals" })
       .click();
@@ -192,6 +197,9 @@ test("editor and references fit desktop screen sizes", async ({ page }) => {
     await page.screenshot({ path: `test-results/editor-help-${width}.png` });
     await page.getByRole("button", { name: "Close course material" }).click();
   }
-  await page.getByLabel("Your React code").press("Escape");
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code")
+    .press("Escape");
   await expect(page.locator("main")).not.toHaveClass(/focused/);
 });

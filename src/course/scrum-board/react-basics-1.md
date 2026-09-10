@@ -1,32 +1,22 @@
-React describes a page with components: functions that return markup. A component name begins with a capital letter so React can distinguish it from a built-in element such as `h1`. The office runs the component you export from Office.tsx.
+A React component is a function that describes part of a page. It returns JSX: markup written inside JavaScript. A `.tsx` file combines JSX with TypeScript.
 
 ```tsx
 export default function App() {
+  const place = "Corner café";
+
   return (
     <section>
-      <h1>Sprint board</h1>
-      <p>Work starts here.</p>
+      <h1>{place}</h1>
+      <p>Fresh coffee from {8 + 1} in the morning.</p>
     </section>
   );
 }
 ```
 
-`export default` makes App the file's entry point. `return` supplies what React should display. The angle-bracket syntax is JSX; TypeScript with JSX lives in a `.tsx` file. Keep one outer element around sibling elements. Put multiline JSX in parentheses immediately after return; a newline before the expression can accidentally return nothing.
+`App` starts with a capital letter because it is a component. Lowercase names such as `section` and `p` are built-in HTML elements. `export default` makes this component the file's entry point; the office preview renders it for you.
 
-JSX can include JavaScript expressions in braces:
+`return` supplies the JSX to display. Keep the opening parenthesis on the same line as `return`, and wrap sibling elements in one parent element. A fragment, `<>...</>`, can also group siblings without adding an HTML element.
 
-```tsx
-const team = "Human resources";
-// Inside a component's return:
-<p>
-  {team} has {2 + 1} tasks.
-</p>;
-```
+Braces insert JavaScript values into JSX. Here, `{place}` displays the string and `{8 + 1}` displays 9. Text outside braces stays literal. Use `className` for an HTML class and close every tag, including standalone elements such as `<input />`.
 
-Braces evaluate values; quoted text stays literal. Use `className` instead of HTML's class attribute. Close every tag, including `<input />`. A component should calculate its output without changing other objects during render.
-
-**Try it:** change the description, keeping the exact Sprint board heading. Predict which text changes before running.
-
-**Apply it:** exercise 1, Sprint board. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/your-first-component).
+Components calculate what the screen should show. Keep changes to data out of the render itself; later topics explain how clicks request updates.

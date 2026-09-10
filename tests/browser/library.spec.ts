@@ -10,6 +10,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   const second = curriculum[1].assignments[0];
   const third = curriculum[2].assignments[0];
   const save = codingSave();
+  save.settings.graphicsQuality = 0;
   await page.addInitScript(
     ([key, value]) => {
       if (window === window.top && !localStorage.getItem(key))
@@ -21,7 +22,9 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await page.locator('[data-surface="crt-glass"]').click();
-  const editor = page.getByRole("textbox", { name: "Your React code" });
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByRole("textbox", { name: "Your React code" });
   const help = page.getByRole("complementary", {
     name: "Course material",
     exact: true,
@@ -37,7 +40,11 @@ test("File Open restores previous tasks and Help grows with completed exercises"
       page.getByRole("heading", { name: "Open task", exact: true }),
     ).toBeVisible();
   };
-  await editor.fill(first.solution);
+  const playerCode = first.solution.replace(
+    "A home for our team's tasks.",
+    "My own sprint board.",
+  );
+  await editor.fill(playerCode);
   await open();
   await expect(tasks.getByRole("button")).toHaveCount(1);
   await expect(
@@ -45,7 +52,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Cancel · Esc" }).click();
   await expect(editor).toBeFocused();
-  await expect(editor).toHaveText(first.solution, { useInnerText: true });
+  await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await editor.press("F1");
   await expect(topics.getByRole("button")).toHaveCount(1);
   await expect(topics).toContainText("React fundamentals");
@@ -62,21 +69,21 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   await page
     .getByRole("button", { name: `Open task: ${second.title}` })
     .click();
-  await expect(editor).toHaveText(second.starterCode!, { useInnerText: true });
+  await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await editor.fill(second.solution);
   await editor.press("ControlOrMeta+o");
   await page.getByRole("button", { name: `Open task: ${first.title}` }).click();
-  await expect(editor).toHaveText(first.solution, { useInnerText: true });
+  await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await editor.press("F1");
   await expect(topics.getByRole("button")).toHaveCount(2);
   await expect(
-    topics.getByRole("button", { name: "Read topic: Lists and board columns" }),
+    topics.getByRole("button", { name: "Read topic: Lists and identity" }),
   ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Read topic: Components and props" })
     .click();
   await expect(
-    help.getByRole("heading", { name: "Give each card its inputs" }),
+    help.getByRole("heading", { name: "One component, different inputs" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Next →", exact: true }).click();
   await expect(
@@ -90,7 +97,7 @@ test("File Open restores previous tasks and Help grows with completed exercises"
 
   await page.reload();
   await page.locator('[data-surface="crt-glass"]').click();
-  await expect(editor).toHaveText(first.solution, { useInnerText: true });
+  await expect(editor).toHaveText(playerCode, { useInnerText: true });
   await open();
   await page
     .getByRole("button", { name: `Open task: ${second.title}` })
@@ -103,17 +110,18 @@ test("File Open restores previous tasks and Help grows with completed exercises"
   await page.locator('[data-surface="crt-glass"]').click();
   await editor.press("ControlOrMeta+o");
   await expect(tasks.getByRole("button")).toHaveCount(3);
-  await page.screenshot({ path: "test-results/open-previous-tasks.png" });
+  await tasks.screenshot({ path: "test-results/open-previous-tasks.png" });
   await page.getByRole("button", { name: `Open task: ${third.title}` }).click();
   await editor.press("F1");
   await expect(topics.getByRole("button")).toHaveCount(3);
-  await page.screenshot({ path: "test-results/unlocked-course-topics.png" });
+  await topics.screenshot({ path: "test-results/unlocked-course-topics.png" });
   await page
-    .getByRole("button", { name: "Read topic: Lists and board columns" })
+    .getByRole("button", { name: "Read topic: Lists and identity" })
     .click();
   await expect(
-    help.getByRole("heading", { name: "Turn task data into columns" }),
+    help.getByRole("heading", { name: "Turn data into a list" }),
   ).toBeVisible();
+  await help.screenshot({ path: "test-results/course-list-material.png" });
   await page.getByRole("button", { name: "Close course material" }).click();
   await editor.fill(third.solution);
   await editor.press("F5");

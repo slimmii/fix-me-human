@@ -1,3 +1,4 @@
+import { useHoverHighlight } from "./useHoverHighlight";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import * as THREE from "three";
@@ -8,6 +9,7 @@ export function DeskFan({
   reduced,
   onProp,
 }: Pick<Props, "reduced" | "onProp">) {
+  const highlight = useHoverHighlight();
   const fan = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const [fanOn, setFanOn] = useState(true);
@@ -19,6 +21,7 @@ export function DeskFan({
 
   return (
     <group
+      {...highlight.mesh}
       position={[-2.75, 1.65, -0.9]}
       rotation={[0, Math.PI / 8, 0]}
       onClick={(e) => {

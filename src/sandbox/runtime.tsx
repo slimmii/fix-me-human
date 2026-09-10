@@ -4,6 +4,7 @@ import * as React from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 let failed = false;
+let checking = false;
 const notify = (type: string, detail = "") => {
   if (type === "error") failed = true;
   parent.postMessage(
@@ -86,6 +87,7 @@ class Boundary extends React.Component<
   }
 }
 const output = (text: string) => {
+  if (checking) return;
   const box = document.getElementById("browser-console");
   if (box) box.textContent = text;
 };
@@ -117,7 +119,13 @@ window.__mount = (Component) => {
   setTimeout(async () => {
     if (failed) return;
     const root = document.getElementById("app")!;
-    const checks = await evaluateRuntimeRules(root, window.__RULES, reset);
+    checking = true;
+    let checks;
+    try {
+      checks = await evaluateRuntimeRules(root, window.__RULES, reset);
+    } finally {
+      checking = false;
+    }
     if (failed) return;
     notify(
       "rendered",

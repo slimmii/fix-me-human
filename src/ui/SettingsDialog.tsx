@@ -1,3 +1,4 @@
+import { GRAPHICS_QUALITY, isGraphicsQuality } from "../graphics";
 import type { Save } from "../progression";
 type Settings = Save["settings"];
 export function SettingsDialog({
@@ -7,7 +8,7 @@ export function SettingsDialog({
 }: {
   settings: Settings;
   onClose: () => void;
-  onChange: (key: keyof Settings, value: boolean) => void;
+  onChange: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
 }) {
   return (
     <div className="modal-backdrop">
@@ -32,6 +33,36 @@ export function SettingsDialog({
             {["Mute sound", "Reduce motion", "CRT scanlines"][i]}
           </label>
         ))}
+        <div className="graphics-quality">
+          <label htmlFor="graphics-quality">
+            Graphics quality
+            <output htmlFor="graphics-quality">
+              {GRAPHICS_QUALITY[settings.graphicsQuality].label}
+            </output>
+          </label>
+          <input
+            id="graphics-quality"
+            type="range"
+            min="0"
+            max="2"
+            step="1"
+            value={settings.graphicsQuality}
+            aria-valuetext={GRAPHICS_QUALITY[settings.graphicsQuality].label}
+            aria-describedby="graphics-quality-help"
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (isGraphicsQuality(value)) onChange("graphicsQuality", value);
+            }}
+          />
+          <div className="quality-stops" aria-hidden="true">
+            <span>Low</span>
+            <span>Medium</span>
+            <span>High</span>
+          </div>
+          <p id="graphics-quality-help">
+            {GRAPHICS_QUALITY[settings.graphicsQuality].description}
+          </p>
+        </div>
         <p>
           Type your own React. Tab indents; F5 runs; F6 switches to your editor.
           Escape returns to the desk. No timers. No lost progress.

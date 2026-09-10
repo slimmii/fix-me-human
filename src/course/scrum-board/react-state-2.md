@@ -1,22 +1,17 @@
-Each render sees a snapshot of state. Calling a setter schedules a future render; it does not immediately rewrite the variable in the current handler. When the next value depends on the previous value, use the setter's function form.
+Each render sees a snapshot of state. Calling a setter schedules the next render; it does not change the value already held by the current handler. When the next value depends on the previous one, use a functional setter: `setCups(current => current + 1)`.
+
+State can hold arrays too. This excerpt belongs at the top of a component with `useState` imported:
 
 ```tsx
-setTasks((current) => [
-  ...current,
-  {
-    id: Math.max(0, ...current.map((task) => task.id)) + 1,
-    title: "Review backlog",
-    status: "TODO",
-  },
-]);
+const [guests, setGuests] = useState<string[]>(["Mina"]);
+
+function invite(name: string) {
+  setGuests((current) => [...current, name]);
+}
 ```
 
-The spread creates a new array. The maximum current numeric ID plus one avoids collisions among existing cards, including when titles repeat. For this in-memory board it is enough; a server-backed board would need a different ID policy. IDs need to remain stable for each existing task, not equal its position in a filtered array.
+`string[]` describes an array of strings. For objects, use the corresponding interface, for example `useState<Book[]>(initialBooks)`. The spread `...current` copies existing entries into a new array before adding the new one. Avoid `push` or changing the original array: React state is read-only.
 
-Do not call `tasks.push(...)` and pass the same array back. React state should be treated as read-only. Updaters must be pure: calculate and return data, without sending messages, changing external variables or performing other side effects. React may call an updater more than once during development to help detect impurity.
+An updater receives the pending state, including earlier queued updates. Return the next state from it. Keep it pure: do not change external counters or perform side effects inside the updater.
 
-**Try it:** explain why two calls using `current => ...` compose correctly, while two calculations based on one old snapshot can overwrite each other.
-
-**Apply it:** exercise 4, Give the board a memory. The printed brief lists the exact behavior and markup to preserve.
-
-[Read more in the official React documentation](https://react.dev/learn/queueing-a-series-of-state-updates).
+When adding objects, give each new item an ID that differs from all current IDs. For a small numeric collection, one approach is to find the largest existing ID and add one. `map` can extract the IDs; `Math.max(0, ...ids)` spreads those numbers into arguments and finds the largest, using 0 for an empty collection. Choose an ID when creating an item and keep it unchanged during edits. Display text is not an identity, so duplicate names can still represent separate items.
