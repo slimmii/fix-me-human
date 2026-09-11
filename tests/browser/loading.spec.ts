@@ -41,9 +41,7 @@ test("one readable processing panel covers compilation and checks before reveali
   await expect(page.locator(".retro-run-message")).toHaveText(message!);
   await expect(preview).toHaveAttribute("inert", "");
   await expect(preview).toHaveAttribute("aria-hidden", "true");
-  await expect(
-    page.getByRole("button", { name: "Run my code" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Reload" })).toBeDisabled();
   await page.locator(".retro-browser-page").screenshot({
     path: "test-results/retro-processing.png",
   });
@@ -104,5 +102,5 @@ test("reduced motion keeps the bar still and editing cancels a pending reveal", 
   await page.clock.runFor(2000);
   await expect(page.getByRole("alert")).toContainText("COMPILE ERROR");
   await expect(page.getByRole("progressbar")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Run my code" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Reload" })).toBeEnabled();
 });

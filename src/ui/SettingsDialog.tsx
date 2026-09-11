@@ -1,5 +1,10 @@
 import { GRAPHICS_QUALITY, isGraphicsQuality } from "../graphics";
 import type { Save } from "../progression";
+import {
+  isScreenFontSize,
+  MIN_SCREEN_FONT_SIZE,
+  MAX_SCREEN_FONT_SIZE,
+} from "../screen-font";
 type Settings = Save["settings"];
 export function SettingsDialog({
   settings,
@@ -33,7 +38,37 @@ export function SettingsDialog({
             {["Mute sound", "Reduce motion", "CRT scanlines"][i]}
           </label>
         ))}
-        <div className="graphics-quality">
+        <div className="settings-slider">
+          <label htmlFor="screen-font-size">
+            Screen font size
+            <output htmlFor="screen-font-size">
+              {settings.screenFontSize}px
+            </output>
+          </label>
+          <input
+            id="screen-font-size"
+            type="range"
+            min={MIN_SCREEN_FONT_SIZE}
+            max={MAX_SCREEN_FONT_SIZE}
+            step="1"
+            value={settings.screenFontSize}
+            aria-valuetext={`${settings.screenFontSize} pixels`}
+            aria-describedby="screen-font-size-help"
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (isScreenFontSize(value)) onChange("screenFontSize", value);
+            }}
+          />
+          <div className="quality-stops" aria-hidden="true">
+            <span>Smaller</span>
+            <span>Larger</span>
+          </div>
+          <p id="screen-font-size-help">
+            Adjusts text in the editor, Help, and program output. Saved
+            automatically.
+          </p>
+        </div>
+        <div className="settings-slider graphics-quality">
           <label htmlFor="graphics-quality">
             Graphics quality
             <output htmlFor="graphics-quality">

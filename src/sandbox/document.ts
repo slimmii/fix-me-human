@@ -2,16 +2,24 @@ import type { RuntimeRule } from "../validation/types";
 import type { Compiled } from "../typed-engine";
 import { PREVIEW_SOURCE_URL } from "./source-location";
 import runtime from "./runtime.generated.js?raw";
-const css = `*{box-sizing:border-box;border-radius:0!important}html{min-height:100%;background:#000080}body{margin:0;padding:14px 16px 50px;background:#000080;color:#aaaaaa;font:14px/1.5 "Courier New",monospace}::selection{color:#000080;background:#aaaaaa}#app:empty:after{content:'[ Empty document ]';color:#ffff55}h1{font:700 22px/1.3 "Courier New",monospace;letter-spacing:0;color:#ffff55;padding:12px 0 15px;margin:3px 0 23px;border-top:3px double #aaaaaa;border-bottom:3px double #aaaaaa;text-shadow:1px 0 #aa5500}h2{font:700 16px/1.35 "Courier New",monospace;color:#55ffff;margin:19px 0 15px;padding:8px 0;border-bottom:1px solid #00aaaa}p{overflow-wrap:anywhere;margin:8px 0;padding:4px 7px;border-left:2px solid #00aaaa;color:#dddddd}span{display:inline-block;color:#ff55ff;margin:4px 8px 4px 0;padding:2px 4px;background:#000055}button{font:700 14px "Courier New",monospace;color:#000000;background:#aaaaaa;border:3px outset #dddddd;padding:4px 8px;box-shadow:4px 4px #000000;margin:4px 8px 8px 0;cursor:pointer}button:hover{background:#ffffff}button:active{border-style:inset;box-shadow:1px 1px #000000;transform:translate(2px,2px)}button:focus-visible{outline:2px dashed #ffff55;outline-offset:4px}input{display:block;max-width:100%;width:320px;margin:10px 0;padding:8px 10px;color:#ffff55;caret-color:#ffff55;background:#000055;border:3px inset #aaaaaa;font:14px "Courier New",monospace}input:focus{outline:1px solid #ffff55}label{color:#ffffff;font-weight:bold}section{border:3px double #aaaaaa;padding:10px;margin:10px 0}div:not(#app):not(#browser-console){margin:12px 0}ul{list-style:none;counter-reset:items;margin:15px 0;padding:0;border-top:1px solid #5555aa}li{counter-increment:items;padding:10px 12px;color:#55ffff;border-bottom:1px solid #5555aa}li:before{content:counter(items,decimal-leading-zero) ' │ ';color:#aaaaaa}li:nth-child(even){background:#000066}#browser-console{position:fixed;bottom:0;left:0;right:0;background:#aaaaaa;color:#000080;border-top:2px solid #ffffff;padding:8px 14px;font:14px "Courier New",monospace;z-index:20}#browser-console:empty{display:none}html{scrollbar-color:#aaaaaa #000055;scrollbar-width:auto}::-webkit-scrollbar{width:16px;height:16px}::-webkit-scrollbar-track{background:repeating-conic-gradient(#555555 0% 25%,#aaaaaa 0% 50%) 0/4px 4px}::-webkit-scrollbar-thumb{background:#aaaaaa;border:2px outset #eeeeee}::-webkit-scrollbar-button{display:block;background:#aaaaaa;border:2px outset #eeeeee;height:16px;width:16px}`;
+import terminalControls from "../terminal-controls.css?inline";
+import previewStyles from "./preview.css?inline";
+import { DEFAULT_SCREEN_FONT_SIZE, isScreenFontSize } from "../screen-font";
+const css = terminalControls + previewStyles;
+
 export function browserDocument(
   compiled: Compiled,
   token: string,
   rules: RuntimeRule[],
   reduced: boolean,
+  fontSize = DEFAULT_SCREEN_FONT_SIZE,
 ) {
+  const screenFontSize = isScreenFontSize(fontSize)
+    ? fontSize
+    : DEFAULT_SCREEN_FONT_SIZE;
   const safe = (code: string) => code.replace(/<\/script/gi, "<\\/script");
   const prefix =
     "try {window.React=window.__REACT;const exports={};const module={exports};const require=name=>{if(name==='react')return window.__REACT;throw Error('Only React is available.');};\n";
   const program = `${prefix}${compiled.code}\nwindow.__mount(exports[${JSON.stringify(compiled.entry)}]);}catch(e){window.__reportError(e);}\n//# sourceURL=${PREVIEW_SOURCE_URL}\n`;
-  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>${css}${reduced ? "*{transition:none!important;transform:none!important}" : ""}</style></head><body><div id="app"></div><div id="browser-console" role="status"></div><script>window.__TOKEN=${JSON.stringify(token)};window.__RULES=${safe(JSON.stringify(rules))};window.__SOURCES=${safe(JSON.stringify(compiled.sources ?? []))};window.__SCRIPT_OFFSET=${prefix.split("\n").length - 1};${safe(runtime)}</script><script>${safe(program)}</script></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>${css}${reduced ? "*{transition:none!important;transform:none!important}" : ""}</style></head><body class="machine-screen" style="--screen-font-size:${screenFontSize}px"><div id="app"></div><div id="browser-console" role="status"></div><script>window.__TOKEN=${JSON.stringify(token)};window.__RULES=${safe(JSON.stringify(rules))};window.__SOURCES=${safe(JSON.stringify(compiled.sources ?? []))};window.__SCRIPT_OFFSET=${prefix.split("\n").length - 1};${safe(runtime)}</script><script>${safe(program)}</script></body></html>`;
 }

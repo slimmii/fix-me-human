@@ -4,12 +4,20 @@ import { assignmentProject } from "../progression";
 import type { GameController } from "../game/useGame";
 import { AssignmentReview } from "./AssignmentReview";
 import { TaskMenu } from "./TaskMenu";
+import type { CSSProperties } from "react";
 
 export function GameComputer({ game }: { game: GameController }) {
   const { save, assignment, dispatch } = game;
   const reviewing = save.phase === "review" || save.phase === "complete";
   return (
-    <div className={`machine-screen ${save.settings.crt ? "scanlines" : ""}`}>
+    <div
+      className={`machine-screen ${save.settings.crt ? "scanlines" : ""}`}
+      style={
+        {
+          "--screen-font-size": `${save.settings.screenFontSize}px`,
+        } as CSSProperties
+      }
+    >
       {game.showTasks && <TaskMenu game={game} />}
       {reviewing && !game.showTasks && <AssignmentReview game={game} />}
       {!reviewing && (
@@ -28,17 +36,20 @@ export function GameComputer({ game }: { game: GameController }) {
             onBug={game.reportBug}
             onKey={() => sound(save.settings.mute)}
             reduced={save.settings.reducedMotion}
+            fontSize={save.settings.screenFontSize}
             helpOpen={game.helpOpen}
             onHelp={game.openHelp}
             onCloseHelp={() => game.setHelpOpen(false)}
           />
         </div>
       )}
-      <div className="machine-status">
-        ●{" "}
-        {game.saved
-          ? "All changes saved locally"
-          : "This session only · storage unavailable"}
+      <div className="machine-status" data-saved={game.saved}>
+        <span className="terminal-save">
+          <i aria-hidden="true" />
+          {game.saved
+            ? "All changes saved locally"
+            : "This session only · storage unavailable"}
+        </span>
         <span>TypeScript JSX · UTF-8 · Spaces: 2</span>
       </div>
     </div>

@@ -49,7 +49,7 @@ Checks create, move, edit, delete and search actual rendered cards. Each scenari
 
 The wall clock shows office time in 24-hour format. The safety sign counts full days since the last compile error, runtime error, or unresponsive program; each error resets it to zero without resetting the clock. Incomplete assignment checks do not reset the streak. Clock and streak timestamps save locally and continue advancing while the game is closed.
 
-Settings include mute, reduced motion, and optional scanlines. B.U.G.'s dialogue is always captioned. There are no deadlines or lost course progress after errors. The clock still updates with reduced motion enabled. WebGL is required for the office; a fallback keeps the learning, coding interface, and clock readout available without it.
+The computer uses a spacecraft-inspired terminal with amber phosphor accents, instrument panels, and mechanical keys. The editor, Help, dialogs, and program output share the same palette. BUGSCAPE fills the computer screen while running a program; F6 returns to the editor. Settings include mute, reduced motion, optional scanlines, graphics quality, and screen font size (10–20px, default 14px). Font changes apply to the editor, Help, and program output and save automatically. B.U.G.'s dialogue is always captioned. There are no deadlines or lost course progress after errors. The clock still updates with reduced motion enabled. WebGL is required for the office; a fallback keeps the learning, coding interface, and clock readout available without it.
 
 ## Author content
 

@@ -38,6 +38,7 @@ export default function App() {
       }}
     >
       <Scene
+        workstationId={game.workstationId}
         officeClock={game.officeClock}
         completedAssignments={save.completed}
         assignment={game.assignment}
@@ -78,27 +79,6 @@ export default function App() {
             }))
           }
         />
-      )}
-      {!focused && (
-        <>
-          <div className="desk-label">
-            <span>BUG INDUSTRIES™</span>
-            <h1>
-              One human.
-              <br />
-              Several bugs.
-            </h1>
-          </div>
-          <div className="desk-index">
-            <span>WORKSTATION</span>
-            <b>H–042</b>
-            <small>
-              YOUR COFFEE IS
-              <br />
-              PROBABLY COLD.
-            </small>
-          </div>
-        </>
       )}
       <RobotDialogue
         mood={mood}

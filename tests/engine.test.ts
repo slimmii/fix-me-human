@@ -314,7 +314,11 @@ describe("v4 saves", () => {
       expect(loaded.phase).toBe("coding");
       expect(loaded.drafts[assignment.id]).toBe("unfinished");
       expect(loaded.completed).toEqual([assignment.id]);
-      expect(loaded.settings).toEqual({ ...old.settings, graphicsQuality: 2 });
+      expect(loaded.settings).toEqual({
+        ...old.settings,
+        graphicsQuality: 2,
+        screenFontSize: 14,
+      });
       expect(loaded).not.toHaveProperty("screenId");
     }
   });
@@ -336,6 +340,31 @@ describe("v4 saves", () => {
         graphicsQuality === 0 || graphicsQuality === 1 ? graphicsQuality : 2,
       );
       expect(loaded.drafts).toEqual(save.drafts);
+    }
+  });
+  it("preserves screen font sizes and recovers missing or invalid sizes without losing work", () => {
+    const save = codingSave(assignment.solution);
+    for (const [screenFontSize, expected] of [
+      [10, 10],
+      [12, 12],
+      [14, 14],
+      [20, 20],
+      [undefined, 14],
+      [null, 14],
+      ["18", 14],
+      [9, 14],
+      [21, 14],
+      [15.5, 14],
+    ]) {
+      const loaded = decode(
+        JSON.stringify({
+          ...save,
+          settings: { ...save.settings, screenFontSize },
+        }),
+      );
+      expect(loaded.settings.screenFontSize).toBe(expected);
+      expect(loaded.drafts).toEqual(save.drafts);
+      expect(loaded.completed).toEqual(save.completed);
     }
   });
   it("starts fresh for old and corrupt saves", () => {

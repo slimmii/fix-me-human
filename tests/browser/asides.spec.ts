@@ -29,8 +29,21 @@ for (const duringTutorial of [false, true]) {
     await page.goto("/");
     await expect(
       page.getByRole("button", { name: "Play Focus Flow on the radio" }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 30000 });
+    // Wait for Drei to project the screen before clicking fixed scene points.
+    await expect
+      .poll(
+        async () =>
+          (await page.locator('[data-surface="crt-glass"]').boundingBox())?.x ??
+          0,
+      )
+      .toBeGreaterThan(400);
     const caption = page.getByRole("status");
+    const workstationId = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!).workstationId as string,
+      KEY,
+    );
+    expect(workstationId).toMatch(/^[A-Z]–\d{3}$/);
     const script = await caption.textContent();
     const back = page.getByRole("button", {
       name: "BACK TO WORK",
@@ -38,6 +51,7 @@ for (const duringTutorial of [false, true]) {
     });
     // Canvas props are hit at their centers in the fixed desktop viewport.
     for (const [x, y, remark] of [
+      [104, 258, "arbitrary number"],
       [350, 590, "Coffee:"],
       [280, 420, "Fan:"],
       [1090, 350, "job security"],
@@ -46,6 +60,11 @@ for (const duringTutorial of [false, true]) {
       await page.mouse.click(x, y);
       await expect(caption).toContainText(remark);
       await expect(back).toBeVisible();
+      if (remark === "arbitrary number") {
+        await expect(caption).toContainText(`Workstation ${workstationId}.`);
+        await page.mouse.move(720, 800);
+        await page.screenshot({ path: "test-results/workstation-sign.png" });
+      }
       await back.click();
       await expect(caption).toHaveText(script!);
     }
@@ -54,6 +73,12 @@ for (const duringTutorial of [false, true]) {
     await expect(caption).toContainText("Fan:");
     await page.reload();
     await expect(caption).toContainText("Fan:");
+    expect(
+      await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)!).workstationId,
+        KEY,
+      ),
+    ).toBe(workstationId);
     await back.focus();
     await back.press("Enter");
     await expect(caption).toHaveText(script!);

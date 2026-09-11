@@ -36,6 +36,7 @@ type Props = {
   onBug: () => void;
   onKey: () => void;
   reduced: boolean;
+  fontSize: number;
   onHelp: () => void;
   onExit: () => void;
 };
@@ -54,6 +55,7 @@ export default function TypedComputer({
   onBug,
   onKey,
   reduced,
+  fontSize,
   onHelp,
   onExit,
 }: Props) {
@@ -83,6 +85,15 @@ export default function TypedComputer({
   const runStarted = useRef(0);
   const latestSource = useRef(draft);
   latestSource.current = draft;
+  function syncPreviewFont() {
+    frame.current?.contentWindow?.postMessage(
+      { channel: "human-settings", token: token.current, fontSize },
+      "*",
+    );
+  }
+  useEffect(() => {
+    syncPreviewFont();
+  }, [fontSize]);
   useEffect(() => {
     worker.current = new Worker(
       new URL("./compiler.worker.ts", import.meta.url),
@@ -221,6 +232,7 @@ export default function TypedComputer({
           token.current,
           exercise.validation.runtime,
           reduced,
+          fontSize,
         ),
       );
       clearTimeout(timeout.current);
@@ -394,6 +406,7 @@ export default function TypedComputer({
             onHelp();
             return;
           }
+          setActive("editor");
           setMenu(
             (
               {
@@ -436,7 +449,12 @@ export default function TypedComputer({
           }}
         />
       )}
-      <div className="qbasic-work" hidden={helpOpen} inert={!!fileDialog}>
+      <div
+        className="qbasic-work"
+        data-view={active}
+        hidden={helpOpen}
+        inert={!!fileDialog}
+      >
         <div className="qbasic-menu" role="menubar" aria-label="Editor menu">
           {(["File", "Edit", "Search", "Run"] as Menu[]).map((name) => (
             <div className="qbasic-menu-anchor" key={name}>
@@ -501,17 +519,20 @@ export default function TypedComputer({
           >
             <u>H</u>elp
           </button>
-          <span className="qbasic-program">B.U.G. BASIC / React Edition</span>
+          <span className="qbasic-program">B.U.G. BASIC / REACT</span>
         </div>
         <div className="editor-panes">
           <div className="editor-main">
             <div className="qbasic-source" hidden={active !== "editor"}>
               <div className="qbasic-file">
-                <span>[■]</span>
+                <span className="terminal-pane-label" aria-hidden="true">
+                  ▤
+                </span>
                 <b>{draft.activeFile}</b>
                 <span>React / TSX</span>
               </div>
               <RetroEditor
+                fontSize={fontSize}
                 fileNames={Object.keys(draft.files)}
                 ref={editor}
                 fileName={draft.activeFile}
@@ -521,8 +542,15 @@ export default function TypedComputer({
                 onHelp={onHelp}
                 onCursor={(line, column) => setPosition({ line, column })}
               />
+              {!draft.files[draft.activeFile].trim() && (
+                <div className="terminal-empty" aria-hidden="true">
+                  <b>Ready for input.</b>
+                  <p>Type your React code here.</p>
+                  <small>F1 · Course material &nbsp; F5 · Run program</small>
+                </div>
+              )}
               <div className="qbasic-ruler">
-                <span>─── {exercise.title} ───</span>
+                <span>{exercise.title}</span>
                 <span>
                   Ln {position.line}, Col {position.column}
                 </span>
@@ -562,6 +590,7 @@ export default function TypedComputer({
                     title="Your retro browser"
                     sandbox="allow-scripts"
                     srcDoc={page}
+                    onLoad={syncPreviewFont}
                     inert={busy}
                     aria-hidden={busy}
                   />

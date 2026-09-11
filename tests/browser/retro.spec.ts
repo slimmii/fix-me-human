@@ -1,7 +1,7 @@
 import { codingSave } from "../fixtures/curriculum";
 import { test, expect } from "@playwright/test";
 import { KEY } from "../../src/progression";
-test("QBasic menus run a separate CRT browser and return to the intact editor", async ({
+test("terminal menus run a separate CRT browser and return to the intact editor", async ({
   page,
 }) => {
   const code =
@@ -43,11 +43,15 @@ test("QBasic menus run a separate CRT browser and return to the intact editor", 
   ).toBeVisible({ timeout: 15000 });
   await expect(browser.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(0, 0, 128)",
+    "rgb(16, 20, 18)",
   );
   await expect(browser.getByRole("button", { name: "Coffee 0" })).toHaveCSS(
     "border-radius",
     "0px",
+  );
+  await expect(page.locator(".retro-browser-page")).toHaveAttribute(
+    "aria-busy",
+    "false",
   );
   await browser.getByRole("button", { name: "Coffee 0" }).click();
   await expect(browser.getByRole("button", { name: "Coffee 1" })).toBeVisible();

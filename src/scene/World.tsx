@@ -9,6 +9,7 @@ import { Box, Prop, cream, dark } from "./primitives";
 import type { WorldProps } from "./types";
 import { useSeatedCamera } from "./useSeatedCamera";
 import { Workstation } from "./Workstation";
+import { WorkstationSign } from "./WorkstationSign";
 
 import { Confetti } from "./Confetti";
 import { MotivationalPoster } from "./Posters";
@@ -19,10 +20,10 @@ import { CompletedAssignments } from "./CompletedAssignments";
 import { Robot } from "./Robot";
 export function World(props: WorldProps) {
   const { focused, reduced, onComputer, onProp, celebrate } = props;
-  const cameraHandlers = useSeatedCamera(props);
+  useSeatedCamera(props);
   const fanAirflow = useMemo(createFanAirflow, []);
   return (
-    <group {...cameraHandlers}>
+    <group>
       <Cubicle />
       <CompletedAssignments completed={props.completedAssignments} />
       <Workstation
@@ -69,6 +70,7 @@ export function World(props: WorldProps) {
         />
       </Prop>
       <MotivationalPoster onClick={props.onPoster} />
+      <WorkstationSign workstationId={props.workstationId} onProp={onProp} />
       {props.certificateEarned && (
         <ReactBasicsCertificate onClick={props.onCertificate} />
       )}

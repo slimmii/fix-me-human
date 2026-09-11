@@ -13,6 +13,8 @@ import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
 import { decodeStory, type AssignmentStory } from "./game/story";
 import { decodeOfficeClock, type OfficeClock } from "./game/officeTime";
+import { DEFAULT_SCREEN_FONT_SIZE, isScreenFontSize } from "./screen-font";
+import { decodeWorkstationId } from "./game/workstation";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
   version: 4;
@@ -27,11 +29,13 @@ export type Save = {
   projects: Record<string, CodeProject>;
   story: Record<string, AssignmentStory>;
   officeClock: OfficeClock | null;
+  workstationId: string | null;
   settings: {
     mute: boolean;
     reducedMotion: boolean;
     crt: boolean;
     graphicsQuality: GraphicsQuality;
+    screenFontSize: number;
   };
 };
 export const KEY = "please-fix-human:v4";
@@ -48,6 +52,7 @@ export const fresh = (lessons = curriculum): Save => ({
   projects: {},
   story: {},
   officeClock: null,
+  workstationId: null,
   settings: {
     mute: false,
     reducedMotion:
@@ -55,6 +60,7 @@ export const fresh = (lessons = curriculum): Save => ({
       matchMedia("(prefers-reduced-motion: reduce)").matches,
     crt: false,
     graphicsQuality: DEFAULT_GRAPHICS_QUALITY,
+    screenFontSize: DEFAULT_SCREEN_FONT_SIZE,
   },
 });
 export const lessonDone = (save: Save, lesson: Lesson) =>
@@ -282,6 +288,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
     const value = JSON.parse(raw);
     if (!value || value.version !== 4) return result;
     result.officeClock = decodeOfficeClock(value.officeClock);
+    result.workstationId = decodeWorkstationId(value.workstationId);
     const completed: string[] = Array.isArray(value.completed)
       ? value.completed.filter(
           (id: unknown): id is string => typeof id === "string",
@@ -359,6 +366,8 @@ export function decode(raw: string | null, lessons = curriculum): Save {
         result.settings[key] = value.settings[key];
     if (isGraphicsQuality(value.settings?.graphicsQuality))
       result.settings.graphicsQuality = value.settings.graphicsQuality;
+    if (isScreenFontSize(value.settings?.screenFontSize))
+      result.settings.screenFontSize = value.settings.screenFontSize;
     // Unknown teaching/brief positions normalize to coding. Course access now
     // comes only from completed tasks, never from a lesson's reading position.
     result.phase =

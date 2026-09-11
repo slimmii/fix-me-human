@@ -140,29 +140,10 @@ summary:focus-visible {
   border-radius: 50%;
   margin-right: 8px;
 }
-.desk-label {
-  position: absolute;
-  top: 20%;
-  left: 4.5%;
-  pointer-events: none;
-  max-width: 280px;
-}
-.desk-label > span,
 .eyebrow {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2px;
-}
-.desk-label h1 {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(30px, 3vw, 44px);
-  line-height: 1.04;
-  letter-spacing: -2.5px;
-  margin: 17px 0;
-}
-.desk-label p {
-  font-size: 15px;
-  line-height: 1.6;
 }
 .desk-cta {
   position: absolute;
@@ -183,27 +164,6 @@ summary:focus-visible {
   background: #deebcfba;
   padding: 6px 12px;
   border-radius: 20px;
-}
-.desk-index {
-  position: absolute;
-  right: 4%;
-  bottom: 168px;
-  text-align: right;
-}
-.desk-index span {
-  display: block;
-  letter-spacing: 2px;
-  font-size: 11px;
-}
-.desk-index b {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 44px;
-}
-.desk-index small {
-  display: block;
-  font-size: 10px;
-  line-height: 1.5;
-  letter-spacing: 1px;
 }
 .robot-dialogue {
   position: absolute;
@@ -353,9 +313,6 @@ summary:focus-visible {
   background: transparent;
   transform: none;
 }
-.game:has(.wall-certificate-button) .desk-label {
-  display: none;
-}
 .wall-note b {
   display: inline-block;
   background: #f5f0d3;
@@ -453,15 +410,6 @@ summary:focus-visible {
     left: 20px;
     right: 20px;
   }
-  .desk-label {
-    max-width: 200px;
-  }
-  .desk-label h1 {
-    font-size: 34px;
-  }
-  .desk-index {
-    display: none;
-  }
 }
 @media (max-width: 650px) {
   .brand {
@@ -498,15 +446,6 @@ summary:focus-visible {
   }
   .robot-avatar {
     width: 42px;
-  }
-  .desk-label h1 {
-    font-size: 28px;
-  }
-  .desk-label > span {
-    font-size: 9px;
-  }
-  .desk-label {
-    top: 16%;
   }
   .desk-cta {
     bottom: 145px;
@@ -1031,6 +970,17 @@ summary:focus-visible {
   cursor: default;
   /* Rounded overflow keeps iframe wheel hit testing on the screen content. */
 }
+.crt-display::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 12px 3px #0008,
+    inset 0 2px 3px #ffffff0a;
+}
 .crt-contents {
   width: 100%;
   height: 100%;
@@ -1156,18 +1106,18 @@ summary:focus-visible {
   font-size: 12px;
 }
 
-.settings .graphics-quality {
+.settings .settings-slider {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1px solid #203f3733;
 }
-.settings .graphics-quality label {
+.settings .settings-slider label {
   justify-content: space-between;
 }
-.settings .graphics-quality output {
+.settings .settings-slider output {
   font-weight: 700;
 }
-.settings .graphics-quality input[type="range"] {
+.settings .settings-slider input[type="range"] {
   width: 100%;
   height: 24px;
   margin: 4px 0;
@@ -1179,7 +1129,7 @@ summary:focus-visible {
   justify-content: space-between;
   font-size: 12px;
 }
-.settings #graphics-quality-help {
+.settings .settings-slider p {
   margin: 10px 0 0;
   font-size: 13px;
 }

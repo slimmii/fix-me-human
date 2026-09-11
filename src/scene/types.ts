@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { WallFocus } from "./wallPrints";
 export type SceneProps = {
+  workstationId: string;
   officeClock: import("../game/officeTime").OfficeClock;
   completedAssignments: string[];
   assignment: import("../curriculum/types").Assignment;

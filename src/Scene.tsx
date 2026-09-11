@@ -8,6 +8,7 @@ import { PRINT_DURATION } from "./scene/printerAnimation";
 import { OfficeClockReadout } from "./ui/OfficeClockReadout";
 import { curriculum } from "./curriculum";
 import { CERTIFICATE } from "./scene/ReactBasicsCertificate";
+import { SEATED_VIEW } from "./monitor";
 import type { WallFocus } from "./scene/wallPrints";
 export default function Scene(props: Props) {
   const quality = GRAPHICS_QUALITY[props.graphicsQuality];
@@ -87,7 +88,7 @@ export default function Scene(props: Props) {
           powerPreference: "high-performance",
         }}
         shadows
-        camera={{ position: [0, 3.45, 6.8], fov: 44 }}
+        camera={{ position: [...SEATED_VIEW.position], fov: 44 }}
         dpr={[1, quality.maxDpr]}
       >
         <Suspense fallback={null}>

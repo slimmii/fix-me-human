@@ -40,6 +40,7 @@ export type RetroEditorHandle = {
   selectAll: () => void;
 };
 type Props = {
+  fontSize: number;
   initialSource: string;
   fileName: string;
   fileNames: string[];
@@ -89,21 +90,25 @@ const rowNumbers = ViewPlugin.fromClass(
 const colors = HighlightStyle.define([
   {
     tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword],
-    color: "#ffffff",
+    color: "var(--terminal-text)",
     fontWeight: "bold",
   },
-  { tag: [tags.string, tags.attributeValue], color: "#ffff55" },
-  { tag: [tags.tagName, tags.typeName], color: "#55ffff" },
-  { tag: [tags.attributeName, tags.propertyName], color: "#aaaaaa" },
-  { tag: [tags.number, tags.bool, tags.null], color: "#ff55ff" },
-  { tag: tags.comment, color: "#55aaaa" },
-  { tag: [tags.punctuation, tags.operator], color: "#ffffff" },
+  { tag: [tags.string, tags.attributeValue], color: "var(--terminal-amber)" },
+  { tag: [tags.tagName, tags.typeName], color: "var(--terminal-cool)" },
+  {
+    tag: [tags.attributeName, tags.propertyName],
+    color: "var(--terminal-text)",
+  },
+  { tag: [tags.number, tags.bool, tags.null], color: "var(--terminal-red)" },
+  { tag: tags.comment, color: "var(--terminal-muted)" },
+  { tag: [tags.punctuation, tags.operator], color: "var(--terminal-text)" },
 ]);
 export default forwardRef<RetroEditorHandle, Props>(
   function RetroEditor(props, ref) {
     const buffers = useRef(new Map<string, EditorState>());
     const host = useRef<HTMLDivElement>(null);
     const view = useRef<EditorView | null>(null);
+    const syncFont = useRef<(() => void) | null>(null);
     const callbacks = useRef(props);
     callbacks.current = props;
     useImperativeHandle(
@@ -140,23 +145,22 @@ export default forwardRef<RetroEditorHandle, Props>(
       const doc = frame.contentDocument!;
       doc.open();
       doc.write(
-        "<!doctype html><html><head><style>html,body{height:100%;margin:0;overflow:hidden;background:#000080}</style></head><body></body></html>",
+        "<!doctype html><html><head><style>html,body{height:100%;margin:0;overflow:hidden;background:#101412}</style></head><body></body></html>",
       );
       doc.close();
       const controls = doc.createElement("style");
       controls.textContent = terminalControls;
       doc.head.appendChild(controls);
       doc.body.className = "machine-screen";
-      const syncFont = () => {
+      const updateFont = () => {
         const style = getComputedStyle(container);
         for (const name of ["--terminal-font-size", "--terminal-line-height"])
-          doc.documentElement.style.setProperty(
-            name,
-            style.getPropertyValue(name),
-          );
+          doc.body.style.setProperty(name, style.getPropertyValue(name));
+        view.current?.requestMeasure();
       };
-      syncFont();
-      const resize = new ResizeObserver(syncFont);
+      syncFont.current = updateFont;
+      updateFont();
+      const resize = new ResizeObserver(updateFont);
       resize.observe(container);
       // Keyboard events do not bubble across frames. Preserve the computer's
       // menu shortcuts and Escape handling before CodeMirror processes the key.
@@ -240,8 +244,8 @@ export default forwardRef<RetroEditorHandle, Props>(
               EditorView.theme({
                 "&": {
                   height: "100%",
-                  backgroundColor: "#000080",
-                  color: "#aaaaaa",
+                  backgroundColor: "var(--terminal-bg)",
+                  color: "var(--terminal-text)",
                   fontSize: "var(--terminal-font-size)",
                 },
                 "&.cm-focused": { outline: "none" },
@@ -251,8 +255,8 @@ export default forwardRef<RetroEditorHandle, Props>(
                   overflow: "scroll",
                 },
                 ".cm-content": {
-                  padding: "4px 0",
-                  caretColor: "#ffff55",
+                  padding: "10px 0",
+                  caretColor: "var(--terminal-amber)",
                   caretShape: "block",
                 },
                 ".cm-line": {
@@ -267,45 +271,47 @@ export default forwardRef<RetroEditorHandle, Props>(
                   width: "var(--line-number-width)",
                   paddingRight: "12px",
                   textAlign: "right",
-                  color: "#5555aa",
-                  borderRight: "1px solid #5555aa",
+                  color: "var(--terminal-muted)",
+                  borderRight: "1px solid var(--terminal-border)",
                   userSelect: "none",
                   pointerEvents: "none",
                 },
-                ".cm-activeLine::before": { color: "#ffff55" },
-                ".cm-dropCursor": { borderLeft: "2px solid #ffff55" },
-                ".cm-activeLine": { backgroundColor: "#ffffff08" },
+                ".cm-activeLine::before": { color: "var(--terminal-amber)" },
+                ".cm-dropCursor": {
+                  borderLeft: "2px solid var(--terminal-amber)",
+                },
+                ".cm-activeLine": { backgroundColor: "#f5bd680a" },
                 ".cm-selectionBackground, &.cm-focused .cm-selectionBackground":
                   {
-                    backgroundColor: "#5555aa!important",
+                    backgroundColor: "#f5bd6838!important",
                   },
                 ".cm-matchingBracket": {
-                  backgroundColor: "#00aaaa",
-                  color: "#000080",
+                  backgroundColor: "var(--terminal-cool)",
+                  color: "var(--terminal-bg)",
                 },
                 ".cm-panels": {
-                  backgroundColor: "#aaaaaa",
-                  color: "#000000",
+                  backgroundColor: "var(--terminal-panel)",
+                  color: "var(--terminal-text)",
                   fontFamily: '"Courier New", monospace',
                   fontSize: "var(--terminal-font-size)",
                 },
                 ".cm-textfield": {
                   borderRadius: "0",
-                  backgroundColor: "#000080",
-                  color: "#ffff55",
-                  border: "1px solid #ffffff",
+                  backgroundColor: "var(--terminal-bg)",
+                  color: "var(--terminal-amber)",
+                  border: "1px solid var(--terminal-text)",
                 },
                 ".cm-button": {
                   backgroundImage: "none",
-                  backgroundColor: "#aaaaaa",
-                  color: "#000000",
+                  backgroundColor: "var(--terminal-key)",
+                  color: "var(--terminal-key-ink)",
                   borderRadius: "0",
-                  border: "2px outset #dddddd",
+                  border: "1px solid var(--terminal-border)",
                   fontFamily: "inherit",
                 },
                 ".cm-searchMatch": {
-                  backgroundColor: "#aa5500",
-                  outline: "1px solid #ffff55",
+                  backgroundColor: "#73512c",
+                  outline: "1px solid var(--terminal-amber)",
                 },
               }),
             ],
@@ -323,8 +329,12 @@ export default forwardRef<RetroEditorHandle, Props>(
         resize.disconnect();
         frame.remove();
         view.current = null;
+        syncFont.current = null;
       };
     }, [props.fileName]);
+    useEffect(() => {
+      syncFont.current?.();
+    }, [props.fontSize]);
     useEffect(() => {
       for (const name of buffers.current.keys()) {
         if (!props.fileNames.includes(name)) buffers.current.delete(name);

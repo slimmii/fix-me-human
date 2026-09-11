@@ -1,6 +1,25 @@
+/* Shared by the console, the editor iframe, and the isolated program output. */
+.machine-screen {
+  --terminal-bg: #101412;
+  --terminal-panel: #1b211d;
+  --terminal-raised: #394035;
+  --terminal-key: #d2ceb2;
+  --terminal-key-ink: #25342b;
+  --terminal-key-light: #f4efd6;
+  --terminal-key-shadow: #716d53;
+  --terminal-border: #566052;
+  --terminal-text: #ded9bf;
+  --terminal-muted: #a6ac95;
+  --terminal-amber: #f5bd68;
+  --terminal-cool: #a8d5c2;
+  --terminal-red: #ed826b;
+  --terminal-font-size: var(--screen-font-size, 14px);
+  --terminal-line-height: calc(var(--terminal-font-size) * 24 / 17);
+  color-scheme: dark;
+}
 .machine-screen ::selection {
-  background: #aaaaaa;
-  color: #000080;
+  background: #f5bd6840;
+  color: #fff1cf;
 }
 .machine-screen
   :is(.cm-panels, .cm-panels button, .cm-panels input, .cm-panels label) {
@@ -12,22 +31,23 @@
   width: 14px;
   height: 14px;
   padding: 0;
-  border: 1px solid #000080;
+  border: 1px solid var(--terminal-muted);
   border-radius: 0;
-  background: #aaaaaa;
+  background: var(--terminal-bg);
   vertical-align: middle;
 }
 .machine-screen .cm-search input[type="checkbox"]:checked {
-  background: #000080;
-  box-shadow: inset 0 0 0 3px #aaaaaa;
+  background: var(--terminal-amber);
+  box-shadow: inset 0 0 0 3px var(--terminal-bg);
 }
-.machine-screen .cm-search input:focus-visible {
-  outline: 1px solid #ffff55;
+.machine-screen .cm-search :is(input, button):focus-visible {
+  outline: 2px solid var(--terminal-amber);
+  outline-offset: 2px;
 }
 
-/* Native scrolling with persistent square EGA tracks, thumbs, and arrow buttons. */
+/* Mechanical rails retain native scrolling and arrow controls. */
 .machine-screen * {
-  scrollbar-color: #aaaaaa #000055;
+  scrollbar-color: var(--terminal-border) var(--terminal-bg);
   scrollbar-width: auto;
 }
 @supports selector(::-webkit-scrollbar) {
@@ -40,26 +60,29 @@
   height: 16px;
 }
 .machine-screen ::-webkit-scrollbar-track {
-  background: repeating-conic-gradient(#aaaaaa 0% 25%, #000080 0% 50%) 0 0 / 4px
-    4px;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--terminal-bg) 0 5px,
+    var(--terminal-panel) 5px 6px
+  );
 }
 .machine-screen ::-webkit-scrollbar-thumb {
   min-width: 20px;
   min-height: 20px;
-  border: 2px outset #eeeeee;
+  border: 3px solid var(--terminal-bg);
   border-radius: 0;
-  background: #aaaaaa;
+  background: var(--terminal-border);
 }
+.machine-screen ::-webkit-scrollbar-thumb:hover,
 .machine-screen ::-webkit-scrollbar-thumb:active {
-  border-style: inset;
-  background: #ffffff;
+  background: var(--terminal-amber);
 }
 .machine-screen ::-webkit-scrollbar-corner,
 .machine-screen ::-webkit-scrollbar-button {
   width: 16px;
   height: 16px;
-  border: 2px outset #eeeeee;
-  background-color: #aaaaaa;
+  border: 1px solid var(--terminal-border);
+  background-color: var(--terminal-panel);
 }
 .machine-screen ::-webkit-scrollbar-button {
   display: block;
@@ -72,14 +95,14 @@
   display: none;
 }
 .machine-screen ::-webkit-scrollbar-button:vertical:decrement {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 6L4 2L8 6Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23f5bd68' d='M0 6L4 2L8 6Z'/%3E%3C/svg%3E");
 }
 .machine-screen ::-webkit-scrollbar-button:vertical:increment {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M0 2L4 6L8 2Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23f5bd68' d='M0 2L4 6L8 2Z'/%3E%3C/svg%3E");
 }
 .machine-screen ::-webkit-scrollbar-button:horizontal:decrement {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M6 0L2 4L6 8Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23f5bd68' d='M6 0L2 4L6 8Z'/%3E%3C/svg%3E");
 }
 .machine-screen ::-webkit-scrollbar-button:horizontal:increment {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000080' d='M2 0L6 4L2 8Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23f5bd68' d='M2 0L6 4L2 8Z'/%3E%3C/svg%3E");
 }

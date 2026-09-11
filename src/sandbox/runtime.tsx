@@ -5,6 +5,20 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { createRuntimeErrorFormatter } from "./errors";
 import type { CompiledSource, GeneratedLocation } from "./source-location";
+import { isScreenFontSize } from "../screen-font";
+window.addEventListener("message", (event) => {
+  if (
+    event.source === parent &&
+    event.data?.channel === "human-settings" &&
+    event.data.token === window.__TOKEN &&
+    isScreenFontSize(event.data.fontSize)
+  ) {
+    document.body.style.setProperty(
+      "--screen-font-size",
+      `${event.data.fontSize}px`,
+    );
+  }
+});
 let failed = false;
 let checking = false;
 const notify = (type: string, detail = "") => {
