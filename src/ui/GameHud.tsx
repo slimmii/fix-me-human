@@ -1,3 +1,5 @@
+import { FullscreenButton } from "./FullscreenButton";
+
 export function GameHud({
   mute,
   onDesk,
@@ -34,6 +36,7 @@ export function GameHud({
         <button onClick={onToggleSound}>
           {mute ? "Sound off" : "Sound on"}
         </button>
+        <FullscreenButton />
       </div>
     </header>
   );

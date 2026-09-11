@@ -1,7 +1,9 @@
 import { ContactShadows } from "@react-three/drei";
+import { useMemo } from "react";
 import { CoffeeMug } from "./CoffeeMug";
 import { Cubicle } from "./Cubicle";
 import { DeskFan } from "./DeskFan";
+import { createFanAirflow } from "./fanAirflow";
 import { Radio } from "./Radio";
 import { Box, Prop, cream, dark } from "./primitives";
 import type { WorldProps } from "./types";
@@ -18,6 +20,7 @@ import { Robot } from "./Robot";
 export function World(props: WorldProps) {
   const { focused, reduced, onComputer, onProp, celebrate } = props;
   const cameraHandlers = useSeatedCamera(props);
+  const fanAirflow = useMemo(createFanAirflow, []);
   return (
     <group {...cameraHandlers}>
       <Cubicle />
@@ -29,8 +32,8 @@ export function World(props: WorldProps) {
         onProp={onProp}
         computer={props.computer}
       />
-      <CoffeeMug reduced={reduced} onProp={onProp} />
-      <DeskFan reduced={reduced} onProp={onProp} />
+      <DeskFan reduced={reduced} onProp={onProp} airflow={fanAirflow} />
+      <CoffeeMug reduced={reduced} onProp={onProp} airflow={fanAirflow} />
       <Radio mute={props.mute} focused={focused} onProp={onProp} />
       <Printer
         completedAssignments={props.completedAssignments}

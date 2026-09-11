@@ -57,7 +57,7 @@ summary:focus-visible {
 }
 .game {
   height: 100dvh;
-  min-height: 650px;
+  width: 100%;
   position: relative;
   overflow: hidden;
 }
@@ -116,6 +116,15 @@ summary:focus-visible {
 .hud-right button {
   background: #e4e9ce9e;
   border-color: #436e5755;
+}
+.fullscreen-error {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f3efcf;
+  font-size: 13px;
 }
 .shift-label {
   font-size: 11px;

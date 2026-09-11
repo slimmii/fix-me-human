@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import * as THREE from "three";
 import { Box, cream, dark } from "./primitives";
 import type { SceneProps as Props } from "./types";
+import type { FanAirflow } from "./fanAirflow";
 
 export function DeskFan({
   reduced,
   onProp,
-}: Pick<Props, "reduced" | "onProp">) {
+  airflow,
+}: Pick<Props, "reduced" | "onProp"> & { airflow: FanAirflow }) {
   const highlight = useHoverHighlight();
   const fan = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
@@ -16,6 +18,11 @@ export function DeskFan({
   useFrame(({ camera }, dt) => {
     // Aim the head's front (+Z) at the viewer after the seated camera updates.
     head.current?.lookAt(camera.position);
+    if (head.current) {
+      head.current.getWorldPosition(airflow.position);
+      head.current.getWorldDirection(airflow.direction);
+    }
+    airflow.strength = fanOn && !reduced ? 1 : 0;
     if (fan.current && !reduced && fanOn) fan.current.rotation.z += dt * 10;
   });
 
