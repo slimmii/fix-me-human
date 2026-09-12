@@ -63,7 +63,8 @@ for (const scenario of [
       .getByRole("button", { name: "Start", exact: true })
       .first()
       .click();
-    await page.getByRole("button", { name: "Run my code" }).click();
+    await page.getByRole("menuitem", { name: "Run", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Start F5" }).click();
     if (scenario.click) {
       await expect(
         page.getByRole("button", { name: "Submit assignment" }),

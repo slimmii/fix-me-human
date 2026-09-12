@@ -57,7 +57,7 @@ export default function App() {
   await page.getByRole("button", { name: "Back to work" }).click();
   await page.locator('[data-surface="crt-glass"]').click();
   await page.screenshot({ path: "test-results/screen-font-large.png" });
-  await page.getByRole("button", { name: "F6=Output", exact: true }).click();
+  await editor.press("F6");
   await expect(output.getByRole("button", { name: "Coffee 1" })).toBeVisible();
   await page.getByRole("button", { name: "← Editor F6" }).click();
   await editor.press("ControlOrMeta+z");

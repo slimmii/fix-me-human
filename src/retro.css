@@ -269,44 +269,6 @@
   color: var(--terminal-amber);
   white-space: nowrap;
 }
-.qbasic-status {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-shrink: 0;
-  height: 46px;
-  padding: 5px 16px;
-  margin-top: 4px;
-  color: var(--terminal-muted);
-}
-.qbasic-status button {
-  padding: 1px 12px;
-  font-size: calc(var(--terminal-font-size) * 15 / 17);
-}
-.qbasic-status button[aria-label="Run my code"] {
-  background: var(--terminal-amber);
-  border-color: #d4a15a;
-  border-bottom-color: #80542b;
-  color: var(--terminal-bg);
-  font-weight: bold;
-}
-.qbasic-status button[aria-label="Run my code"]:hover:not(:disabled) {
-  background: #ffcf85;
-}
-.qbasic-status > span {
-  margin-left: auto;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: calc(var(--terminal-font-size) * 12 / 17);
-}
-.qbasic-status > b {
-  padding-left: 12px;
-  border-left: 1px solid var(--terminal-border);
-  color: var(--terminal-cool);
-  font-size: calc(var(--terminal-font-size) * 11 / 17);
-}
-
 .qbasic-menu button:hover:not(:disabled) u {
   color: inherit;
 }
@@ -332,7 +294,7 @@
 }
 
 /* The browser occupies the full CRT, with only its own navigation visible. */
-.qbasic-work[data-view="browser"] > :is(.qbasic-menu, .qbasic-status),
+.qbasic-work[data-view="browser"] > .qbasic-menu,
 .machine-screen:has(
     .assignment-workspace:not([hidden])
       .qbasic-work[data-view="browser"]:not([hidden])

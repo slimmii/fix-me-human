@@ -103,7 +103,7 @@ test("player-led story prints, remembers delivery and reacts to the whole first 
   await expect(caption).toContainText(first.robot!.retry);
   await expect(caption).toContainText("Sprint board");
   await page.getByRole("button", { name: "← Editor F6" }).click();
-  await page.getByRole("button", { name: "Hint", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Hint", exact: true }).click();
   await expect(caption).toContainText(first.hints[0]);
   await next.click();
   await expect(caption).toContainText("A hint is part of learning");

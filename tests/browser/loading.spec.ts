@@ -23,7 +23,8 @@ test("one readable processing panel covers compilation and checks before reveali
   await page.clock.install();
   await page.clock.pauseAt(new Date(Date.now() + 1000));
   const started = await page.evaluate(() => performance.now());
-  await page.getByRole("button", { name: "Run my code" }).click();
+  await page.getByRole("menuitem", { name: "Run", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Start F5" }).click();
   const progress = page.getByRole("progressbar", {
     name: "Processing your program",
   });
@@ -90,7 +91,7 @@ test("reduced motion keeps the bar still and editing cancels a pending reveal", 
   await page.getByRole("button", { name: "← Editor F6" }).click();
   await editor.fill("export default function App() { return <h1>broken }");
   await page.clock.runFor(2000);
-  await expect(page.locator(".qbasic-status")).toContainText(
+  await expect(page.locator(".qbasic-ruler")).toContainText(
     "Modified — saved locally",
   );
   await expect(

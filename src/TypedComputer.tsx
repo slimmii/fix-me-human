@@ -519,6 +519,9 @@ export default function TypedComputer({
           >
             <u>H</u>elp
           </button>
+          <button role="menuitem" onClick={getHint}>
+            Hint
+          </button>
           <span className="qbasic-program">B.U.G. BASIC / REACT</span>
         </div>
         <div className="editor-panes">
@@ -550,7 +553,9 @@ export default function TypedComputer({
                 </div>
               )}
               <div className="qbasic-ruler">
-                <span>{exercise.title}</span>
+                <span title={`${exercise.title} · ${status}`}>
+                  {exercise.title} · {status}
+                </span>
                 <span>
                   Ln {position.line}, Col {position.column}
                 </span>
@@ -611,30 +616,6 @@ export default function TypedComputer({
               </div>
             </div>
           </div>
-        </div>
-        <div className="qbasic-status">
-          <button onClick={onHelp}>F1=Help</button>
-          <button aria-label="Run my code" disabled={busy} onClick={run}>
-            F5=Run
-          </button>
-          <button
-            onClick={() =>
-              active === "browser"
-                ? backToEditor()
-                : page && setActive("browser")
-            }
-          >
-            F6={active === "browser" ? "Editor" : "Output"}
-          </button>
-          <button onClick={getHint}>Hint</button>
-          <span>
-            {busy
-              ? "Processing..."
-              : active === "editor"
-                ? status
-                : "Program output"}
-          </span>
-          <b>INS</b>
         </div>
       </div>
     </div>
