@@ -5,6 +5,11 @@ import { useGame } from "./game/useGame";
 import { GameHud } from "./ui/GameHud";
 import { RobotDialogue } from "./ui/RobotDialogue";
 import { SettingsDialog } from "./ui/SettingsDialog";
+import { lazy, Suspense } from "react";
+
+const DevelopmentTools = import.meta.env.DEV
+  ? lazy(() => import("./devtools/DevelopmentTools"))
+  : null;
 export default function App() {
   const game = useGame();
   const {
@@ -37,6 +42,11 @@ export default function App() {
         setFocused(false);
       }}
     >
+      {DevelopmentTools && (
+        <Suspense fallback={null}>
+          <DevelopmentTools game={game} />
+        </Suspense>
+      )}
       <Scene
         workstationId={game.workstationId}
         officeClock={game.officeClock}

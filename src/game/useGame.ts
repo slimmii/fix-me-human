@@ -88,6 +88,7 @@ export function useGame() {
   const [settings, setSettings] = useState(false);
   const [saved, setSaved] = useState(true);
   const [showTasks, setShowTasks] = useState(false);
+  const [editorRevision, setEditorRevision] = useState(0);
   const context = contextFor(save);
   const { assignment, chapter } = context;
   const lesson = curriculum.find((item) => item.id === save.lessonId)!;
@@ -304,6 +305,8 @@ export function useGame() {
     officeClock: save.officeClock!,
     workstationId: save.workstationId!,
     setSave,
+    editorRevision,
+    setEditorRevision,
     assignmentOpen,
     setAssignmentOpen,
     assignmentReady,

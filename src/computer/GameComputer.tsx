@@ -27,7 +27,7 @@ export function GameComputer({ game }: { game: GameController }) {
             focused={game.focused && !game.settings && !game.showTasks}
             completed={save.completed}
             onOpenTasks={() => game.setShowTasks(true)}
-            key={assignment.id}
+            key={`${assignment.id}:${game.editorRevision}`}
             project={assignmentProject(save, assignment.id)}
             onChange={(project) => dispatch({ type: "project", project })}
             onPass={() => dispatch({ type: "submit" })}

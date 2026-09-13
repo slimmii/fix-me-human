@@ -51,6 +51,22 @@ The wall clock shows office time in 24-hour format. The safety sign counts full 
 
 The computer uses a spacecraft-inspired terminal with amber phosphor accents, instrument panels, and mechanical keys. The editor, Help, dialogs, and program output share the same palette. BUGSCAPE fills the computer screen while running a program; F6 returns to the editor. Settings include mute, reduced motion, optional scanlines, graphics quality, and screen font size (10–20px, default 14px). Font changes apply to the editor, Help, and program output and save automatically. B.U.G.'s dialogue is always captioned. There are no deadlines or lost course progress after errors. The clock still updates with reduced motion enabled. WebGL is required for the office; a fallback keeps the learning, coding interface, and clock readout available without it.
 
+## Chrome DevTools testing helpers
+
+While running `npm run dev`, open Chrome DevTools → Console in the main page context. Type `humanDev.help()` to see the available commands:
+
+```js
+humanDev.list(); // Assignment numbers (1–12), IDs, titles and completion
+humanDev.goto("board-columns"); // Jump directly into its editor
+humanDev.goto(11, { solution: true }); // Jump with all reference solution files
+humanDev.solve(); // Fill all solution files for the current assignment
+humanDev.starter(); // Replace current files with the reference starter
+humanDev.state(); // Inspect a detached copy of the saved game
+humanDev.undo(); // Restore the save before the last helper change
+```
+
+Jumps mark preceding assignments complete, generate missing prerequisite solutions, collect the target paper and preserve existing saved projects. `solve()` and `starter()` replace the target project's entire file set; both also accept an assignment number or ID. Solutions still need F5 and normal submission to complete the target. Changes autosave to this browser's game save. Undo restores the previous save, including progress and projects, and can be repeated until the page reloads. These helpers are excluded from production builds.
+
 ## Author content
 
 See [the authoring guide](docs/authoring.md) for Markdown screens, lesson manifests, multiple assignments, starter skeletons, and validation rules.
