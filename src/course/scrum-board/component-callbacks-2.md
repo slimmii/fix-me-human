@@ -38,3 +38,5 @@ In a child receiving `lamp` and `onSwitch`, this JSX excerpt shows an action onl
 `condition && JSX` displays the JSX when the condition is true. A second condition can display a different action for a different value. Wrap callback calls with arguments in an arrow function so they run on the click.
 
 The parent passes `onSwitch={switchLamp}`. After the update, any lists filtered from the shared data recalculate automatically; there is no need to keep separate copies in sync.
+
+Keep any search query unchanged when a callback updates an item. Apply the update to the full saved collection by ID, then calculate the groups, totals and search results from that collection again. Filtering a view must not prevent an action from updating the saved item or remove its hidden neighbors.

@@ -529,13 +529,119 @@
 .editor-help {
   background: var(--terminal-bg);
 }
-.editor-help header {
-  padding: 4px 28px;
+.machine-screen:has(.editor-help) > .machine-status {
+  display: none;
+}
+.editor-help > header {
+  padding: 0.25em 1em;
+  gap: 0.5em;
+  font-size: var(--terminal-font-size);
+}
+.editor-help > header button {
+  padding: 0.1em 0.5em;
+  font-size: 0.85em;
+  line-height: 1.2;
+}
+.editor-help .lesson-content {
+  padding: 0.6em 1em 0.8em;
+}
+.editor-help .lesson-content > small {
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+}
+.editor-help .lesson-content > h1 {
+  font-size: 1.35em;
+  margin: 0.25em 0 0.5em;
+}
+.editor-help .lesson-markdown {
+  max-width: none;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.editor-help .lesson-markdown :is(p, pre, ul, ol, blockquote) {
+  margin-block: 0.65em;
+}
+.editor-help .lesson-markdown pre {
+  padding: 0.6em 0.8em;
+  overflow-wrap: normal;
+}
+.editor-help .lesson-markdown pre code {
+  font-size: inherit;
+}
+.editor-help .lesson-scrollbar {
+  width: max(20px, 1.5em);
+  margin: 0.6em 0.6em 0.6em 0;
+}
+.machine-screen .editor-help .lesson-scrollbar button {
+  width: 100%;
+  height: max(20px, 1.5em);
+  font-size: 0.85em;
+  line-height: 1;
+}
+.editor-help .lesson-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3em 1em;
+  padding: 0.35em 1em;
+  border-top: 1px solid var(--terminal-border);
+  background: var(--terminal-panel);
+}
+.editor-help .lesson-navigation {
+  order: -1;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 0.4em 0.75em;
+  padding: 0;
+  border: 0;
+}
+.editor-help .lesson-navigation:empty {
+  display: none;
+}
+.editor-help .lesson-navigation :is(button, span) {
+  font-size: 0.85em;
+  line-height: 1.3;
+}
+.editor-help .lesson-navigation button {
+  padding: 0.25em 0.65em;
+}
+.editor-help .lesson-navigation > span {
+  margin-right: 0;
+  white-space: nowrap;
+}
+.editor-help .lesson-reading-status {
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 0.3em 1em;
+  padding: 0;
+  font-size: 0.75em;
+}
+.editor-help
+  .lesson-footer:has(.lesson-navigation:not(:empty))
+  .lesson-reading-status {
+  flex: 0 1 auto;
+  margin-left: auto;
+}
+.editor-help
+  .lesson-footer:has(.lesson-navigation:not(:empty))
+  .lesson-reading-status
+  > span:first-child {
+  display: none;
+}
+.editor-help .terminal-list {
+  margin-block: 0.75em;
+}
+.machine-screen .editor-help .terminal-list button {
+  padding: 0.6em 0.8em;
+  gap: 1em;
 }
 .lesson-reading-area {
   display: flex;
   flex: 1;
   min-height: 0;
+}
+.lesson-footer {
+  flex-shrink: 0;
 }
 .lesson-scroll {
   flex: 1;
@@ -592,6 +698,26 @@
   overflow-x: auto;
   font-size: var(--terminal-font-size);
   line-height: 1.5;
+}
+.lesson-markdown
+  pre
+  code:is(.language-ts, .language-tsx, .language-typescript) {
+  color: var(--terminal-text);
+}
+.lesson-markdown pre .lesson-token-keyword {
+  font-weight: bold;
+}
+.lesson-markdown pre .lesson-token-string {
+  color: var(--terminal-amber);
+}
+.lesson-markdown pre .lesson-token-type {
+  color: var(--terminal-cool);
+}
+.lesson-markdown pre .lesson-token-number {
+  color: var(--terminal-red);
+}
+.lesson-markdown pre .lesson-token-comment {
+  color: var(--terminal-muted);
 }
 .lesson-markdown blockquote {
   border-left: 2px solid var(--terminal-cool);

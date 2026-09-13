@@ -1,4 +1,4 @@
-Context lets a component read a value supplied by an ancestor without passing it through every component in between. The value can be text, settings, or an object containing data and functions. A custom hook is not required.
+Context lets a component read a value supplied by an ancestor without passing it through every component in between. The value can be text, settings, or an object containing data and functions.
 
 This complete example shares a greeting. Keep these definitions together in App.tsx:
 

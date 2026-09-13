@@ -10,7 +10,7 @@ import { compileCode } from "../src/typed-engine";
 import { decodeProject, singleFileProject } from "../src/project";
 
 const assignments = curriculum.flatMap((lesson) => lesson.assignments);
-const columns = assignments[2];
+const columns = assignments[3];
 describe("project persistence", () => {
   it("migrates Office.tsx projects and their local imports without overwriting App.tsx", () => {
     const legacy = {
@@ -67,6 +67,7 @@ describe("project persistence", () => {
   it("carries every file forward, isolates revisits, restores selection and resets all files on replay", () => {
     let save = transition(fresh(), { type: "enter" });
     save = transition(transition(save, { type: "submit" }), { type: "submit" });
+    save = transition(save, { type: "submit" });
     const project = {
       files: { ...columns.solutionFiles!, "Empty.tsx": "" },
       activeFile: "TaskCard.tsx",
@@ -74,7 +75,7 @@ describe("project persistence", () => {
     save = transition(save, { type: "project", project });
     save = transition(save, { type: "submit" });
     expect(assignmentProject(save, "task-state")).toEqual(project);
-    save = transition(save, { type: "open-assignment", id: "board-columns" });
+    save = transition(save, { type: "open-assignment", id: "board-modules" });
     save = transition(save, {
       type: "project",
       project: {
@@ -83,12 +84,12 @@ describe("project persistence", () => {
       },
     });
     save = decode(JSON.stringify(save));
-    expect(assignmentProject(save, "board-columns").activeFile).toBe(
+    expect(assignmentProject(save, "board-modules").activeFile).toBe(
       "TaskCard.tsx",
     );
     expect(assignmentProject(save, "task-state")).toEqual(project);
-    save = transition(save, { type: "replay", id: "board-columns" });
-    expect(assignmentProject(save, "board-columns").files).toEqual(
+    save = transition(save, { type: "replay", id: "board-modules" });
+    expect(assignmentProject(save, "board-modules").files).toEqual(
       columns.starterFiles,
     );
   });

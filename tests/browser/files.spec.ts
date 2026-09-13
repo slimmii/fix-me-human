@@ -2,10 +2,10 @@ import { test, expect } from "@playwright/test";
 import { curriculum } from "../../src/curriculum";
 import { fresh, KEY, transition } from "../../src/progression";
 
-function setup(columns: boolean) {
+function setup(modules: boolean) {
   let save = transition(fresh(), { type: "enter" });
-  if (columns)
-    save = transition(transition(save, { type: "submit" }), { type: "submit" });
+  for (let index = 0; index < (modules ? 3 : 2); index++)
+    save = transition(save, { type: "submit" });
   save.settings = {
     ...save.settings,
     reducedMotion: true,
@@ -105,7 +105,7 @@ test("delete confirms in the DOS dialog, preserves cancellations, and forgets de
   page,
 }) => {
   const save = setup(true);
-  const assignment = curriculum[2].assignments[0];
+  const assignment = curriculum[3].assignments[0];
   save.projects[assignment.id] = {
     files: {
       "App.tsx": "// entry file",
@@ -195,7 +195,7 @@ test("run from a supporting file validates the whole project and carries it into
   page,
 }) => {
   const save = setup(true);
-  const columns = curriculum[2].assignments[0];
+  const columns = curriculum[3].assignments[0];
   save.projects[columns.id] = {
     files: columns.solutionFiles!,
     activeFile: "TaskCard.tsx",
@@ -222,5 +222,5 @@ test("run from a supporting file validates the whole project and carries it into
   );
   expect(saved.assignmentId).toBe("task-state");
   expect(saved.projects["task-state"]).toEqual(save.projects[columns.id]);
-  expect(saved.completed).toContain("board-columns");
+  expect(saved.completed).toContain("board-modules");
 });

@@ -6,6 +6,7 @@ import { CRT, MONITOR } from "../monitor";
 import { MonitorDisplay } from "./MonitorDisplay";
 import { MonitorSurround } from "./MonitorSurround";
 import { TissueBox } from "./TissueBox";
+import { Modem } from "./Modem";
 export function Workstation({
   focused,
   onComputer,
@@ -87,6 +88,7 @@ export function Workstation({
         )}
       </group>
       <TissueBox reduced={reduced} focused={focused} onProp={onProp} />
+      <Modem focused={focused} onProp={onProp} />
     </>
   );
 }

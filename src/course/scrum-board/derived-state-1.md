@@ -16,4 +16,8 @@ Connect a controlled search input using `value={query}` and an `onChange` handle
 
 For a grouped view, first filter the collection to the current group, then search within that group. Work from the saved collection each render. Searching should never delete items from it.
 
-When the collection changes through an edit, addition or deletion, the next render recalculates the matches. Storing the result in another state variable would create a second value to keep synchronized. A simple filter needs neither an effect nor a memoization hook to work correctly.
+Keep the query in the component that renders the search input and the grouped lists. Pass it to each list as a prop, just as you pass the collection and group name. Add `query: string` to the child's props interface and destructure it in the child. The child can then derive its matches from the current props; it does not need its own query state.
+
+Adding a book updates the saved collection, so the next render recalculates the matches. A matching book appears immediately; a nonmatching book stays hidden until the search changes. Keep the query unchanged when adding an item. Search is a view of the saved data, not a replacement for it.
+
+Storing the filtered result in another state variable would create a second value to keep synchronized. Calculate it directly during render. The same approach will keep search accurate when you later add ways to edit, move or delete items.

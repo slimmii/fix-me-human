@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
   await useSimpleComputer(page);
 });
 
-test("B.U.G. identifies the task 10 punctuation mismatch and clears it after a fix", async ({
+test("B.U.G. identifies the task 7 punctuation mismatch and clears it after a fix", async ({
   page,
 }) => {
   const assignments = curriculum.flatMap((lesson) => lesson.assignments);

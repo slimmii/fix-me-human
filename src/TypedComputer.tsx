@@ -281,7 +281,7 @@ export default function TypedComputer({
       backToEditor();
       onActivity(
         "aside",
-        "You're not ready for this feature yet, human. Humans like simplicity. Files are complex. Complete Reusable task cards first; I will unlock New and Open for Three columns, one board.",
+        "You're not ready for this feature yet, human. Humans like simplicity. Files are complex. Complete Three columns, one board first; I will unlock New and Open for assignment 4, Split the board into files.",
       );
       return;
     }

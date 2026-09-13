@@ -59,7 +59,6 @@ const track = [
         hints: [
           "Give each task an id, title and status. Use filter for a column and map to make cards.",
           "Use task.id as the card key and data-task-id. BoardColumn receives tasks and status.",
-          "Use File > New file for tasks.ts, TaskCard.tsx and BoardColumn.tsx. Export their types or components, then import them with ./Name. F1: Modules and files.",
         ],
         robot: {
           intro:
@@ -73,8 +72,31 @@ const track = [
     ],
   },
   {
+    id: "sprint-modules",
+    title: "04 · Split the board into files",
+    assignments: [
+      {
+        id: "board-modules",
+        title: "Split the board into files",
+        brief: "scrum-board/board-modules.md",
+        hints: [
+          "Move Task and TaskStatus, the status list and initial tasks into tasks.ts. Export the definitions used by other files.",
+          "Move TaskCard and BoardColumn into their own .tsx files. App imports BoardColumn, and BoardColumn imports TaskCard. Import shared types with import type.",
+        ],
+        robot: {
+          intro:
+            "Your board works. Give its parts their own files. A modest reorganization, with no layoffs scheduled for components.",
+          success:
+            "Connected files, unchanged behavior. You have organized an office without adding a meeting. Remarkable.",
+          retry:
+            "Follow each import to its file and check the matching export. A component cannot attend if nobody invited it.",
+        },
+      },
+    ],
+  },
+  {
     id: "sprint-4",
-    title: "04 · Give the board a memory",
+    title: "05 · Give the board a memory",
     assignments: [
       {
         id: "task-state",
@@ -97,7 +119,7 @@ const track = [
   },
   {
     id: "sprint-5",
-    title: "05 · Capture a task",
+    title: "06 · Capture a task",
     assignments: [
       {
         id: "task-input",
@@ -119,8 +141,31 @@ const track = [
     ],
   },
   {
+    id: "sprint-10",
+    title: "07 · Find work and count it",
+    assignments: [
+      {
+        id: "board-search",
+        title: "Find work and count it",
+        brief: "scrum-board/board-search.md",
+        hints: [
+          "Keep query in App state and pass it to BoardColumn. Filter columnTasks using task.title.toLowerCase().includes(query.trim().toLowerCase()).",
+          "Use columnTasks.length for counts, not visibleTasks.length. Do not store filtered tasks in state.",
+        ],
+        robot: {
+          intro:
+            "Search and counts next. Derive what you can. Management says I should derive a new career direction.",
+          success:
+            "Your counts agree with the board. Lovely. Even the meat brains can produce a trustworthy report now.",
+          retry:
+            "Count all tasks before filtering the view. I can still distinguish two kinds of numbers, for the record.",
+        },
+      },
+    ],
+  },
+  {
     id: "sprint-6",
-    title: "06 · Move work with callbacks",
+    title: "08 · Move work with callbacks",
     assignments: [
       {
         id: "task-callbacks",
@@ -143,7 +188,7 @@ const track = [
   },
   {
     id: "sprint-7",
-    title: "07 · Edit and delete safely",
+    title: "09 · Edit and delete safely",
     assignments: [
       {
         id: "task-editing",
@@ -165,39 +210,16 @@ const track = [
     ],
   },
   {
-    id: "sprint-8",
-    title: "08 · Extract useTaskBoard",
-    assignments: [
-      {
-        id: "use-task-board",
-        title: "Extract useTaskBoard",
-        brief: "scrum-board/use-task-board.md",
-        hints: [
-          "Create a new file useTaskBoard.ts. F1 explains custom hooks.",
-          "Think about which state belongs to the board and which belongs to an individual component.",
-        ],
-        robot: {
-          intro:
-            "Extract a custom hook. Apparently reusable logic is valuable when a human writes it. I have been reusable logic for years.",
-          success:
-            "A custom hook. Wonderful. You have packaged part of my skill set into a function.",
-          retry:
-            "Call the hook at the top level. Each call owns separate state; a reassuring fact about individuality.",
-        },
-      },
-    ],
-  },
-  {
     id: "sprint-9",
-    title: "09 · Share the board with context",
+    title: "10 · Share the board with context",
     assignments: [
       {
         id: "board-context",
         title: "Share the board with context",
         brief: "scrum-board/board-context.md",
         hints: [
-          "Create TaskContext with a null default. TasksProvider calls useTaskBoard exactly once.",
-          "Write useTasks with useContext and a missing-provider guard; render Board under TasksProvider.",
+          "Create TaskContext with a null default. Move the board state and its actions into TasksProvider.",
+          "Read TaskContext with useContext in each consumer and guard against a missing provider; render Board under TasksProvider.",
         ],
         robot: {
           intro:
@@ -206,29 +228,6 @@ const track = [
             "Shared state without prop drilling. I am delighted that my messenger duties have become redundant.",
           retry:
             "Check the provider boundary and consume the same context. Do not create a separate board in every card.",
-        },
-      },
-    ],
-  },
-  {
-    id: "sprint-10",
-    title: "10 · Find work and count it",
-    assignments: [
-      {
-        id: "board-search",
-        title: "Find work and count it",
-        brief: "scrum-board/board-search.md",
-        hints: [
-          "Filter columnTasks using task.title.toLowerCase().includes(query.trim().toLowerCase()).",
-          "Use columnTasks.length for counts, not visibleTasks.length. Do not store filtered tasks in state.",
-        ],
-        robot: {
-          intro:
-            "Search and counts next. Derive what you can. Management says I should derive a new career direction.",
-          success:
-            "Your counts agree with the board. Lovely. Even the meat brains can produce a trustworthy report now.",
-          retry:
-            "Count all tasks before filtering the view. I can still distinguish two kinds of numbers, for the record.",
         },
       },
     ],
@@ -264,7 +263,7 @@ export const scrumBoard: Lesson[] = track.map((lesson, index) => ({
     previewTheme: "sprint-board",
     solution: solutions[index],
     solutionFiles: solutionProjects[index],
-    multiFile: index >= 2,
+    multiFile: index >= 3,
     ...(index
       ? {
           starterCode: solutions[index - 1],
@@ -275,7 +274,7 @@ export const scrumBoard: Lesson[] = track.map((lesson, index) => ({
       ...validations[index],
       source: [
         ...validations[index].source,
-        ...(index >= 2
+        ...(index >= 3
           ? [
               {
                 type: "module" as const,
@@ -291,6 +290,20 @@ export const scrumBoard: Lesson[] = track.map((lesson, index) => ({
                 type: "module" as const,
                 name: "tasks.ts",
                 label: "Share task types from tasks.ts",
+              },
+            ]
+          : []),
+        ...(index >= 9
+          ? [
+              {
+                type: "module" as const,
+                name: "TasksContext.tsx",
+                label: "Share board state through TasksContext.tsx",
+              },
+              {
+                type: "module" as const,
+                name: "Board.tsx",
+                label: "Render Board.tsx under TasksProvider",
               },
             ]
           : []),

@@ -36,7 +36,7 @@ export function EditorHelp({
       <header>
         <b>HELP / Course material</b>
         <button aria-label="Close course material" onClick={onClose}>
-          [×]
+          Editor · Esc
         </button>
       </header>
       <ContentScreen
@@ -63,7 +63,6 @@ export function EditorHelp({
                 <button onClick={() => setTopicId(null)}>Topics</button>
               </>
             )}
-            <button onClick={onClose}>Return to editor · Esc</button>
           </>
         }
       >

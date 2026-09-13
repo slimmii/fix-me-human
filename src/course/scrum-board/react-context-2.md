@@ -1,9 +1,9 @@
-Once context is working, custom hooks can help organize the code. A stateful hook can produce the value a provider shares, and a consumer hook can reuse the context read and its guard. These are optional ways to combine the concepts.
+Put shared state in a provider component when several descendants need to read or change it. The context carries the current value and the actions; `useState` inside the provider owns the data.
 
-This counter example uses `useCounter` from the Custom hooks topic. Copy that topic's first code block, including its `useState` import, then add the following definitions in the same file. The hook returns a count and two actions, which we describe with an ordinary interface:
+This complete example shares a visitor count between two displays. Keep these definitions together in App.tsx:
 
 ```tsx
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 interface CounterContextProps {
@@ -19,31 +19,29 @@ interface CounterProviderProps {
 }
 
 function CounterProvider({ children }: CounterProviderProps) {
-  const counter = useCounter();
+  const [count, setCount] = useState(0);
+
+  function increment() {
+    setCount((current) => current + 1);
+  }
+
+  function reset() {
+    setCount(0);
+  }
 
   return (
-    <CounterContext.Provider value={counter}>
+    <CounterContext.Provider value={{ count, increment, reset }}>
       {children}
     </CounterContext.Provider>
   );
 }
 
-function useCounterValue() {
+function VisitorButton() {
   const counter = useContext(CounterContext);
   if (counter === null) {
-    throw Error("useCounterValue needs a CounterProvider");
+    throw Error("VisitorButton needs a CounterProvider");
   }
-  return counter;
-}
-```
-
-`CounterContextProps` describes the shared value; `CounterProviderProps` describes the wrapper component's props. `children` is the JSX nested inside that wrapper, and `ReactNode` is React's type for renderable content. The context accepts an object matching its interface, regardless of whether a custom hook produced it.
-
-Add these components below those definitions:
-
-```tsx
-function VisitorButton() {
-  const { count, increment, reset } = useCounterValue();
+  const { count, increment, reset } = counter;
 
   return (
     <section>
@@ -64,8 +62,14 @@ export default function App() {
 }
 ```
 
-Both displays show the same count: clicking either Count a visitor button updates the value they share. The provider calls `useCounter` once to own that state. Each `useCounterValue` call only reads it. Calling `useCounter` in each visitor component, or wrapping each one in a separate CounterProvider, would create independent counters.
+`CounterContextProps` describes the shared data and action signatures. `CounterProviderProps` describes the wrapper's props: `children` is the JSX nested inside it, and `ReactNode` is React's type for renderable content. The object passed to `value` supplies the current count and functions to descendants.
 
-The consumer hook follows the same top-level calling rule as `useContext`. Components could also call `useContext` and check for null directly, as on the previous page; the wrapper simply avoids repeating that code.
+Both displays show the same count. Clicking either button calls an action owned by the same provider, updates its state and rerenders both consumers. Each `useContext` call reads that shared value. Putting a separate CounterProvider around each display would give them independent counters.
 
-Use the provided actions to change state rather than modifying the context object. A consumer can still pass an action to a child as a callback prop. Keep temporary input drafts local to the components that edit them.
+Call `useContext` at the top level and check for null before using its result. Use the provided actions to change state rather than mutating the context object. When an action depends on the previous value, use a functional setter such as `setCount((current) => current + 1)`.
+
+For a larger project, move the context, its value interface and the provider into a module such as CounterContext.tsx. Export the context and provider, then import the context in each consumer and the provider where you wrap them. Remove the old state from the component that previously owned it; keeping both copies would create two sources of truth.
+
+A consumer can still pass an action to a child as a callback prop. Keep temporary input drafts local to the components that edit them. Context is useful for shared data, not a reason to move every piece of state into the provider.
+
+When refactoring a searchable collection, its query can stay in the component that renders the search input and grouped lists. Pass that query to the lists through props while each list reads the saved collection from context. Derive matches and totals during render as before. Changing where the collection lives should preserve search behavior, including an active query during additions, moves, edits and deletions.

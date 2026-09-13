@@ -22,3 +22,5 @@ Using `books` and `matches` from the previous page, this excerpt belongs inside 
 For a message without an alternative, use `matches.length === 0 && <p>No books found.</p>`. Avoid using a number directly as the left side of `&&`: `matches.length && ...` can display a stray 0.
 
 Calculate counts from the saved data on each render. Separate counters can drift out of sync when one handler forgets to update them. Clearing search should reveal the same saved items, including any changes made while searching. Use the exact count format and empty message requested by the brief.
+
+Try adding books while a search is active. Both matching and nonmatching additions increase the inventory total, but only matching additions increase the visible list. An empty result means the query found nothing in that group; it does not necessarily mean the group contains no saved items.

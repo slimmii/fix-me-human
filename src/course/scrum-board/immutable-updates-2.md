@@ -32,3 +32,5 @@ function removePlant(id: number) {
 The two plants have the same name but different IDs. Removing ID 7 leaves ID 12 intact. Matching by display text could change or remove both accidentally.
 
 Copying the array alone is insufficient if you then change an existing object inside it. Avoid assignments to an item's fields, `push`, and `splice` on state. Keep additions and other callbacks using the same shared state owner. An empty array is a normal result of removing the last item and must still allow future additions.
+
+Search results must follow saved changes. If you rename a matching item so it no longer matches the query, it disappears from the visible list after Save, but still contributes to its group's total. Cancel leaves the saved title and matches unchanged. Deletion removes the item from the saved collection and reduces the total. Apply both updates to the full collection by ID and leave the query alone so hidden items remain intact.

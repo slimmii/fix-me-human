@@ -23,12 +23,8 @@ export default function App() {
 }
 ```
 
-`GreetingProps` describes the component's expected input. `{ name }` in the parameter reads the `name` property from the props object. `{name}` in the paragraph inserts its value into the output. Changing the paragraph in `Greeting` changes both greetings.
+`GreetingProps` describes the component's expected input. `{ name }` in the parameter reads the `name` property from the props object. 
 
 A quoted prop supplies text. Braces supply a JavaScript value: `name={visitorName}` reads a variable, while `name="visitorName"` supplies that literal word. Numbers, objects, arrays and functions also use braces.
 
-Props are read-only. A child displays the data it receives; it does not change a parent's object. Later, function props let a child request a change.
-
-For a collection, use a `ul` containing `li` items. A reusable item component can return the `li`, with a `p` inside for its text; the parent then places instances of that component inside the `ul`.
-
-Define components outside other components and render them with JSX, such as `<Greeting name="Mina" />`. Nesting their definitions can reset local state when the parent renders again.
+Props are read-only. A child displays the data it receives; it does not change a parent's object. 

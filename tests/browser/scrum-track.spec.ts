@@ -85,11 +85,20 @@ test("Sprintboard styling is automatic, isolated and optional for other exercise
   await preview(page, assignment, source);
   const browser = page.frameLocator("iframe");
   await expect(browser.locator("h1")).toHaveCSS("color", "rgb(245, 189, 104)");
+  const subtitle = browser.locator("h1 + p");
+  await expect(subtitle).toHaveText("A home for our team's tasks.");
+  await expect(browser.locator("h1")).toHaveCSS("border-bottom-width", "0px");
+  await expect(subtitle).toHaveCSS("border-bottom-width", "2px");
+  await expect(subtitle).toHaveCSS("margin-top", "0px");
+  const header = await browser.locator("h1").boundingBox();
+  const description = await subtitle.boundingBox();
+  expect(description!.y).toBe(header!.y + header!.height);
   await expect(browser.locator("li").first()).toHaveCSS(
     "border-left-width",
     "3px",
   );
   await expect(browser.locator("#app [class]")).toHaveCount(0);
+  await page.screenshot({ path: "test-results/sprint-board-subtitle.png" });
   // The first column exercise is responsive without any learner styling.
   for (const width of [1100, 640, 320]) {
     await page.locator("iframe").evaluate((frame, width) => {
@@ -128,6 +137,7 @@ test("Sprintboard styling is automatic, isolated and optional for other exercise
     "border-left-width",
     "0px",
   );
+  await expect(subtitle).toHaveCSS("border-bottom-width", "0px");
   await expect(browser.locator("h1")).not.toHaveCSS(
     "color",
     "rgb(245, 189, 104)",
@@ -202,6 +212,9 @@ test("all 11 reference solutions pass their actual sandbox interaction scenarios
       checks.runtime.filter((check) => !check.pass),
       assignment.id,
     ).toEqual([]);
+    await expect(page.frameLocator("iframe").locator("h1 + p")).toHaveText(
+      "A home for our team's tasks.",
+    );
     if (assignments.indexOf(assignment) >= 2) {
       // Automated operations leave the learner a fresh board to try.
       await expect(page.frameLocator("iframe").locator("li")).toHaveCount(3);
@@ -235,16 +248,36 @@ test("behavior checks reject broken updates, split context and stale effects", a
 }) => {
   const broken = [
     {
-      index: 5,
+      index: 6,
+      before: "{columnTasks.length} tasks",
+      after: "{visibleTasks.length} tasks",
+      label: "Search ignores case",
+    },
+    {
+      index: 7,
+      before: "function moveTask(id: number, status: TaskStatus) {",
+      after:
+        'function moveTask(id: number, status: TaskStatus) { setQuery("");',
+      label: "Search stays active while a matching task moves",
+    },
+    {
+      index: 8,
+      before: "function updateTask(id: number, title: string) {",
+      after: 'function updateTask(id: number, title: string) { setQuery("");',
+      label: "Search recalculates after edits",
+    },
+    {
+      index: 7,
       before: "{ ...task, status }",
       after: "{ ...task }",
       label: "Start, finish",
     },
-    { index: 6, before: "task.id !== id", after: "true", label: "Delete only" },
+    { index: 8, before: "task.id !== id", after: "true", label: "Delete only" },
     {
-      index: 8,
-      before: "const board = useContext(TaskContext);",
-      after: "const board = useTaskBoard();",
+      index: 9,
+      before: "<AddTask />",
+      after: "<TasksProvider><AddTask /></TasksProvider>",
+      importProvider: true,
       label: "Add trimmed",
     },
     {
@@ -265,7 +298,15 @@ test("behavior checks reject broken updates, split context and stale effects", a
       Object.fromEntries(
         Object.entries(assignment.solutionFiles!).map(([name, code]) => [
           name,
-          code.replace(item.before, item.after),
+          code
+            .replace(item.before, item.after)
+            .replace(
+              'import { AddTask } from "./AddTask";',
+              'import { AddTask } from "./AddTask";' +
+                (item.importProvider
+                  ? '\nimport { TasksProvider } from "./TasksContext";'
+                  : ""),
+            ),
         ]),
       ),
     );

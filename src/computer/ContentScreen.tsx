@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
+import { LessonCode } from "./LessonCode";
 import { curriculum } from "../curriculum";
 import { courseTopics } from "../course";
 const pages = import.meta.glob<string>(
@@ -25,7 +26,9 @@ for (const path of [
 export function LessonMarkdown({ path }: { path: string }) {
   return (
     <div className="lesson-markdown">
-      <Markdown skipHtml>{lessonText(path)}</Markdown>
+      <Markdown skipHtml components={{ code: LessonCode }}>
+        {lessonText(path)}
+      </Markdown>
     </div>
   );
 }
@@ -236,21 +239,23 @@ export function ContentScreen({
           </button>
         </div>
       </div>
-      <div className="lesson-reading-status">
-        <span>
-          ↑↓ Scroll{courseNavigation ? " · ←→ Pages" : ""} · PgUp/PgDn
-        </span>
-        <span>
-          {maximum <= 1
-            ? "All text visible"
-            : position.top < maximum - 1
-              ? "▼ More to read"
-              : "■ End of page"}
-        </span>
+      <div className="lesson-footer">
+        <div className="lesson-reading-status">
+          <span>
+            ↑↓ Scroll{courseNavigation ? " · ←→ Pages" : ""} · PgUp/PgDn
+          </span>
+          <span>
+            {maximum <= 1
+              ? "All text visible"
+              : position.top < maximum - 1
+                ? "▼ More to read"
+                : "■ End of page"}
+          </span>
+        </div>
+        <nav className="lesson-navigation" aria-label="Lesson navigation">
+          {actions}
+        </nav>
       </div>
-      <nav className="lesson-navigation" aria-label="Lesson navigation">
-        {actions}
-      </nav>
     </section>
   );
 }

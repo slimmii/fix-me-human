@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 07/11**
+**FROM:** B.U.G. · **TASK 09/11**
 
 Tasks need corrections and removal. Practice on the cards, please. My position in the org chart is not a typo.
 
@@ -8,10 +8,12 @@ Tasks need corrections and removal. Practice on the cards, please. My position i
 2. Edit opens a controlled input labeled `aria-label="Edit task title"`, starting with the saved title.
 3. Add **Save task** and **Cancel edit** buttons with matching `aria-label`s. Keep the edit draft local to TaskCard.
 4. Save trims and updates only that ID through a parent callback. Blank saves keep editing open; Cancel preserves the saved title.
-5. Delete removes only that ID with `filter`. Preserve adding and moving.
+5. Delete removes only that ID with `filter`. Preserve adding, moving, search, counts and empty messages.
 
 Edit TaskCard.tsx for the local draft and controls, BoardColumn.tsx for forwarding callbacks, and App.tsx for updates to the shared tasks. Each file imports the hooks and types it uses.
 
-**Try it:** Edit, cancel, save, then delete one of two identically named tasks. Its twin must survive.
+Update the full saved task array, including tasks hidden by search. Keep the query unchanged. A saved title that no longer matches should disappear from the filtered view, while its column's total stays the same. Deletion reduces that total.
+
+**Try it:** Edit, cancel, save, then delete one of two identically named tasks. Its twin must survive. Search for “plan” and rename Plan sprint to “Write agenda”; it should disappear until you clear or change search. Find it again and delete it, checking the column count.
 
 **F1:** Immutable editing and deletion.

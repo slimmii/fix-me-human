@@ -20,23 +20,23 @@ The course assumes basic JavaScript and HTML and builds one Scrum-style task boa
 1. Sprint board — components, JSX and expressions.
 2. Reusable task cards — typed props.
 3. Three columns, one board — arrays, filtering, mapping and stable keys.
-4. Give the board a memory — useState and event handlers.
-5. Capture a task — controlled inputs, validation and an add callback.
-6. Move work with callbacks — shared state and child-to-parent communication.
-7. Edit and delete safely — local drafts and immutable updates by ID.
-8. Extract useTaskBoard — a custom hook with a focused action API.
-9. Share the board with context — one provider and a guarded consumer hook.
-10. Find work and count it — search, derived counts and empty states.
+4. Split the board into files — local modules, exports, imports and shared types.
+5. Give the board a memory — useState and event handlers.
+6. Capture a task — controlled inputs, validation and an add callback.
+7. Find work and count it — search, derived counts and empty states.
+8. Move work with callbacks — shared state and child-to-parent communication.
+9. Edit and delete safely — local drafts and immutable updates by ID.
+10. Share the board with context — one provider and direct useContext reads.
 11. Synchronize with an effect — useEffect and the preview document title.
 
-Each exercise has a paper brief, hints, a tested solution, concept-focused Help material and a scripted B.U.G. chapter. His awkward encouragement gradually becomes passive-aggressive anxiety about being replaced by a human. He reacts to collecting and reading paper, entering the editor, opening Help, first typing, running code, hints, mistakes, success, revisiting work and the campaign finale. Tips play once per assignment; dialogue position and printer delivery survive reloads. The 24 Help pages use small examples from other subjects to teach the concepts without reproducing the board solution. Exact names, labels and requirements stay in the printed briefs. Each topic unlocks before its exercise, after the previous task is completed; previously unlocked topics remain available.
+Each exercise has a paper brief, hints, a tested solution, concept-focused Help material and a scripted B.U.G. chapter. His awkward encouragement gradually becomes passive-aggressive anxiety about being replaced by a human. He reacts to collecting and reading paper, entering the editor, opening Help, first typing, running code, hints, mistakes, success, revisiting work and the campaign finale. Tips play once per assignment; dialogue position and printer delivery survive reloads. The 22 Help pages use small examples from other subjects to teach the concepts without reproducing the board solution. Exact names, labels and requirements stay in the printed briefs. Each topic unlocks before its exercise, after the previous task is completed; previously unlocked topics remain available.
 
-Click the computer to open App.tsx. The first exercise starts empty; later exercises start from your own code from the preceding completed task. A reference starter is used when no earlier draft is available. Your earlier projects remain available through File → Tasks. At board-columns, New and Open unlock so you can split components and types into modules. Collect a new assignment from the printer, then click the physical sheet beside the monitor to read it. Unread sheets glow yellow, and collected/read paper survives reloads. Submitting pins the completed sheet on the right wall. Continue B.U.G.’s handoff and next briefing to start the following print; submitting alone never starts the printer.
+Click the computer to open App.tsx. The first exercise starts empty; later exercises start from your own code from the preceding completed task. A reference starter is used when no earlier draft is available. Your earlier projects remain available through File → Tasks. At board-modules (assignment 4), New and Open unlock so you can split components and types into modules. Collect a new assignment from the printer, then click the physical sheet beside the monitor to read it. Unread sheets glow yellow, and collected/read paper survives reloads. Submitting pins the completed sheet on the right wall. Continue B.U.G.’s handoff and next briefing to start the following print; submitting alone never starts the printer.
 
 - **B.U.G.’s next arrow:** advance his story. The last briefing line offers **Print assignment →**. Printing starts only after that click.
 - **F1 / Help:** open the topic index. Previous/Next or ←/→ change pages. The retro scrollbar, ↑/↓ and PgUp/PgDn scroll. Escape restores the editor and its undo history.
 - **F5 / Ctrl/Cmd+Enter:** compile and run in BUGSCAPE. **F6:** return to the code.
-- **File → New file / Ctrl/Cmd+N:** name a new project file (unlocks at board-columns).
+- **File → New file / Ctrl/Cmd+N:** name a new project file (unlocks at board-modules, assignment 4).
 - **File → Open / Ctrl/Cmd+O:** pick a project file; one file is visible at a time.
 - **File → Tasks:** restore a previous assignment or open the next available exercise.
 - **Tab:** indent. **Ctrl/Cmd+F:** find/replace. Standard undo/redo shortcuts work.

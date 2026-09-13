@@ -29,15 +29,15 @@ test("console helpers update live files, pass real checks, undo and persist jump
   // Keep the same console API reference and issue commands within one turn.
   const state = await page.evaluate(() => {
     const dev = window.humanDev!;
-    dev.goto("board-columns");
+    dev.goto("board-modules");
     dev.solve();
     return dev.state();
   });
-  expect(state.assignmentId).toBe("board-columns");
-  expect(state.projects["board-columns"].files).toEqual(
-    assignments[2].solutionFiles,
+  expect(state.assignmentId).toBe("board-modules");
+  expect(state.projects["board-modules"].files).toEqual(
+    assignments[3].solutionFiles,
   );
-  await expect(editor).toHaveText(assignments[2].solution, {
+  await expect(editor).toHaveText(assignments[3].solution, {
     useInnerText: true,
   });
   await editor.press("F5");
@@ -47,25 +47,32 @@ test("console helpers update live files, pass real checks, undo and persist jump
 
   // Replacing the same assignment must discard stale preview/validation state.
   await page.evaluate(() => window.humanDev!.starter());
-  await expect(editor).toHaveText(assignments[2].starterCode!, {
-    useInnerText: true,
-  });
+  // The single-file starter is longer than CodeMirror's rendered viewport.
+  await expect(editor).toContainText("type TaskStatus");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          window.humanDev!.state().projects["board-modules"].files["App.tsx"],
+      ),
+    )
+    .toBe(assignments[3].starterCode!);
   await expect(
     page.getByRole("button", { name: "Submit assignment" }),
   ).toHaveCount(0);
   await page.evaluate(() => window.humanDev!.undo());
-  await expect(editor).toHaveText(assignments[2].solution, {
+  await expect(editor).toHaveText(assignments[3].solution, {
     useInnerText: true,
   });
 
   await editor.fill("// custom work");
   await expect
     .poll(() =>
-      page.evaluate(() => window.humanDev!.state().drafts["board-columns"]),
+      page.evaluate(() => window.humanDev!.state().drafts["board-modules"]),
     )
     .toBe("// custom work");
   await page.evaluate(() => window.humanDev!.solve());
-  await expect(editor).toHaveText(assignments[2].solution, {
+  await expect(editor).toHaveText(assignments[3].solution, {
     useInnerText: true,
   });
   await page.evaluate(() => window.humanDev!.undo());
@@ -75,9 +82,9 @@ test("console helpers update live files, pass real checks, undo and persist jump
   await page.reload();
   await page.waitForFunction(() => !!window.humanDev);
   const restored = await page.evaluate(() => window.humanDev!.state());
-  expect(restored.assignmentId).toBe(assignments[10].id);
-  expect(restored.completed).toHaveLength(10);
+  expect(restored.assignmentId).toBe(assignments.at(-1)!.id);
+  expect(restored.completed).toHaveLength(assignments.length - 1);
   expect(restored.projects[restored.assignmentId].files).toEqual(
-    assignments[10].solutionFiles,
+    assignments.at(-1)!.solutionFiles,
   );
 });

@@ -4,18 +4,16 @@ Apparently “somewhere in my inbox” is not a task status. Give our work three
 
 **Your job**
 
-1. Define a Task: it contains a numeric `id`, a `title`, and a `status`. The status must only allow **TODO**, **IN PROGRESS**, or **DONE**.
-2. Create an array of three tasks: **1: Plan sprint → TODO**, **2: Build board → IN PROGRESS**, and **3: Ship demo → DONE**.
-3. Create `BoardColumn` with `tasks` and `status` props. Render one column for each status, passing the array of **all tasks** to each `BoardColumn`'s `tasks` prop. Inside `BoardColumn`, use `filter` to select that column's tasks and `map` to render its cards; use task IDs as keys.
+1. Define `TaskStatus` as a union of **TODO**, **IN PROGRESS**, and **DONE**. Define a Task with a numeric `id`, a `title`, and a `status` of that type.
+2. Create an `initialTasks` array of three tasks: **1: Plan sprint → TODO**, **2: Build board → IN PROGRESS**, and **3: Ship demo → DONE**.
+3. Create a `statuses` array containing the three allowed statuses and a `BoardColumn` component with `tasks` and `status` props. Render one column for each status, passing the array of **all tasks** to each `BoardColumn`'s `tasks` prop. Inside `BoardColumn`, use `filter` to select that column's tasks and `map` to render its cards; use task IDs as keys.
 4. Each column needs a `section` with `aria-label={status}` and an `h2` showing that status.
 5. Update `TaskCard` to receive an entire Task object through a `task` prop instead of just a title. When mapping tasks in `BoardColumn`, pass each task object to its `TaskCard`. Each card needs `<li data-task-id={task.id}>` and a `p` containing the task's title.
 
-6. Split the project into **App.tsx**, **BoardColumn.tsx**, **TaskCard.tsx**, and **tasks.ts**. Use **File > New file** to create each file and **File > Open** to switch between them. Move the Task and TaskStatus types into `tasks.ts`, export them, and use `import type` wherever they are needed. Export the components from their own files: App imports BoardColumn, and BoardColumn imports TaskCard. Remove the old copies from App.tsx.
-
-`App.tsx` remains the entry point. Keep its exported App component. F5 runs the whole project regardless of which file you are editing. One file is visible at a time, and all changes save automatically. Your project carries forward to the next assignment.
+Keep all types, data and components in App.tsx for this assignment. Preserve the heading and your subtitle paragraph above the columns.
 
 The browser automatically arranges the status sections into columns and stacks them on narrow screens.
 
 **Try it:** Run it: each of the three tasks should appear in its assigned column.
 
-**F1:** Lists and identity; Modules and files.
+**F1:** Lists and identity.

@@ -111,7 +111,8 @@ test("Tasks menu restores previous tasks and Help grows with completed exercises
   await tasks.screenshot({ path: "test-results/open-previous-tasks.png" });
   await page.getByRole("button", { name: `Open task: ${third.title}` }).click();
   await editor.press("F1");
-  await expect(topics.getByRole("button")).toHaveCount(4);
+  await expect(topics.getByRole("button")).toHaveCount(3);
+  await expect(topics).not.toContainText("Modules and files");
   await topics.screenshot({ path: "test-results/unlocked-course-topics.png" });
   await page
     .getByRole("button", { name: "Read topic: Lists and identity" })
@@ -121,5 +122,22 @@ test("Tasks menu restores previous tasks and Help grows with completed exercises
   ).toBeVisible();
   await help.screenshot({ path: "test-results/course-list-material.png" });
   await page.getByRole("button", { name: "Close course material" }).click();
+  await editor.fill(third.solution);
+  await editor.press("F5");
+  await page
+    .getByRole("button", { name: "Submit assignment" })
+    .click({ timeout: 15000 });
+  await page.locator('[data-surface="crt-glass"]').click();
+  await editor.press("F1");
+  await expect(topics.getByRole("button")).toHaveCount(4);
+  await expect(topics).not.toContainText("State with useState");
+  await topics
+    .getByRole("button", { name: "Read topic: Modules and files" })
+    .click();
+  await expect(
+    help
+      .getByRole("heading", { name: "One project, several files", exact: true })
+      .first(),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });

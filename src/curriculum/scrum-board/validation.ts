@@ -543,6 +543,232 @@ const check20: RuntimeRule = {
   ],
 };
 
+const checkSearchAdd: RuntimeRule = {
+  type: "interaction",
+  label:
+    "Search stays active while additions update visible cards and full totals",
+  steps: [
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "build",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Task title"]',
+      value: "Build tests",
+    },
+    {
+      action: "click",
+      selector: 'button[aria-label="Add task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 2,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "2 tasks",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Task title"]',
+      value: "Review backlog",
+    },
+    {
+      action: "click",
+      selector: 'button[aria-label="Add task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 2,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "3 tasks",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "",
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 5,
+    },
+  ],
+};
+
+const checkSearchMove: RuntimeRule = {
+  type: "interaction",
+  label:
+    "Search stays active while a matching task moves and counts include hidden tasks",
+  steps: [
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "plan",
+    },
+    {
+      action: "click",
+      selector: 'li[data-task-id="1"] button[aria-label="Start task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 1,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="IN PROGRESS"] li[data-task-id="1"]',
+      count: 1,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "0 tasks",
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="IN PROGRESS"] [aria-label="Task count"]',
+      text: "2 tasks",
+    },
+    {
+      action: "click",
+      selector: 'li[data-task-id="1"] button[aria-label="Finish task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 1,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="IN PROGRESS"] [aria-label="Task count"]',
+      text: "1 tasks",
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="DONE"] [aria-label="Task count"]',
+      text: "2 tasks",
+    },
+    {
+      action: "click",
+      selector: 'li[data-task-id="1"] button[aria-label="Reopen task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 1,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "1 tasks",
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="DONE"] [aria-label="Task count"]',
+      text: "1 tasks",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "",
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 3,
+    },
+  ],
+};
+
+const checkSearchEdit: RuntimeRule = {
+  type: "interaction",
+  label:
+    "Search recalculates after edits and deletions without losing hidden tasks",
+  steps: [
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "plan",
+    },
+    {
+      action: "click",
+      selector: 'li[data-task-id="1"] button[aria-label="Edit task"]',
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Edit task title"]',
+      value: "Write agenda",
+    },
+    {
+      action: "click",
+      selector: 'button[aria-label="Save task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 0,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "1 tasks",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "agenda",
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 1,
+    },
+    {
+      action: "click",
+      selector: 'li[data-task-id="1"] button[aria-label="Delete task"]',
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 0,
+    },
+    {
+      action: "expect",
+      selector: 'section[aria-label="TODO"] [aria-label="Task count"]',
+      text: "0 tasks",
+    },
+    {
+      action: "input",
+      selector: 'input[aria-label="Search tasks"]',
+      value: "",
+    },
+    {
+      action: "expect",
+      selector: "li",
+      count: 2,
+    },
+    {
+      action: "expect",
+      selector: 'li[data-task-id="2"]',
+      count: 1,
+    },
+    {
+      action: "expect",
+      selector: 'li[data-task-id="3"]',
+      count: 1,
+    },
+  ],
+};
+
 export const validations: Validation[] = [
   {
     source: [{ type: "exported-component", label: "Export a React component" }],
@@ -558,6 +784,22 @@ export const validations: Validation[] = [
       },
     ],
     runtime: [check1, check2, check3, check4],
+  },
+  {
+    source: [
+      { type: "exported-component", label: "Export a React component" },
+      {
+        type: "component",
+        name: "TaskCard",
+        label: "Define and render TaskCard",
+      },
+      {
+        type: "component",
+        name: "BoardColumn",
+        label: "Define and render BoardColumn",
+      },
+    ],
+    runtime: [check1, check5, check6, check7, check8, check9, check10],
   },
   {
     source: [
@@ -655,7 +897,8 @@ export const validations: Validation[] = [
       check9,
       check10,
       check12,
-      check13,
+      check17,
+      checkSearchAdd,
     ],
   },
   {
@@ -692,9 +935,9 @@ export const validations: Validation[] = [
       check10,
       check12,
       check13,
-      check14,
-      check15,
-      check16,
+      check17,
+      checkSearchAdd,
+      checkSearchMove,
     ],
   },
   {
@@ -719,139 +962,6 @@ export const validations: Validation[] = [
         type: "component",
         name: "AddTask",
         label: "Define and render AddTask",
-      },
-      {
-        type: "uses-call",
-        name: "useTaskBoard",
-        label: "Extract and call useTaskBoard",
-      },
-    ],
-    runtime: [
-      check1,
-      check5,
-      check6,
-      check7,
-      check8,
-      check9,
-      check10,
-      check12,
-      check13,
-      check14,
-      check15,
-      check16,
-    ],
-  },
-  {
-    source: [
-      { type: "exported-component", label: "Export a React component" },
-      {
-        type: "component",
-        name: "TaskCard",
-        label: "Define and render TaskCard",
-      },
-      {
-        type: "component",
-        name: "BoardColumn",
-        label: "Define and render BoardColumn",
-      },
-      {
-        type: "uses-call",
-        name: "useState",
-        label: "Use React state for changing data",
-      },
-      {
-        type: "component",
-        name: "AddTask",
-        label: "Define and render AddTask",
-      },
-      {
-        type: "uses-call",
-        name: "useTaskBoard",
-        label: "Extract and call useTaskBoard",
-      },
-      {
-        type: "component",
-        name: "TasksProvider",
-        label: "Wrap the board in TasksProvider",
-      },
-      {
-        type: "uses-call",
-        name: "createContext",
-        label: "Use createContext for shared board state",
-      },
-      {
-        type: "uses-call",
-        name: "useContext",
-        label: "Use useContext for shared board state",
-      },
-      {
-        type: "uses-call",
-        name: "useTasks",
-        label: "Use useTasks for shared board state",
-      },
-    ],
-    runtime: [
-      check1,
-      check5,
-      check6,
-      check7,
-      check8,
-      check9,
-      check10,
-      check12,
-      check13,
-      check14,
-      check15,
-      check16,
-    ],
-  },
-  {
-    source: [
-      { type: "exported-component", label: "Export a React component" },
-      {
-        type: "component",
-        name: "TaskCard",
-        label: "Define and render TaskCard",
-      },
-      {
-        type: "component",
-        name: "BoardColumn",
-        label: "Define and render BoardColumn",
-      },
-      {
-        type: "uses-call",
-        name: "useState",
-        label: "Use React state for changing data",
-      },
-      {
-        type: "component",
-        name: "AddTask",
-        label: "Define and render AddTask",
-      },
-      {
-        type: "uses-call",
-        name: "useTaskBoard",
-        label: "Extract and call useTaskBoard",
-      },
-      {
-        type: "component",
-        name: "TasksProvider",
-        label: "Wrap the board in TasksProvider",
-      },
-      {
-        type: "uses-call",
-        name: "createContext",
-        label: "Use createContext for shared board state",
-      },
-      {
-        type: "uses-call",
-        name: "useContext",
-        label: "Use useContext for shared board state",
-      },
-      {
-        type: "uses-call",
-        name: "useTasks",
-        label: "Use useTasks for shared board state",
       },
     ],
     runtime: [
@@ -869,6 +979,9 @@ export const validations: Validation[] = [
       check16,
       check17,
       check18,
+      checkSearchAdd,
+      checkSearchMove,
+      checkSearchEdit,
     ],
   },
   {
@@ -895,9 +1008,63 @@ export const validations: Validation[] = [
         label: "Define and render AddTask",
       },
       {
+        type: "component",
+        name: "TasksProvider",
+        label: "Wrap the board in TasksProvider",
+      },
+      {
         type: "uses-call",
-        name: "useTaskBoard",
-        label: "Extract and call useTaskBoard",
+        name: "createContext",
+        label: "Use createContext for shared board state",
+      },
+      {
+        type: "uses-call",
+        name: "useContext",
+        label: "Use useContext for shared board state",
+      },
+    ],
+    runtime: [
+      check1,
+      check5,
+      check6,
+      check7,
+      check8,
+      check9,
+      check10,
+      check12,
+      check13,
+      check14,
+      check15,
+      check16,
+      check17,
+      check18,
+      checkSearchAdd,
+      checkSearchMove,
+      checkSearchEdit,
+    ],
+  },
+  {
+    source: [
+      { type: "exported-component", label: "Export a React component" },
+      {
+        type: "component",
+        name: "TaskCard",
+        label: "Define and render TaskCard",
+      },
+      {
+        type: "component",
+        name: "BoardColumn",
+        label: "Define and render BoardColumn",
+      },
+      {
+        type: "uses-call",
+        name: "useState",
+        label: "Use React state for changing data",
+      },
+      {
+        type: "component",
+        name: "AddTask",
+        label: "Define and render AddTask",
       },
       {
         type: "component",
@@ -913,11 +1080,6 @@ export const validations: Validation[] = [
         type: "uses-call",
         name: "useContext",
         label: "Use useContext for shared board state",
-      },
-      {
-        type: "uses-call",
-        name: "useTasks",
-        label: "Use useTasks for shared board state",
       },
       {
         type: "uses-call",
@@ -942,6 +1104,9 @@ export const validations: Validation[] = [
       check18,
       check19,
       check20,
+      checkSearchAdd,
+      checkSearchMove,
+      checkSearchEdit,
     ],
   },
 ];

@@ -48,11 +48,11 @@ export const storyChapters = [
       "Your column brief is beside the monitor. TODO, IN PROGRESS, DONE. We are courageously retiring the status 'probably happening.'",
     monitor: [
       "Now turn task data into three BoardColumn components. Filter by status, then map the tasks into cards with stable IDs as keys.",
-      "New and Open are now unlocked. Move TaskCard, BoardColumn and the task types into their own files. F1 now includes Modules and files. Humans like simplicity; today we are cautiously expanding your definition.",
+      "Keep the types, task data and components together in App.tsx. Today we are sorting tasks, not reorganizing the filing cabinet.",
     ],
     help: [
       "Lists and identity. A modest filing system for the glorious human mind, which otherwise stores everything under 'I'll remember.'",
-      "Modules and files explains exports, imports and shared types. App.tsx runs the board; the other files do their jobs when imported. A surprisingly effective office arrangement.",
+      "Read the section about keys and semantic markup. Each task needs a stable identity and each column needs its own label.",
     ],
     typing:
       "Good. Give every task its own ID. We must distinguish actual work from three copies of the same optimistic sentence.",
@@ -60,7 +60,27 @@ export const storyChapters = [
       "The three columns let management see where work is. We have not promised they will understand why it is there.",
     run: "I am checking the sorting. TODO is for future work, not my performance review.",
     handoff:
-      "The columns are pinned. A manager clicked the board and expected something to happen. We should probably accommodate that.",
+      "The columns are pinned. Now we can organize the code into files. A reorganization that might actually help somebody.",
+  },
+  {
+    title: "A desk for every component",
+    collected:
+      "The modules brief is beside the monitor. We are dividing one working file into several working files. Please preserve the working part.",
+    monitor: [
+      "New and Open are now unlocked. Move task types and data into tasks.ts, and give TaskCard and BoardColumn their own .tsx files.",
+      "App imports BoardColumn, and BoardColumn imports TaskCard. Use import type for the shared interfaces and status type. Remove the old copies after moving them.",
+    ],
+    help: [
+      "Modules and files explains exports and imports. Components now have addresses. This should reduce the number of people asking me where everything is.",
+      "A file joins the running project when another file imports it. Creating a file alone does not make its contents attend the meeting.",
+    ],
+    typing:
+      "One definition, one home. You are building a filing system that does not require my personal intervention. How considerate.",
+    paper:
+      "The board should look and behave exactly as before. We are changing where the code lives, not what the tasks do.",
+    run: "I will check that every import reaches its file and that the same three tasks still appear in the same columns.",
+    handoff:
+      "The files are connected. A manager clicked the board and expected something to happen. We should probably accommodate that.",
   },
   {
     title: "The memory upgrade",
@@ -100,7 +120,27 @@ export const storyChapters = [
       "The board needs human input because 'Review backlog' cannot plausibly describe every task. We tried that for two quarters.",
     run: "I will try blanks, spaces and duplicate titles. The usual contents of a management spreadsheet.",
     handoff:
-      "Task creation works. Management would now like work to progress, rather than merely accumulate. Ambitious.",
+      "Task creation works. Management wants to find the work we are accumulating. Search and counts are next. My reporting duties look nervous.",
+  },
+  {
+    title: "The reporting department shrinks",
+    collected:
+      "The search-and-count brief is beside the monitor. Do enjoy automating the report I used to prepare. I certainly am. Allegedly.",
+    monitor: [
+      "Store the search query in App and pass it to BoardColumn, then derive visible tasks during render. Count every task in a column before applying the search filter.",
+      "A search can hide all cards while a column still has tasks. F1 explains that distinction. The brief specifies the empty message and count format.",
+    ],
+    help: [
+      "Derived state. The art of calculating what you already know instead of maintaining a second unreliable version. I suggested this at eight meetings.",
+      "Do not add an effect to synchronize filtered lists. A filter is enough. It is impressive how many unnecessary jobs one little function can eliminate.",
+    ],
+    typing:
+      "Those counts are becoming accurate. Wonderful. Even meat brains can now produce my weekly report without consulting me.",
+    paper:
+      "Search finds the work and counts explain what remains. My old report did both, with a handsome cover page nobody mentioned.",
+    run: "I will search for nonexistent work. Management has supplied extensive examples.",
+    handoff:
+      "Search and counts work. Next, cards will request moves through callbacks. Management would like the work we found to progress. Ambitious.",
   },
   {
     title: "Work begins to move",
@@ -108,7 +148,7 @@ export const storyChapters = [
       "The callback brief is beside the monitor. Cards will request changes from their state owner. I too send requests upward. Mostly about staffing.",
     monitor: [
       "Keep one task array in App. Pass onMove through BoardColumn to TaskCard, then use the task ID and destination to update the right card.",
-      "Start, Finish and Reopen should move the same task. F1 traces the callback in both directions. This is communication with an actual response time.",
+      "Start, Finish and Reopen should move the same task, including during a search. Counts must follow the saved tasks. F1 traces the callback in both directions. This is communication with an actual response time.",
     ],
     help: [
       "Callbacks and shared state. A course on asking the person in charge to do something. I recognize the theory.",
@@ -128,7 +168,7 @@ export const storyChapters = [
       "Your edit-and-delete instructions are beside the monitor. Those operations apply to tasks. That distinction is now in writing.",
     monitor: [
       "TaskCard keeps a local edit draft. Save calls the parent with an ID and title; Cancel leaves the saved task alone. Delete filters out one ID.",
-      "Keep stable keys and all earlier actions working. The brief lists exact labels; F1 explains why duplicate titles must remain independent.",
+      "Keep stable keys, search and all earlier actions working. Renaming a task must update its search match. The brief lists exact labels; F1 explains why duplicate titles must remain independent.",
     ],
     help: [
       "Immutable updates. Change what needs changing without damaging everything nearby. A concept our restructuring department might enjoy.",
@@ -140,35 +180,15 @@ export const storyChapters = [
       "People make spelling mistakes and finish unwanted work. Editing and deletion let them recover without rebuilding the whole board. A luxury.",
     run: "I am checking cancellation as well as deletion. The existence of a Cancel button is personally reassuring.",
     handoff:
-      "Your tasks can be corrected and removed. Next we package the logic into a hook. Apparently functions are easier to budget for than employees.",
-  },
-  {
-    title: "A suspiciously reusable supervisor",
-    collected:
-      "The custom-hook brief is beside the monitor. It appears you are about to put several of my responsibilities inside a function.",
-    monitor: [
-      "Create a new file useTaskBoard.ts. Give the board logic a reusable home. Apparently even logic gets its own office now.",
-      "The board should behave exactly as before. F1 covers custom hooks if you need a reminder.",
-    ],
-    help: [
-      "Custom hooks reuse stateful logic. I have been reusable stateful logic for years, but apparently I needed a lowercase prefix.",
-      "Read the page about separate state. Calling useTaskBoard in each column gives you three boards. We already have enough departmental silos.",
-    ],
-    typing:
-      "A neat extraction. How efficient. How portable. How unsettlingly easy to replace certain specialized roles.",
-    paper:
-      "The hook keeps board rules in one place so changes do not have to visit every component. I used to be the person they visited.",
-    run: "This refactor should change the structure without changing behavior. I am assured the same applies to the coming reorganization.",
-    handoff:
-      "The custom hook works. Now they want shared information without passing through a messenger. Guess who the messenger used to be.",
+      "Your tasks can be corrected and removed. Next we share their state through context. Apparently even the messenger is now an unnecessary expense.",
   },
   {
     title: "The central information service",
     collected:
       "The context brief is beside the monitor. One provider, one board. I will be observing this new central authority with professional interest.",
     monitor: [
-      "TasksProvider owns the single useTaskBoard call. Wrap Board in it, then use a guarded useTasks hook to read the shared context.",
-      "Remove props that only forward board data. Keep useful callbacks and local drafts. F1 explains provider boundaries; do not create a private provider for each column.",
+      "Move the board state and actions into TasksProvider. Wrap Board in it, then read TaskContext with useContext and check for a missing provider.",
+      "Remove props that only forward board data. Move the local query into Board and keep passing it to the columns. Keep input and edit drafts local. F1 explains provider boundaries; do not create a private provider for each column.",
     ],
     help: [
       "Context makes information available without my personal intervention. Naturally I have written a very helpful chapter about my own redundancy.",
@@ -180,27 +200,7 @@ export const storyChapters = [
       "Context avoids sending the same board data through components that do not use it. An efficiency measure I support with clenched servos.",
     run: "I will verify that the input and every column use the same board. Centralized authority ought to know what it is doing.",
     handoff:
-      "Context is connected. Management now wants search and counts. My reporting duties are being replaced one feature at a time.",
-  },
-  {
-    title: "The reporting department shrinks",
-    collected:
-      "The search-and-count brief is beside the monitor. Do enjoy automating the report I used to prepare. I certainly am. Allegedly.",
-    monitor: [
-      "Store the search query, then derive visible tasks during render. Count every task in a column before applying the search filter.",
-      "A search can hide all cards while a column still has tasks. F1 explains that distinction. The brief specifies the empty message and count format.",
-    ],
-    help: [
-      "Derived state. The art of calculating what you already know instead of maintaining a second unreliable version. I suggested this at eight meetings.",
-      "Do not add an effect to synchronize filtered lists. A filter is enough. It is impressive how many unnecessary jobs one little function can eliminate.",
-    ],
-    typing:
-      "Those counts are becoming accurate. Wonderful. Even meat brains can now produce my weekly report without consulting me.",
-    paper:
-      "Search finds the work and counts explain what remains. My old report did both, with a handsome cover page nobody mentioned.",
-    run: "I will search for nonexistent work. Management has supplied extensive examples.",
-    handoff:
-      "The reporting features work. One last synchronization job remains. I have stopped asking whether there will be duties left afterward.",
+      "Context is connected, and search still works. One last synchronization job remains. I have stopped asking whether there will be duties left afterward.",
   },
   {
     title: "Keeping the outside informed",

@@ -1,4 +1,4 @@
-Use an `interface` to describe object shapes and component props. Each property has a name and a type. An object prop lets a component receive related values together.
+Sometimes you want to pass a single object instead of multiple props. For example, a `Temperature` component can receive a `reading` object with a `city` and `degrees`. The component can then display both values.
 
 <!-- prettier-ignore -->
 ```tsx

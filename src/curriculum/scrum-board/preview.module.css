@@ -37,6 +37,22 @@
   margin: 8px 0 12px;
 }
 
+/* Keep the heading and its description together as one board header. */
+.board :where(h1:has(+ p)) {
+  margin-bottom: 0;
+  padding-bottom: 4px;
+  border-bottom: 0;
+}
+
+.board :where(h1 + p) {
+  margin: 0 0 20px;
+  padding: 0 0 16px;
+  border-bottom: 2px solid var(--terminal-amber);
+  color: var(--terminal-muted);
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
 .board :where(span) {
   color: var(--terminal-cool);
 }

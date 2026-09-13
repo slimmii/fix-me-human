@@ -18,6 +18,7 @@ import { decodeWorkstationId } from "./game/workstation";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
   version: 4;
+  curriculumRevision: 1 | 2;
   phase: Phase;
   lessonId: string;
   assignmentId: string;
@@ -41,6 +42,7 @@ export type Save = {
 export const KEY = "please-fix-human:v4";
 export const fresh = (lessons = curriculum): Save => ({
   version: 4,
+  curriculumRevision: 2,
   phase: "onboarding",
   lessonId: lessons[0].id,
   assignmentId: lessons[0].assignments[0].id,
@@ -294,6 +296,19 @@ export function decode(raw: string | null, lessons = curriculum): Save {
           (id: unknown): id is string => typeof id === "string",
         )
       : [];
+    // Earlier versions taught modules inside board-columns. Credit that work
+    // once; new saves must complete the separate modules assignment themselves.
+    const splitColumns =
+      value.curriculumRevision == null && completed.includes("board-columns");
+    if (splitColumns) completed.push("board-modules");
+    // Search used to follow context. Preserve earned work beyond its new
+    // position, but require the search assignment before continuing onward.
+    // Keep revision 1 until that gap is filled so reloads retain those credits.
+    const pendingSearch =
+      value.curriculumRevision !== 2 &&
+      completed.includes("task-input") &&
+      !completed.includes("board-search");
+    if (pendingSearch) completed.push("board-search");
     for (const lesson of lessons) {
       if (!unlocked(result, lesson.id, lessons)) break;
       for (const assignment of lesson.assignments) {
@@ -304,6 +319,11 @@ export function decode(raw: string | null, lessons = curriculum): Save {
           break;
         result.completed.push(assignment.id);
       }
+    }
+    if (pendingSearch) {
+      result.completed = result.completed.filter((id) => id !== "board-search");
+      if (result.completed.includes("task-callbacks"))
+        result.curriculumRevision = 1;
     }
     const lesson =
       lessons.find(
@@ -321,9 +341,14 @@ export function decode(raw: string | null, lessons = curriculum): Save {
       lesson.assignments.find((a) => !result.completed.includes(a.id)) ??
       lesson.assignments[0];
     result.assignmentId = assignment.id;
-    const available = availableAssignments(result, lessons).map(
-      ({ assignment }) => assignment.id,
-    );
+    const available = [
+      ...new Set([
+        ...availableAssignments(result, lessons).map(
+          ({ assignment }) => assignment.id,
+        ),
+        ...result.completed,
+      ]),
+    ];
     if (Array.isArray(value.collectedAssignments))
       result.collectedAssignments = available.filter((id) =>
         value.collectedAssignments.includes(id),
@@ -360,6 +385,39 @@ export function decode(raw: string | null, lessons = curriculum): Save {
             result.drafts[a.id] = project.files[ENTRY_FILE];
           }
         }
+    }
+    if (splitColumns && result.completed.includes("board-modules")) {
+      if (
+        result.projects["board-columns"] &&
+        !result.projects["board-modules"]
+      ) {
+        result.projects["board-modules"] = result.projects["board-columns"];
+        result.drafts["board-modules"] =
+          result.projects["board-columns"].files[ENTRY_FILE];
+      }
+      for (const key of ["collectedAssignments", "readAssignments"] as const) {
+        if (
+          result[key].includes("board-columns") &&
+          !result[key].includes("board-modules")
+        )
+          result[key].push("board-modules");
+      }
+    }
+    // Continue a retired hook checkpoint at context without discarding edits.
+    if (
+      value.assignmentId === "use-task-board" &&
+      !result.completed.includes("board-context") &&
+      !result.projects["board-context"]
+    ) {
+      const retired =
+        decodeProject(value.projects?.["use-task-board"]) ??
+        (typeof value.drafts?.["use-task-board"] === "string"
+          ? singleFileProject(value.drafts["use-task-board"])
+          : null);
+      if (retired) {
+        result.projects["board-context"] = retired;
+        result.drafts["board-context"] = retired.files[ENTRY_FILE];
+      }
     }
     // Preserve the latest project when resuming the retired layout checkpoint.
     if (

@@ -23,4 +23,4 @@ export default function App() {
 
 `onClick={addCup}` passes a function for React to call after a click. `onClick={addCup()}` calls it while rendering. When a handler needs arguments, wrap the call in a function, such as `onClick={() => changeAmount(2)}`.
 
-Functions starting with `use`, such as `useState`, are hooks. Call hooks at the top level of a component or custom hook, before any early return. Keep them out of loops, conditions and event handlers.
+Functions starting with `use`, such as `useState`, are hooks. Call hooks at the top level of a component, before any early return. Keep them out of loops, conditions and event handlers.

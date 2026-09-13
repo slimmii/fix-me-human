@@ -10,12 +10,7 @@ export const scrumTopics: CourseTopic[] = [
         id: "react-basics-page-1",
         title: "Meet the component",
         markdown: "course/scrum-board/react-basics-1.md",
-      },
-      {
-        id: "react-basics-page-2",
-        title: "From code to screen",
-        markdown: "course/scrum-board/react-basics-2.md",
-      },
+      }
     ],
   },
   {
@@ -60,7 +55,7 @@ export const scrumTopics: CourseTopic[] = [
     title: "Modules and files",
     description:
       "Split a project into files, export components and share types.",
-    unlockAfter: ["task-card"],
+    unlockAfter: ["board-columns"],
     pages: [
       {
         id: "modules-files",
@@ -79,7 +74,7 @@ export const scrumTopics: CourseTopic[] = [
     title: "State with useState",
     description:
       "Render snapshots, event handlers, and functional array updates.",
-    unlockAfter: ["board-columns"],
+    unlockAfter: ["board-modules"],
     pages: [
       {
         id: "react-state-page-1",
@@ -113,10 +108,29 @@ export const scrumTopics: CourseTopic[] = [
     ],
   },
   {
+    id: "derived-state",
+    title: "Search and derived state",
+    description:
+      "Keep the query in state; calculate filtered views and counts.",
+    unlockAfter: ["task-input"],
+    pages: [
+      {
+        id: "derived-state-page-1",
+        title: "Store the input, derive the view",
+        markdown: "course/scrum-board/derived-state-1.md",
+      },
+      {
+        id: "derived-state-page-2",
+        title: "Counts, empty states and meaning",
+        markdown: "course/scrum-board/derived-state-2.md",
+      },
+    ],
+  },
+  {
     id: "component-callbacks",
     title: "Callbacks and shared state",
     description: "Lift state to coordinate siblings without mutating props.",
-    unlockAfter: ["task-input"],
+    unlockAfter: ["board-search"],
     pages: [
       {
         id: "component-callbacks-page-1",
@@ -149,30 +163,11 @@ export const scrumTopics: CourseTopic[] = [
     ],
   },
   {
-    id: "custom-hooks",
-    title: "Custom hooks",
-    description:
-      "Extract reusable stateful logic without accidentally splitting shared state.",
-    unlockAfter: ["task-editing"],
-    pages: [
-      {
-        id: "custom-hooks-page-1",
-        title: "Extract reusable stateful logic",
-        markdown: "course/scrum-board/custom-hooks-1.md",
-      },
-      {
-        id: "custom-hooks-page-2",
-        title: "Shared logic is not shared state",
-        markdown: "course/scrum-board/custom-hooks-2.md",
-      },
-    ],
-  },
-  {
     id: "react-context",
     title: "Context and providers",
     description:
-      "Provide and read shared values, then combine context with custom hooks.",
-    unlockAfter: ["use-task-board"],
+      "Own shared state and actions in a provider and read them with useContext.",
+    unlockAfter: ["task-editing"],
     pages: [
       {
         id: "react-context-page-1",
@@ -181,27 +176,8 @@ export const scrumTopics: CourseTopic[] = [
       },
       {
         id: "react-context-page-2",
-        title: "Combine context with custom hooks",
+        title: "Share state and actions through a provider",
         markdown: "course/scrum-board/react-context-2.md",
-      },
-    ],
-  },
-  {
-    id: "derived-state",
-    title: "Search and derived state",
-    description:
-      "Keep the query in state; calculate filtered views and counts.",
-    unlockAfter: ["board-context"],
-    pages: [
-      {
-        id: "derived-state-page-1",
-        title: "Store the input, derive the view",
-        markdown: "course/scrum-board/derived-state-1.md",
-      },
-      {
-        id: "derived-state-page-2",
-        title: "Counts, empty states and meaning",
-        markdown: "course/scrum-board/derived-state-2.md",
       },
     ],
   },
@@ -210,7 +186,7 @@ export const scrumTopics: CourseTopic[] = [
     title: "Effects and synchronization",
     description:
       "Use an effect for the document title, not for ordinary calculations.",
-    unlockAfter: ["board-search"],
+    unlockAfter: ["board-context"],
     pages: [
       {
         id: "react-effects-page-1",
