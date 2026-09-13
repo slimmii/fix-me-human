@@ -233,6 +233,7 @@ export default function TypedComputer({
           exercise.validation.runtime,
           reduced,
           fontSize,
+          exercise.previewTheme,
         ),
       );
       clearTimeout(timeout.current);

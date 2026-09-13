@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 08/12**
+**FROM:** B.U.G. · **TASK 08/11**
 
 Put the board logic in one reusable place. Apparently that is “good architecture” when you do it, and “overhead” when I do.
 

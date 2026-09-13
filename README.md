@@ -15,7 +15,7 @@ Open Vite's local URL. `npm run build` produces `dist/` for a static web server.
 
 ## Learn and play
 
-The course assumes basic JavaScript and HTML and builds one Scrum-style task board across 12 exercises:
+The course assumes basic JavaScript and HTML and builds one Scrum-style task board across 11 exercises:
 
 1. Sprint board — components, JSX and expressions.
 2. Reusable task cards — typed props.
@@ -28,9 +28,8 @@ The course assumes basic JavaScript and HTML and builds one Scrum-style task boa
 9. Share the board with context — one provider and a guarded consumer hook.
 10. Find work and count it — search, derived counts and empty states.
 11. Synchronize with an effect — useEffect and the preview document title.
-12. Ship the Scrum board — responsive TODO / IN PROGRESS / DONE columns and a complete workflow.
 
-Each exercise has a paper brief, hints, a tested solution, concept-focused Help material and a scripted B.U.G. chapter. His awkward encouragement gradually becomes passive-aggressive anxiety about being replaced by a human. He reacts to collecting and reading paper, entering the editor, opening Help, first typing, running code, hints, mistakes, success, revisiting work and the campaign finale. Tips play once per assignment; dialogue position and printer delivery survive reloads. The 26 Help pages use small examples from other subjects to teach the concepts without reproducing the board solution. Exact names, labels and requirements stay in the printed briefs. Each topic unlocks before its exercise, after the previous task is completed; previously unlocked topics remain available.
+Each exercise has a paper brief, hints, a tested solution, concept-focused Help material and a scripted B.U.G. chapter. His awkward encouragement gradually becomes passive-aggressive anxiety about being replaced by a human. He reacts to collecting and reading paper, entering the editor, opening Help, first typing, running code, hints, mistakes, success, revisiting work and the campaign finale. Tips play once per assignment; dialogue position and printer delivery survive reloads. The 24 Help pages use small examples from other subjects to teach the concepts without reproducing the board solution. Exact names, labels and requirements stay in the printed briefs. Each topic unlocks before its exercise, after the previous task is completed; previously unlocked topics remain available.
 
 Click the computer to open App.tsx. The first exercise starts empty; later exercises start from your own code from the preceding completed task. A reference starter is used when no earlier draft is available. Your earlier projects remain available through File → Tasks. At board-columns, New and Open unlock so you can split components and types into modules. Collect a new assignment from the printer, then click the physical sheet beside the monitor to read it. Unread sheets glow yellow, and collected/read paper survives reloads. Submitting pins the completed sheet on the right wall. Continue B.U.G.’s handoff and next briefing to start the following print; submitting alone never starts the printer.
 
@@ -45,7 +44,7 @@ Click the computer to open App.tsx. The first exercise starts empty; later exerc
 - **Hint:** request the next exercise hint. **Submit assignment:** available after source and runtime checks pass.
 - **File → Exit / Escape:** step back from the computer. Replay resets only its selected draft while preserving earned completion.
 
-Checks create, move, edit, delete and search actual rendered cards. Each scenario uses a fresh mount and the preview resets after checking so the learner can try a clean board. The final exercise also checks the wide column layout. The previous short example track is no longer registered; older authoring references remain in the repository.
+Checks create, move, edit, delete and search actual rendered cards. Each scenario uses a fresh mount and the preview resets after checking so the learner can try a clean board. The previous short example track is no longer registered; older authoring references remain in the repository.
 
 The wall clock shows office time in 24-hour format. The safety sign counts full days since the last compile error, runtime error, or unresponsive program; each error resets it to zero without resetting the clock. Incomplete assignment checks do not reset the streak. Clock and streak timestamps save locally and continue advancing while the game is closed.
 
@@ -91,11 +90,24 @@ The learner's board tasks are in-memory React state: they reset on F5 or reload.
 
 ## Source and checks
 
+Browser output themes are opt-in per assignment via `previewTheme`. The Sprintboard
+track uses `"sprint-board"`, registered in `src/sandbox/themes.ts`, with its styles
+in `src/curriculum/scrum-board/preview.module.css`. The browser automatically puts
+the module's generated class on its sandbox root; learners do not add classes.
+Selectors use semantic elements and the accessible labels already required by the
+assignments. Column arrangement is automatic from the first exercise that introduces status sections.
+
+To introduce another exercise style, add a CSS Module with a scoped root class,
+register its class and `?inline` stylesheet in `previewThemes`, and set that key on
+the relevant assignments. Omitting `previewTheme` keeps only the browser's base
+palette and console styling. Keep theme selectors under their root class and use
+`:where(...)` for descendants so custom CSS can easily override these defaults.
+
 - `src/curriculum/`: ordered exercises, assignment briefs, and validation requirements.
 - `src/course/`: independent Help topics, Markdown reference pages, and task-based unlock rules.
 - `src/progression.ts`: pure progression transitions, completion rules, and v4 persistence.
 - `src/game/useGame.ts`: game state, event wiring, sound, and focus.
-- `src/game/story.ts` and `storyScripts.ts`: saved dialogue cursors, explicit print gating and twelve authored story chapters.
+- `src/game/story.ts` and `storyScripts.ts`: saved dialogue cursors, explicit print gating and eleven authored story chapters.
 - `src/computer/`: integrated course Help, Markdown rendering, navigation, and completion screens.
 - `src/TypedComputer.tsx` and `src/RetroEditor.tsx`: compiler integration, CodeMirror editing, and editor/browser switching.
 - `src/typed-engine.ts`, `src/validation/`, and `src/sandbox/`: source checks, rendered-output checks, and isolated execution.
@@ -109,7 +121,7 @@ npm run test:browser
 npm run build
 ```
 
-Tests cover progression with multiple assignments, content integrity, component exports, saved drafts, rendered interactions for all 12 checkpoints, deliberately broken implementations, final course completion and replay, sandbox behavior, editor interactions, and the printer. Browser screenshots go to `test-results/`.
+Tests cover progression with multiple assignments, content integrity, component exports, saved drafts, rendered interactions for all 11 checkpoints, deliberately broken implementations, final course completion and replay, sandbox behavior, editor interactions, and the printer. Browser screenshots go to `test-results/`.
 
 ## Attribution
 

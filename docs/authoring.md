@@ -1,6 +1,6 @@
 # Authoring tasks and course topics
 
-The registered curriculum is the 12-exercise Scrum board track. `src/curriculum/scrum-board/index.ts` supplies ordered lessons, briefs, hints and robot dialogue; `solutions.ts` stores readable TSX source strings; `validation.ts` composes cumulative checks. `src/course/scrum-board/index.ts` registers 24 reference pages in 12 topics. The old example files remain unregistered.
+The registered curriculum is the 11-exercise Scrum board track. `src/curriculum/scrum-board/index.ts` supplies ordered lessons, briefs, hints and robot dialogue; `solutions.ts` stores readable TSX source strings; `validation.ts` composes cumulative checks. `src/course/scrum-board/index.ts` registers 24 reference pages in 12 topics. The old example files remain unregistered.
 
 ## Exercises and checkpoints
 
@@ -41,7 +41,6 @@ Review coverage before changing a page. Each concept must be available before th
 | 9. Context      | Context and providers          | createContext, explicit value interfaces, null default, provider placement, direct useContext reads and guards, then optional custom hooks and children/ReactNode |
 | 10. Search      | Search and derived state       | Controlled query, normalization/includes, grouped filtering, totals before search and empty states                                                                |
 | 11. Effect      | Effects and synchronization    | Render/event/effect distinction, document.title, template strings, dependencies and totals from saved data                                                        |
-| 12. Integration | Layout and review              | Inline styles, flexible widths, wrapping/overflow, accessible controls and complete interaction checks                                                            |
 
 Help has keyboard paging and retro scrolling. Earned topics stay available when revisiting tasks and across reloads. File → Open restores code without erasing progress; explicit Replay resets its selected draft.
 
@@ -55,6 +54,8 @@ Teach every requirement enforced by checks. The board uses these contracts from 
 - Inputs use Task title, Edit task title and Search tasks as their aria-labels.
 - Buttons use Add task, Start task, Finish task, Reopen task, Edit task, Save task, Cancel edit and Delete task as their aria-labels. Exercise 4 temporarily uses Add sample task.
 - Counts use `aria-label="Task count"` and the exact N tasks format. Empty filtered columns say No matching tasks.
+
+The browser theme automatically lays out the status sections. Author assignment code without CSS classes or inline layout styles.
 
 The brief distinguishes required component/hook names from optional implementation details. Runtime checks target observable behavior; source checks inspect a few required structures. They cannot prove that all data flow, keys, hook dependencies or architectural choices are correct. Ask learners to review those as well.
 
@@ -81,13 +82,13 @@ The sandbox allows React imports and `div section h1 h2 p span button input labe
 
 ## Progress, printing and saves
 
-Submit records completion, pins the finished sheet and selects the next unfinished assignment. The new assignment starts with a handoff and briefing. Its printer stays idle until the player advances the briefing. A requested print resumes after reload; ready and collected sheets restore without reprinting. Completed work deliberately reopened through File → Open stays available for code review and does not print again. All 12 sheets fit the right wall; there is no thirteenth assignment.
+Submit records completion, pins the finished sheet and selects the next unfinished assignment. The new assignment starts with a handoff and briefing. Its printer stays idle until the player advances the briefing. A requested print resumes after reload; ready and collected sheets restore without reprinting. Completed work deliberately reopened through File → Open stays available for code review and does not print again. All 11 sheets fit the right wall; there is no twelfth assignment.
 
 The new course uses `please-fix-human:v4`. It starts with fresh course progress because the previous example tasks are different exercises. Existing v2/v3 keys remain untouched. Validated completion determines task and topic access. Drafts, paper history and settings round-trip independently. The learner's in-preview board data is not persisted across runs.
 
 ## Story scripting
 
-`src/game/storyScripts.ts` contains twelve chapter scripts, ordered with the curriculum. Each supplies collection, editor, Help, typing, paper, run and handoff lines; the assignment metadata supplies intro/success/retry. The shared event renderer adds printer status, hints, revisits and a three-page finale. Keep technical guidance appropriate to the current exercise while moving the humor from awkward support toward job insecurity.
+`src/game/storyScripts.ts` contains eleven chapter scripts, ordered with the curriculum. Each supplies collection, editor, Help, typing, paper, run and handoff lines; the assignment metadata supplies intro/success/retry. The shared event renderer adds printer status, hints, revisits and a three-page finale. Keep technical guidance appropriate to the current exercise while moving the humor from awkward support toward job insecurity.
 
 `src/game/story.ts` is the pure director. A saved assignment story holds delivery (`waiting`, `printing`, `ready`), the current event/page, seen events and a pending queue. `tellStory` handles activities, `continueStory` advances dialogue, and `finishPrinting` accepts only an authorized print completion. Briefings cannot be bypassed by early editor/Help/typing events. First typing gives encouragement and preserves any remaining tutorial page; repeated typing does not replay it. Incidental prop chatter cannot interrupt an unfinished finale.
 
@@ -102,4 +103,4 @@ npm run test:browser
 npm run build
 ```
 
-Unit tests validate content, all strict-TSX solutions, source rules, cumulative unlocks, save recovery and progression. Browser tests run all 12 reference solutions in the real sandbox, reject broken updates/context/effects/layout, verify clean resets, exercise narrow layouts, and check printing, Help, task history and final completion. Screenshots are written to `test-results/`.
+Unit tests validate content, all strict-TSX solutions, source rules, cumulative unlocks, save recovery and progression. Browser tests run all 11 reference solutions in the real sandbox, reject broken updates/context/effects, verify clean resets, exercise narrow layouts, and check printing, Help, task history and final completion. Screenshots are written to `test-results/`.

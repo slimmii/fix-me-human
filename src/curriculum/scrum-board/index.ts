@@ -256,34 +256,12 @@ const track = [
       },
     ],
   },
-  {
-    id: "sprint-12",
-    title: "12 · Ship the Scrum board",
-    assignments: [
-      {
-        id: "scrum-board",
-        title: "Ship the Scrum board",
-        brief: "scrum-board/scrum-board.md",
-        hints: [
-          "Use a new card to test add, edit, Start, Finish, search, Reopen and Delete.",
-          "Keep one TasksProvider. Use stable IDs, derived counts and responsive columns; preserve the accessible labels from earlier briefs.",
-        ],
-        robot: {
-          intro:
-            "Final inspection: a complete Scrum board. Show me creation, editing, movement and deletion. Please leave my name off the last category.",
-          success:
-            "You shipped the board. Congratulations, meat brain. I am very proud, and only moderately concerned about my employment. I have assigned myself a new task: remain indispensable.",
-          retry:
-            "Run the whole workflow on a newly created task. I am still your quality supervisor until someone updates the board.",
-        },
-      },
-    ],
-  },
 ];
 export const scrumBoard: Lesson[] = track.map((lesson, index) => ({
   ...lesson,
   assignments: lesson.assignments.map((assignment) => ({
     ...assignment,
+    previewTheme: "sprint-board",
     solution: solutions[index],
     solutionFiles: solutionProjects[index],
     multiFile: index >= 2,

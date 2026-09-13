@@ -224,23 +224,4 @@ export const scrumTopics: CourseTopic[] = [
       },
     ],
   },
-  {
-    id: "board-integration",
-    title: "Layout and review",
-    description:
-      "Complete workflows, accessible controls, responsive layout, and review.",
-    unlockAfter: ["board-effects"],
-    pages: [
-      {
-        id: "board-integration-page-1",
-        title: "Flexible layouts",
-        markdown: "course/scrum-board/board-integration-1.md",
-      },
-      {
-        id: "board-integration-page-2",
-        title: "Check a complete workflow",
-        markdown: "course/scrum-board/board-integration-2.md",
-      },
-    ],
-  },
 ];

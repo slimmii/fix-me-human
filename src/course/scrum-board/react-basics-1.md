@@ -17,6 +17,6 @@ export default function App() {
 
 `return` supplies the JSX to display. Keep the opening parenthesis on the same line as `return`, and wrap sibling elements in one parent element. A fragment, `<>...</>`, can also group siblings without adding an HTML element.
 
-Braces insert JavaScript values into JSX. Here, `{place}` displays the string and `{8 + 1}` displays 9. Text outside braces stays literal. Use `className` for an HTML class and close every tag, including standalone elements such as `<input />`.
+Braces insert JavaScript values into JSX. Here, `{place}` displays the string and `{8 + 1}` displays 9. Text outside braces stays literal. Close every tag, including standalone elements such as `<input />`.
 
 Components calculate what the screen should show. Keep changes to data out of the render itself; later topics explain how clicks request updates.

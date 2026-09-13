@@ -61,8 +61,10 @@ export function AssignmentReview({ game }: { game: GameController }) {
           <>
             {!nextLesson && (
               <p>
-                You built a complete task board across 12 exercises. Open any
-                task to review its code, or revisit the course material.
+                You built a complete task board across{" "}
+                {curriculum.flatMap((item) => item.assignments).length}{" "}
+                exercises. Open any task to review its code, or revisit the
+                course material.
               </p>
             )}
             <p>

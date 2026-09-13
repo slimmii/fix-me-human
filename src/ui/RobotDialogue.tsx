@@ -1,5 +1,6 @@
 import type { SceneProps } from "../scene/types";
 import type { StoryEvent } from "../game/story";
+import { storyChapters } from "../game/storyScripts";
 export function RobotDialogue({
   mood,
   quote,
@@ -34,7 +35,7 @@ export function RobotDialogue({
         <b>
           B.U.G.
           <span>
-            CHAPTER {chapter}/12 · {chapterTitle}
+            CHAPTER {chapter}/{storyChapters.length} · {chapterTitle}
           </span>
         </b>
         <p role="status" aria-atomic="true">

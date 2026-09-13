@@ -145,7 +145,7 @@ describe("B.U.G. story director", () => {
     ).toBe("ready");
   });
   it("authors distinct reactions for every chapter and a finite finale", () => {
-    expect(storyChapters).toHaveLength(12);
+    expect(storyChapters).toHaveLength(11);
     for (const event of [
       "collected",
       "monitor",
@@ -160,13 +160,13 @@ describe("B.U.G. story director", () => {
           { ...context, assignment, chapter },
         ).join(" "),
       );
-      expect(new Set(scripts).size).toBe(12);
+      expect(new Set(scripts).size).toBe(11);
       expect(scripts.every((script) => script.trim().length > 30)).toBe(true);
     }
     const ctx = {
       ...context,
-      assignment: assignments[11],
-      chapter: 11,
+      assignment: assignments.at(-1)!,
+      chapter: assignments.length - 1,
       completed: true,
     };
     let story = initialStory(ctx);

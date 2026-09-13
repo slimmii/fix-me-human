@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 11/12**
+**FROM:** B.U.G. · **TASK 11/11**
 
 The document title should report completed work. Lovely. Even the window gets a status update before I hear about restructuring.
 

@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 07/12**
+**FROM:** B.U.G. · **TASK 07/11**
 
 Tasks need corrections and removal. Practice on the cards, please. My position in the org chart is not a typo.
 

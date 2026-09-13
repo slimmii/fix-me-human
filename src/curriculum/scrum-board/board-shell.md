@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 01/12**
+**FROM:** B.U.G. · **TASK 01/11**
 
 Management keeps losing tasks in email. Let’s build them a board. I believe in you, human. That was my encouraging voice.
 

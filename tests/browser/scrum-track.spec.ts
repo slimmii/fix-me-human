@@ -15,7 +15,7 @@ async function preview(
   const compiled = compileCode(source, assignment);
   expect(compiled.errors).toEqual([]);
   const result = await page.evaluate(
-    async ({ compiled, rules }) => {
+    async ({ compiled, rules, theme }) => {
       // Use the same bundled document and isolated React runtime as the editor.
       const modulePath = "/src/sandbox/document.ts";
       const { browserDocument } = await import(/* @vite-ignore */ modulePath);
@@ -43,11 +43,22 @@ async function preview(
             resolve(event.data);
           };
           window.addEventListener("message", receive);
-          frame.srcdoc = browserDocument(compiled, token, rules, true);
+          frame.srcdoc = browserDocument(
+            compiled,
+            token,
+            rules,
+            true,
+            undefined,
+            theme,
+          );
         },
       );
     },
-    { compiled, rules: assignment.validation.runtime },
+    {
+      compiled,
+      rules: assignment.validation.runtime,
+      theme: assignment.previewTheme,
+    },
   );
   expect(result.type, result.detail).toBe("rendered");
   return {
@@ -64,6 +75,63 @@ test.beforeEach(async ({ page }) => {
     }),
   );
   await page.goto("/course-check");
+});
+
+test("Sprintboard styling is automatic, isolated and optional for other exercises", async ({
+  page,
+}) => {
+  const assignment = assignments[2];
+  const source = assignment.solutionFiles!;
+  await preview(page, assignment, source);
+  const browser = page.frameLocator("iframe");
+  await expect(browser.locator("h1")).toHaveCSS("color", "rgb(245, 189, 104)");
+  await expect(browser.locator("li").first()).toHaveCSS(
+    "border-left-width",
+    "3px",
+  );
+  await expect(browser.locator("#app [class]")).toHaveCount(0);
+  // The first column exercise is responsive without any learner styling.
+  for (const width of [1100, 640, 320]) {
+    await page.locator("iframe").evaluate((frame, width) => {
+      frame.style.width = `${width}px`;
+    }, width);
+    const rectangles = await browser.locator("section").evaluateAll((columns) =>
+      columns.map((column) => {
+        const { top, bottom, left, right } = column.getBoundingClientRect();
+        return { top, bottom, left, right };
+      }),
+    );
+    if (width >= 640) {
+      expect(rectangles[1].top).toBe(rectangles[0].top);
+      expect(rectangles[2].top).toBe(rectangles[0].top);
+      expect(rectangles[1].left).toBeGreaterThanOrEqual(rectangles[0].right);
+      expect(rectangles[2].left).toBeGreaterThanOrEqual(rectangles[1].right);
+    } else {
+      expect(rectangles[1].top).toBeGreaterThanOrEqual(rectangles[0].bottom);
+      expect(rectangles[2].top).toBeGreaterThanOrEqual(rectangles[1].bottom);
+    }
+    const fits = await browser
+      .locator("body")
+      .evaluate((body) => body.scrollWidth <= body.clientWidth);
+    expect(fits).toBe(true);
+  }
+  // Loading a module in the host must never style the host's own content.
+  await page.evaluate(() => {
+    const heading = document.createElement("h1");
+    heading.textContent = "Host heading";
+    document.body.append(heading);
+  });
+  await expect(page.locator("h1")).not.toHaveCSS("color", "rgb(245, 189, 104)");
+  await preview(page, { ...assignment, previewTheme: undefined }, source);
+  await expect(browser.locator("#app")).toHaveAttribute("class", "");
+  await expect(browser.locator("li").first()).toHaveCSS(
+    "border-left-width",
+    "0px",
+  );
+  await expect(browser.locator("h1")).not.toHaveCSS(
+    "color",
+    "rgb(245, 189, 104)",
+  );
 });
 
 for (const passes of [true, false]) {
@@ -121,7 +189,7 @@ for (const passes of [true, false]) {
   });
 }
 
-test("all 12 reference solutions pass their actual sandbox interaction scenarios", async ({
+test("all 11 reference solutions pass their actual sandbox interaction scenarios", async ({
   page,
 }) => {
   for (const assignment of assignments) {
@@ -167,12 +235,6 @@ test("behavior checks reject broken updates, split context and stale effects", a
 }) => {
   const broken = [
     {
-      index: 11,
-      before: 'display: "grid"',
-      after: 'display: "block"',
-      label: "Arrange all",
-    },
-    {
       index: 5,
       before: "{ ...task, status }",
       after: "{ ...task }",
@@ -214,7 +276,7 @@ test("behavior checks reject broken updates, split context and stale effects", a
   }
 });
 
-test("final submission completes the course, retains all drafts and never prints a thirteenth task", async ({
+test("final submission completes the course, retains all drafts and never prints a twelfth task", async ({
   page,
 }) => {
   const certificate = page.getByRole("button", {
@@ -279,7 +341,7 @@ test("final submission completes the course, retains all drafts and never prints
     (key) => JSON.parse(localStorage.getItem(key)!),
     KEY,
   );
-  expect(restored.completed).toHaveLength(12);
+  expect(restored.completed).toHaveLength(11);
   expect(restored.drafts).toEqual(save.drafts);
   expect(restored.projects).toEqual(save.projects);
   await expect(page.locator('[data-surface="crt-glass"]')).toBeVisible({

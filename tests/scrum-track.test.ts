@@ -7,12 +7,15 @@ import { validRuntimeRule, type RuntimeRule } from "../src/validation/types";
 
 const assignments = curriculum.flatMap((lesson) => lesson.assignments);
 describe("complete Scrum board course", () => {
-  it("provides 12 incremental checkpoints with material available before each task", () => {
-    expect(assignments).toHaveLength(12);
-    expect(courseTopics.flatMap((topic) => topic.pages)).toHaveLength(26);
+  it("provides 11 incremental checkpoints with material available before each task", () => {
+    expect(assignments).toHaveLength(11);
+    expect(courseTopics.flatMap((topic) => topic.pages)).toHaveLength(24);
     let save = transition(fresh(), { type: "enter" });
     for (const [index, assignment] of assignments.entries()) {
       expect(save.assignmentId).toBe(assignment.id);
+      expect(Object.values(assignment.solutionFiles!).join("\n")).not.toMatch(
+        /className\s*=|style\s*=/,
+      );
       expect(assignment.starterCode).toBe(assignments[index - 1]?.solution);
       expect(unlockedTopics(save.completed)).toHaveLength(
         index + 1 + (index >= 2 ? 1 : 0),
@@ -31,13 +34,13 @@ describe("complete Scrum board course", () => {
       save = decode(JSON.stringify(save));
     }
     expect(save.phase).toBe("complete");
-    expect(Object.keys(save.drafts)).toHaveLength(12);
+    expect(Object.keys(save.drafts)).toHaveLength(11);
   });
   it("requires distinct introductions, success and retry reactions for every exercise", () => {
     for (const kind of ["intro", "success", "retry"] as const) {
       expect(
         new Set(assignments.map((assignment) => assignment.robot?.[kind])).size,
-      ).toBe(12);
+      ).toBe(11);
       const broken = structuredClone(curriculum);
       broken[0].assignments[0].robot![kind] = "";
       expect(() => validateCurriculum(broken)).toThrow("Incomplete assignment");
@@ -49,6 +52,38 @@ describe("complete Scrum board course", () => {
         JSON.stringify({ ...fresh(), version: 3, completed: ["hello-bug"] }),
       ),
     ).toEqual(fresh());
+  });
+  it("finishes saves on the retired layout assignment while preserving their latest project", () => {
+    for (const phase of ["coding", "complete"] as const) {
+      const save = fresh();
+      const files = {
+        ...assignments.at(-1)!.solutionFiles!,
+        "Notes.ts": "// My final notes",
+      };
+      Object.assign(save, {
+        phase,
+        lessonId: "sprint-12",
+        assignmentId: "scrum-board",
+        completed: [
+          ...assignments.map((assignment) => assignment.id),
+          ...(phase === "complete" ? ["scrum-board"] : []),
+        ],
+        collectedAssignments: [
+          ...assignments.map((assignment) => assignment.id),
+          "scrum-board",
+        ],
+        revisitingAssignment: phase === "complete",
+        projects: { "scrum-board": { files, activeFile: "Notes.ts" } },
+      });
+      const restored = decode(JSON.stringify(save));
+      expect(restored.phase).toBe("complete");
+      expect(restored.assignmentId).toBe("board-effects");
+      expect(restored.lessonId).toBe("sprint-11");
+      expect(restored.completed).toHaveLength(11);
+      expect(restored.projects["board-effects"].files).toEqual(files);
+      expect(restored.collectedAssignments).not.toContain("scrum-board");
+      expect(decode(JSON.stringify(restored))).toEqual(restored);
+    }
   });
   it("ignores hook and component names mentioned only in comments or strings", () => {
     const assignment = assignments[7];

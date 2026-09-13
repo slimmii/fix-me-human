@@ -1,4 +1,4 @@
-**FROM:** B.U.G. · **TASK 02/12**
+**FROM:** B.U.G. · **TASK 02/11**
 
 The company has three tasks and seventeen meetings about them. Reusable cards may reduce the meetings. I remain cautiously supportive.
 

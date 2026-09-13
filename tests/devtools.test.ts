@@ -37,7 +37,7 @@ describe("development checkpoints", () => {
   });
 
   it("restores an exact starter, removes extra files, and can revisit completed work", () => {
-    let save = prepareAssignment(fresh(), 12, "solution");
+    let save = prepareAssignment(fresh(), assignments.length, "solution");
     save = prepareAssignment(save, 3, "starter");
     expect(save.projects[save.assignmentId].files).toEqual(
       assignments[2].assignment.starterFiles,
@@ -52,7 +52,15 @@ describe("development checkpoints", () => {
 
   it("rejects invalid targets without modifying the save", () => {
     const save = fresh();
-    for (const target of [0, -1, 1.5, NaN, 13, "missing", "toString"]) {
+    for (const target of [
+      0,
+      -1,
+      1.5,
+      NaN,
+      assignments.length + 1,
+      "missing",
+      "toString",
+    ]) {
       expect(() => prepareAssignment(save, target)).toThrow(
         "Unknown assignment",
       );

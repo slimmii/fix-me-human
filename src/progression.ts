@@ -310,7 +310,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
         (l) => l.id === value.lessonId && unlocked(result, l.id, lessons),
       ) ??
       lessons.find((l) => !lessonDone(result, l)) ??
-      lessons[0];
+      lessons[lessons.length - 1];
     result.lessonId = lesson.id;
     const assignment =
       lesson.assignments.find(
@@ -361,6 +361,22 @@ export function decode(raw: string | null, lessons = curriculum): Save {
           }
         }
     }
+    // Preserve the latest project when resuming the retired layout checkpoint.
+    if (
+      value.assignmentId === "scrum-board" &&
+      result.assignmentId === "board-effects" &&
+      result.completed.includes("board-effects")
+    ) {
+      const retired =
+        decodeProject(value.projects?.["scrum-board"]) ??
+        (typeof value.drafts?.["scrum-board"] === "string"
+          ? singleFileProject(value.drafts["scrum-board"])
+          : null);
+      if (retired) {
+        result.projects["board-effects"] = retired;
+        result.drafts["board-effects"] = retired.files[ENTRY_FILE];
+      }
+    }
     for (const key of ["mute", "reducedMotion", "crt"] as const)
       if (typeof value.settings?.[key] === "boolean")
         result.settings[key] = value.settings[key];
@@ -380,6 +396,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
             : "coding";
     result.revisitingAssignment =
       value.revisitingAssignment === true &&
+      value.assignmentId === result.assignmentId &&
       result.completed.includes(result.assignmentId);
     // Older saves could stop on a completed task before automatic delivery was
     // added. Only keep a completed task selected when it was explicitly reopened.

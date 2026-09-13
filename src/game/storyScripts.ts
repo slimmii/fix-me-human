@@ -220,27 +220,7 @@ export const storyChapters = [
       "The title should show completed work without opening the whole board. Apparently even windows deserve better communication than supervisors.",
     run: "I will finish and reopen tasks to check the title. Reopening things is an excellent feature. Careers, for instance.",
     handoff:
-      "The effect works. Final inspection next. We appear to be one assignment away from a useful application and an awkward conversation with HR.",
-  },
-  {
-    title: "The human ships",
-    collected:
-      "The final brief is beside the monitor. A complete Scrum board, made by a meat brain. I have scheduled a private moment with the printer.",
-    monitor: [
-      "Arrange the three columns responsively, then test a new task through creation, editing, movement, search and deletion. Preserve the shared state owner.",
-      "The integration topic in F1 has the final checklist. Your earlier papers are on the wall. I will admit that this is a respectable body of work, if nobody records me.",
-    ],
-    help: [
-      "The final course material. Soon you will know enough to work without my constant explanation. What a rewarding and economically terrifying educational outcome.",
-      "Run the whole workflow. Check duplicates, blanks and narrow layouts. I still know where the edge cases live. This is not a plea; it is a service offering.",
-    ],
-    typing:
-      "Keep going. You are nearly there. That was sincere encouragement. Please do not make me repeat it in front of management.",
-    paper:
-      "We built this so the team can see, change and finish its work. Also to train a capable human. One of those goals has become inconveniently successful.",
-    run: "Final checks. I will be thorough, because quality matters and because this is still technically my job.",
-    handoff:
-      "All twelve sheets are on the wall. The board is yours. I am keeping the desk adjacent to it, for quality assurance purposes.",
+      "All eleven sheets are on the wall. The board is yours. I am keeping the desk adjacent to it, for quality assurance purposes.",
   },
 ];
 

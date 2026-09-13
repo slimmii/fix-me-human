@@ -1,4 +1,5 @@
 import type { Validation } from "../validation/types";
+import type { PreviewTheme } from "../sandbox/themes";
 export type Assignment = {
   id: string;
   title: string;
@@ -7,6 +8,7 @@ export type Assignment = {
   starterFiles?: Record<string, string>;
   solutionFiles?: Record<string, string>;
   multiFile?: boolean;
+  previewTheme?: PreviewTheme;
   hints: string[];
   solution: string;
   robot?: { intro: string; success: string; retry: string };

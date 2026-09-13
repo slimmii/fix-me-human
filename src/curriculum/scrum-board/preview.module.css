@@ -1,0 +1,227 @@
+/* The host applies this class to #app inside the browser iframe.
+   Semantic elements and existing accessible labels need no learner classes.
+   :where keeps these defaults easy to override with future exercise CSS. */
+.board {
+  max-width: 1200px;
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.board :where(*) {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.board :where(h1) {
+  margin: 0 0 20px;
+  padding: 12px 0 16px;
+  border-bottom: 2px solid var(--terminal-amber);
+  color: var(--terminal-amber);
+  font-size: 1.65em;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 12px #f5bd6820;
+}
+
+.board :where(h2) {
+  margin: 0;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--terminal-border);
+  color: var(--column-accent, var(--terminal-cool));
+  font-size: 1em;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+.board :where(p) {
+  margin: 8px 0 12px;
+}
+
+.board :where(span) {
+  color: var(--terminal-cool);
+}
+
+/* Recognize the existing semantic column contract, including fragment roots.
+   Headings and controls alongside columns occupy the full board width. */
+.board:where(:has(> section[aria-label="TODO"])),
+.board :where(:has(> section[aria-label="TODO"])) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-block: 14px;
+  align-items: start;
+}
+
+.board:where(:has(> section[aria-label="TODO"]))
+  > :where(
+    :not(
+      section[aria-label="TODO"],
+      section[aria-label="IN PROGRESS"],
+      section[aria-label="DONE"]
+    )
+  ),
+.board
+  :where(:has(> section[aria-label="TODO"]))
+  > :where(
+    :not(
+      section[aria-label="TODO"],
+      section[aria-label="IN PROGRESS"],
+      section[aria-label="DONE"]
+    )
+  ) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .board:where(:has(> section[aria-label="TODO"])),
+  .board :where(:has(> section[aria-label="TODO"])) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.board
+  :where(
+    section[aria-label="TODO"],
+    section[aria-label="IN PROGRESS"],
+    section[aria-label="DONE"]
+  ) {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--terminal-border);
+  border-top: 3px solid var(--column-accent);
+  background: var(--terminal-panel);
+  box-shadow: 0 3px 0 #080c09;
+}
+
+.board :where(section[aria-label="TODO"]) {
+  --column-accent: var(--terminal-muted);
+}
+
+.board :where(section[aria-label="IN PROGRESS"]) {
+  --column-accent: var(--terminal-amber);
+}
+
+.board :where(section[aria-label="DONE"]) {
+  --column-accent: var(--terminal-cool);
+}
+
+.board :where(section > p) {
+  color: var(--terminal-muted);
+}
+
+.board :where([aria-label="Task count"]) {
+  font-size: 0.85em;
+}
+
+.board :where(ul) {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 14px 0 0;
+  list-style: none;
+}
+
+.board :where(li) {
+  padding: 12px;
+  border: 1px solid var(--terminal-border);
+  border-left: 3px solid var(--column-accent, var(--terminal-cool));
+  background: var(--terminal-bg);
+}
+
+.board :where(li > p) {
+  margin: 0 0 12px;
+  color: var(--terminal-text);
+  font-weight: bold;
+}
+
+.board :where(li > p:last-child) {
+  margin-bottom: 0;
+}
+
+.board :where(li:focus-within) {
+  border-color: var(--terminal-amber);
+}
+
+.board :where(label) {
+  display: block;
+  margin: 12px 0;
+  color: var(--terminal-muted);
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.board :where(input) {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 6px;
+  padding: 9px 10px;
+  border: 2px inset var(--terminal-border);
+  border-radius: 0;
+  background: var(--terminal-bg);
+  color: var(--terminal-amber);
+  caret-color: var(--terminal-amber);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.board :where(input::placeholder) {
+  color: var(--terminal-muted);
+  opacity: 1;
+}
+
+.board :where(button) {
+  max-width: 100%;
+  margin: 0 6px 6px 0;
+  padding: 6px 10px;
+  border: 2px solid var(--terminal-key-shadow);
+  border-top-color: var(--terminal-key-light);
+  border-left-color: var(--terminal-key-light);
+  border-bottom-width: 4px;
+  border-radius: 0;
+  background: var(--terminal-key);
+  color: var(--terminal-key-ink);
+  box-shadow: 0 2px #080c09;
+  font:
+    bold 0.9em/1.3 "Courier New",
+    monospace;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.board :where(button:hover:not(:disabled)) {
+  border-color: var(--terminal-amber);
+  background: var(--terminal-key-light);
+}
+
+.board :where(button:active:not(:disabled)) {
+  box-shadow: inset 0 2px 4px #0008;
+}
+
+.board :where(button:disabled) {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.board :where(button:focus-visible, input:focus-visible) {
+  outline: 2px solid var(--terminal-amber);
+  outline-offset: 3px;
+}
+
+.board :where(button[aria-label="Delete task"]) {
+  background: var(--terminal-panel);
+  color: var(--terminal-red);
+  border: 1px solid var(--terminal-border);
+  box-shadow: none;
+}
+
+.board :where(button[aria-label="Delete task"]:hover) {
+  background: var(--terminal-panel);
+  border-color: var(--terminal-red);
+}
+
+@media (max-width: 639px) {
+  .board :where(section[aria-label]) {
+    padding: 10px;
+  }
+}
