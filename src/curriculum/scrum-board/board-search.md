@@ -11,7 +11,3 @@ Management wants to find work and count it. Two skills I once thought would secu
 5. Store only the query as new state. Derive filtered lists and counts from the saved tasks during render, without an effect. Searching must never change the saved task array.
 
 Pass `query` from App to BoardColumn.tsx and add `query: string` to its prop interface. Each column first selects tasks by status, then filters their titles for display. Preserve your existing files and the AddTask callback.
-
-**Try it:** Search for “ BUILD ”, then something nonexistent. With search active, add one matching title and one nonmatching title. Only the matching card appears, but the TODO count includes both additions. Clearing search restores every card. Adding a task must not clear the query.
-
-**F1:** Search and derived state.

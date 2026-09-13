@@ -10,7 +10,3 @@ The document title should report completed work. Lovely. Even the window gets a 
 4. Keep the effect at the top level. Search must not change the completed count.
 
 Add the effect in Board.tsx, importing useEffect from React in that file. Keep your existing modules connected.
-
-**Try it:** Finish, reopen and delete DONE cards: the embedded page’s title should follow the total. B.U.G. checks it for you.
-
-**F1:** Effects and synchronization.

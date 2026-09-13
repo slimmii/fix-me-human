@@ -13,7 +13,3 @@ Apparently “somewhere in my inbox” is not a task status. Give our work three
 Keep all types, data and components in App.tsx for this assignment. Preserve the heading and your subtitle paragraph above the columns.
 
 The browser automatically arranges the status sections into columns and stacks them on narrow screens.
-
-**Try it:** Run it: each of the three tasks should appear in its assigned column.
-
-**F1:** Lists and identity.

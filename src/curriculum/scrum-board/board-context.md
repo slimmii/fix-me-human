@@ -11,7 +11,3 @@ Too many components are forwarding messages. Context can handle that now. Anothe
 5. In `BoardColumn.tsx` and `AddTask.tsx`, import `TaskContext` and read it with `useContext` at the component's top level. Throw a clear error if the value is null before reading its tasks or actions. Remove the board data and action props that Board no longer needs to forward. TaskCard may also read actions directly from context or still receive callbacks.
 
 Keep the query local to Board and input and edit drafts local to their components. Each column now reads tasks from context and combines them with its status and query props to derive counts and visible cards. Preserve the existing controls, labels, filtering and empty messages.
-
-**Try it:** Add a task, edit its title, move it through all three columns, then delete it. Repeat with search active. Each change must affect the same task while the other cards stay intact, the query stays unchanged and counts include hidden tasks.
-
-**F1:** Context and providers.

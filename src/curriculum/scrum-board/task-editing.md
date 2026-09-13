@@ -13,7 +13,3 @@ Tasks need corrections and removal. Practice on the cards, please. My position i
 Edit TaskCard.tsx for the local draft and controls, BoardColumn.tsx for forwarding callbacks, and App.tsx for updates to the shared tasks. Each file imports the hooks and types it uses.
 
 Update the full saved task array, including tasks hidden by search. Keep the query unchanged. A saved title that no longer matches should disappear from the filtered view, while its column's total stays the same. Deletion reduces that total.
-
-**Try it:** Edit, cancel, save, then delete one of two identically named tasks. Its twin must survive. Search for “plan” and rename Plan sprint to “Write agenda”; it should disappear until you clear or change search. Find it again and delete it, checking the column count.
-
-**F1:** Immutable editing and deletion.

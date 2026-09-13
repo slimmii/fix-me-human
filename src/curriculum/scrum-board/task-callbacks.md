@@ -13,7 +13,3 @@ We need proof that work actually moves. I used to provide that proof verbally. N
 Update the prop interfaces in TaskCard.tsx and BoardColumn.tsx as callbacks pass through them. Import TaskStatus from tasks.ts wherever a callback needs it.
 
 Keep the query in App and preserve the search input, query prop, counts and empty messages. Move tasks in the full saved array, using their IDs. Derive each column's total and visible cards again after the update; moving a card must not clear the query.
-
-**Try it:** Search for “plan”, move Plan sprint through all three columns and reopen it. The matching card should follow its status, and counts should include hidden tasks. Clear search to reveal the unchanged neighbors. Adding tasks must still work.
-
-**F1:** Callbacks and shared state.

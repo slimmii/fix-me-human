@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from "react";
+import { Html } from "@react-three/drei";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Box } from "./primitives";
 import { printTexture } from "./printTexture";
@@ -10,8 +11,51 @@ const indicators = ["HS", "AA", "CD", "OH", "RD", "SD", "TR", "MR"];
 export function Modem({
   focused,
   onProp,
-}: Pick<SceneProps, "focused" | "onProp">) {
+  mute,
+}: Pick<SceneProps, "focused" | "onProp" | "mute">) {
   const highlight = useHoverHighlight(undefined, !focused);
+  const audio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const player = new Audio(
+      `${import.meta.env.BASE_URL}audio/dial-up-handshake.mp3`,
+    );
+    player.preload = "auto";
+    player.volume = 0.65;
+    audio.current = player;
+    return () => {
+      audio.current = null;
+      player.pause();
+      player.removeAttribute("src");
+      player.load();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (audio.current) audio.current.muted = mute;
+  }, [mute]);
+
+  async function connect() {
+    const player = audio.current;
+    if (!player) return;
+    onProp(
+      "U.S. Robotics 56K modem. Please ask everyone to stay off the phone. The internet is coming through.",
+    );
+    try {
+      // Reuse one player so repeated clicks restart, never layer handshakes.
+      player.muted = mute;
+      if (player.error) player.load();
+      player.currentTime = 0;
+      await player.play();
+    } catch (error) {
+      if (audio.current !== player) return;
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      onProp(
+        "No carrier. The modem couldn't play its handshake. Try again, human.",
+      );
+    }
+  }
+
   const textures = useMemo(() => {
     const lid = document.createElement("canvas");
     lid.width = 1024;
@@ -67,9 +111,7 @@ export function Modem({
       position={[-1.96, 1.585, -0.38]}
       onClick={(event) => {
         event.stopPropagation();
-        onProp(
-          "U.S. Robotics 56K modem. Please ask everyone to stay off the phone. The internet is coming through.",
-        );
+        void connect();
       }}
     >
       {[-0.43, 0.43].flatMap((x) =>
@@ -105,6 +147,35 @@ export function Modem({
         <planeGeometry args={[1.02, 0.3984]} />
         <meshBasicMaterial map={textures.lid} transparent depthWrite={false} />
       </mesh>
+      <Html
+        transform
+        position={[0, 0.142, 0.045]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        distanceFactor={2}
+        zIndexRange={[4, 0]}
+      >
+        <button
+          {...highlight.html}
+          aria-label="Play dial-up handshake on the U.S. Robotics modem"
+          title={`Play dial-up handshake${mute ? " (sound is muted)" : ""}`}
+          style={{
+            display: "block",
+            width: 204,
+            height: 80,
+            padding: 0,
+            border: 0,
+            background: "transparent",
+            boxShadow: "none",
+            transform: "none",
+            cursor: "pointer",
+            visibility: focused ? "hidden" : "visible",
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            void connect();
+          }}
+        />
+      </Html>
       <mesh position={[0, 0.008, 0.435]}>
         <planeGeometry args={[0.98, 0.153125]} />
         <meshBasicMaterial

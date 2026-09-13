@@ -13,7 +13,11 @@ export function Workstation({
   onProp,
   computer,
   reduced,
-}: Pick<Props, "focused" | "onComputer" | "onProp" | "computer" | "reduced">) {
+  mute,
+}: Pick<
+  Props,
+  "focused" | "onComputer" | "onProp" | "computer" | "reduced" | "mute"
+>) {
   const highlight = useHoverHighlight(undefined, !focused);
   const keyboardHighlight = useHoverHighlight();
   return (
@@ -88,7 +92,7 @@ export function Workstation({
         )}
       </group>
       <TissueBox reduced={reduced} focused={focused} onProp={onProp} />
-      <Modem focused={focused} onProp={onProp} />
+      <Modem focused={focused} onProp={onProp} mute={mute} />
     </>
   );
 }

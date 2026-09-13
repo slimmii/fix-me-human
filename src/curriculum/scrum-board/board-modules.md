@@ -11,7 +11,3 @@ The board works, but everyone is sharing one file. Give the components their own
 5. Keep `App.tsx` as the entry point. Import BoardColumn and the task data it uses. Remove the old copies of moved definitions from App so each definition has one home.
 
 Preserve the heading and subtitle, the three status sections, their labels, task IDs and existing behavior. F5 runs the connected project regardless of which file is open. Changes save automatically and carry forward to the next assignment.
-
-**Try it:** Run the project: each task should still appear in the same column. Change a title in `tasks.ts`, run again, and confirm the corresponding card updates.
-
-**F1:** Modules and files.

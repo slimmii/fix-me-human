@@ -22,5 +22,3 @@ export default function App() {
 Both forms produce the same result. Choose the version that makes your code easier to read.
 
 A variable is useful when several parts of the page use the same value. This simple variable is not interactive state: it has the value assigned when the component runs. Changing the source and running again updates the program.
-
-**Try it:** replace the name, add a second line of text, and check the output. Your task brief tells you the exact heading required for submission.
