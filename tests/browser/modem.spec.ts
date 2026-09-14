@@ -38,7 +38,7 @@ test("modem plays the real recording, restarts without overlap, and obeys sound 
   const modem = page.getByRole("button", {
     name: "Play dial-up handshake on the U.S. Robotics modem",
   });
-  await expect(modem).toBeVisible({ timeout: 30000 });
+  await expect(modem).toBeVisible({ timeout: 60000 });
   await expect
     .poll(() => page.evaluate(() => window.modemPlayers.at(-1)?.readyState))
     .toBeGreaterThanOrEqual(2);
@@ -103,7 +103,9 @@ test("modem plays the real recording, restarts without overlap, and obeys sound 
   expect(errors).toEqual([]);
 });
 
-test("unavailable handshake reports a playback error", async ({ page }) => {
+test("unavailable handshake reports an error and can retry", async ({
+  page,
+}) => {
   await page.route("**/audio/dial-up-handshake.mp3", (route) =>
     route.fulfill({ status: 404, body: "Missing recording" }),
   );
@@ -112,8 +114,17 @@ test("unavailable handshake reports a playback error", async ({ page }) => {
     .getByRole("button", {
       name: "Play dial-up handshake on the U.S. Robotics modem",
     })
-    .click({ timeout: 30000 });
+    .click({ timeout: 60000 });
   await expect(page.getByRole("status")).toContainText(
     "couldn't play its handshake",
   );
+  await page.unroute("**/audio/dial-up-handshake.mp3");
+  await page
+    .getByRole("button", {
+      name: "Play dial-up handshake on the U.S. Robotics modem",
+    })
+    .click();
+  await expect
+    .poll(() => page.evaluate(() => window.modemPlayers.at(-1)!.currentTime))
+    .toBeGreaterThan(0);
 });

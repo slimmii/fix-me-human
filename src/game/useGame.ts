@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { sound } from "../audio";
 import { curriculum } from "../curriculum";
 import {
@@ -21,7 +21,12 @@ import {
   type StoryMood,
 } from "./story";
 import { storyChapters } from "./storyScripts";
-import { createOfficeClock } from "./officeTime";
+import {
+  createOfficeClock,
+  pauseOfficeClock,
+  recordOfficeBug,
+  resumeOfficeClock,
+} from "./officeTime";
 import { createWorkstationId } from "./workstation";
 
 const assignments = curriculum.flatMap((lesson) => lesson.assignments);
@@ -68,7 +73,9 @@ export function useGame() {
     const saved = loadSave();
     return {
       ...saved,
-      officeClock: saved.officeClock ?? createOfficeClock(),
+      officeClock: (document.hidden ? pauseOfficeClock : resumeOfficeClock)(
+        saved.officeClock ?? createOfficeClock(),
+      ),
       workstationId: saved.workstationId ?? createWorkstationId(),
     };
   });
@@ -76,10 +83,10 @@ export function useGame() {
     const now = Date.now();
     setSave((current) => ({
       ...current,
-      officeClock: {
-        ...(current.officeClock ?? createOfficeClock(now)),
-        lastBugAt: now,
-      },
+      officeClock: recordOfficeBug(
+        current.officeClock ?? createOfficeClock(now),
+        now,
+      ),
     }));
   }, []);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
@@ -169,9 +176,42 @@ export function useGame() {
       );
     });
   }, [assignment.id]);
+  const latestSave = useRef(save);
   useEffect(() => {
+    latestSave.current = save;
     setSaved(persist(save));
   }, [save]);
+  useEffect(() => {
+    function setClockRunning(running: boolean) {
+      const current = latestSave.current;
+      const next = {
+        ...current,
+        officeClock: (running ? resumeOfficeClock : pauseOfficeClock)(
+          current.officeClock ?? createOfficeClock(),
+        ),
+      };
+      latestSave.current = next;
+      setSave(next);
+      // Save synchronously: React may not commit another render before leaving.
+      setSaved(persist(next));
+    }
+    const onVisibilityChange = () => setClockRunning(!document.hidden);
+    const onPageHide = () => setClockRunning(false);
+    const onPageShow = () => setClockRunning(!document.hidden);
+    // Keep a recent checkpoint even if the browser is closed without pagehide.
+    const timer = setInterval(() => {
+      if (!document.hidden) setSaved(persist(latestSave.current));
+    }, 1000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, []);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.key !== "Escape") return;

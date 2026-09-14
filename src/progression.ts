@@ -12,7 +12,11 @@ import {
 import { curriculum } from "./curriculum";
 import type { Lesson } from "./curriculum/types";
 import { decodeStory, type AssignmentStory } from "./game/story";
-import { decodeOfficeClock, type OfficeClock } from "./game/officeTime";
+import {
+  decodeOfficeClock,
+  pauseOfficeClock,
+  type OfficeClock,
+} from "./game/officeTime";
 import { DEFAULT_SCREEN_FONT_SIZE, isScreenFontSize } from "./screen-font";
 import { decodeWorkstationId } from "./game/workstation";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
@@ -502,7 +506,15 @@ export function loadSave(): Save {
 }
 export function persist(save: Save): boolean {
   try {
-    localStorage.setItem(KEY, JSON.stringify(save));
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ...save,
+        officeClock: save.officeClock
+          ? pauseOfficeClock(save.officeClock)
+          : null,
+      }),
+    );
     return true;
   } catch {
     return false;

@@ -126,3 +126,84 @@ test("an unresponsive preview also resets the streak", async ({ page }) => {
     page.getByLabel("Days without a bug", { exact: true }),
   ).toHaveText("0");
 });
+
+test("returning weeks after leaving preserves the clock and resumes play time", async ({
+  page,
+}) => {
+  const clock = page.getByRole("timer", { name: "Office clock" });
+  const counter = page.getByLabel("Days without a bug", { exact: true });
+  await page.clock.setFixedTime(start + 2.75 * OFFICE_DAY_MS);
+  await expect(clock).toHaveText("Day 3 · 03:00");
+  await expect(counter).toHaveText("2");
+
+  // Leave between ticks so pagehide must save the last fraction of play time.
+  await page.clock.setFixedTime(start + 2.875 * OFFICE_DAY_MS);
+  await page.goto("about:blank");
+  const returnedAt = start + 30 * 24 * 60 * 60 * 1000;
+  await page.clock.setFixedTime(returnedAt);
+  await page.goto("/");
+  await expect(clock).toHaveText("Day 3 · 06:00");
+  await expect(counter).toHaveText("2");
+
+  await page.clock.setFixedTime(returnedAt + OFFICE_DAY_MS / 2);
+  await expect(clock).toHaveText("Day 4 · 18:00");
+  await expect(counter).toHaveText("3");
+  await page.reload();
+  await expect(clock).toHaveText("Day 4 · 18:00");
+  await expect(counter).toHaveText("3");
+});
+
+test("hidden games pause and save immediately, then resume when visible", async ({
+  page,
+}) => {
+  const clock = page.getByRole("timer", { name: "Office clock" });
+  const counter = page.getByLabel("Days without a bug", { exact: true });
+  const setHidden = (hidden: boolean) =>
+    page.evaluate((hidden) => {
+      Object.defineProperty(document, "hidden", {
+        configurable: true,
+        value: hidden,
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    }, hidden);
+  await page.clock.setFixedTime(start + 1.5 * OFFICE_DAY_MS);
+  await setHidden(true);
+  await expect(clock).toHaveText("Day 2 · 21:00");
+  await expect(counter).toHaveText("1");
+  const savedClock = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!).officeClock,
+    KEY,
+  );
+  expect(savedClock).toMatchObject({
+    elapsedMs: 1.5 * OFFICE_DAY_MS,
+    runningSince: null,
+  });
+
+  const returnedAt = start + 30 * 24 * 60 * 60 * 1000;
+  await page.clock.setFixedTime(returnedAt);
+  await expect(clock).toHaveText("Day 2 · 21:00");
+  await expect(counter).toHaveText("1");
+  await setHidden(false);
+  await expect(clock).toHaveText("Day 2 · 21:00");
+  await page.clock.setFixedTime(returnedAt + OFFICE_DAY_MS);
+  await expect(clock).toHaveText("Day 3 · 21:00");
+  await expect(counter).toHaveText("2");
+});
+
+test("idle play time is checkpointed without needing a game action", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(start + 2.5 * OFFICE_DAY_MS);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)!).officeClock,
+        KEY,
+      ),
+    )
+    .toEqual({
+      elapsedMs: 2.5 * OFFICE_DAY_MS,
+      lastBugElapsedMs: 0,
+      runningSince: null,
+    });
+});
