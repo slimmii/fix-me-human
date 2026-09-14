@@ -152,7 +152,7 @@ export function CoffeeMug({
   }
 
   return (
-    <group position={[-1.9, COFFEE.deskHeight, 0.65]}>
+    <group position={[-1.9, COFFEE.deskHeight, 0.65]} scale={0.66}>
       {!reduced && (
         <group ref={steam}>
           <CoffeeSteam airflow={airflow} />
