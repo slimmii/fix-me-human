@@ -41,6 +41,7 @@ export function ContentScreen({
   keyboardActive,
   onPrevious,
   onNext,
+  onRead,
   courseNavigation = false,
 }: {
   title: string;
@@ -51,6 +52,7 @@ export function ContentScreen({
   keyboardActive: boolean;
   onPrevious?: () => void;
   onNext?: () => void;
+  onRead?: () => void;
   courseNavigation?: boolean;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -59,7 +61,13 @@ export function ContentScreen({
   const track = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; top: number } | null>(null);
   const scrollId = useId();
-  const [position, setPosition] = useState({ top: 0, height: 0, total: 0 });
+  const readKey = useRef<string | null>(null);
+  const [position, setPosition] = useState({
+    key: contentKey,
+    top: 0,
+    height: 0,
+    total: 0,
+  });
   const maximum = Math.max(0, position.total - position.height);
   const thumbSize = position.total
     ? Math.max(8, (position.height / position.total) * 100)
@@ -69,11 +77,13 @@ export function ContentScreen({
     scroll.current?.scrollBy({ top: amount, behavior: "instant" });
 
   useEffect(() => {
+    readKey.current = null;
     heading.current?.focus({ preventScroll: true });
     scroll.current?.scrollTo(0, 0);
     const viewport = scroll.current!;
     const measure = () =>
       setPosition({
+        key: contentKey,
         top: viewport.scrollTop,
         height: viewport.clientHeight,
         total: viewport.scrollHeight,
@@ -88,6 +98,21 @@ export function ContentScreen({
       viewport.removeEventListener("scroll", measure);
     };
   }, [contentKey]);
+
+  useEffect(() => {
+    if (
+      !onRead ||
+      !keyboardActive ||
+      readKey.current === contentKey ||
+      position.key !== contentKey ||
+      position.height <= 0 ||
+      position.total <= 0 ||
+      maximum - position.top > 2
+    )
+      return;
+    readKey.current = contentKey;
+    onRead();
+  }, [contentKey, keyboardActive, maximum, onRead, position]);
 
   useEffect(() => {
     if (!keyboardActive) return;

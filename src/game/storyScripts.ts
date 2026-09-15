@@ -8,7 +8,7 @@ export const storyChapters = [
       "Your assignment is waiting beside the monitor. You can read it while using our state-of-the-art computer machine. Click the monitor to begin. It has almost no steam leaks.",
     monitor: [
       "Welcome to B.U.G. BASIC. Write your React component in App.tsx. F5 runs it in BUGSCAPE; F6 returns to your code. Your first job is the Sprint board heading.",
-      "The paper stays beside the screen: click it whenever you need the brief. F1 or Help opens the course material, and Hint offers a smaller nudge. Your code saves as you type.",
+      "The paper stays beside the screen: click it whenever you need the brief. F1 or Help opens the course material. Click me while using the computer for a smaller nudge. Your code saves as you type.",
     ],
     help: [
       "Ah, the course material! I wrote it for someone with your processing capacity. That means clear examples and absolutely no judgment from this reassuring rectangle.",
@@ -249,7 +249,7 @@ export function chapterLines(
       ];
     case "ready":
       return [
-        `Your new assignment, ${assignment.title}, is ready. Grab the paper from the printer, human. It won’t walk to your desk.`,
+        `Your new assignment, ${assignment.title}, is ready. Grab the paper from the printer next to the computer and read it, human. It won’t walk to your desk.`,
       ];
     case "collected":
       return [chapter.collected];
@@ -258,10 +258,12 @@ export function chapterLines(
     case "missing-paper":
       return [
         detail === "waiting"
-          ? "Straight to the computer without an assignment. Bold. Were you planning to debug by telepathy? Finish my briefing, print the assignment, then pick up the paper from the printer, human."
+          ? "Straight to the computer without an assignment. Bold. Were you planning to debug by telepathy? Finish my briefing, print the assignment, then pick up the paper next to the computer and read it, human."
           : detail === "printing"
-            ? "The assignment is still printing. Even your enthusiasm cannot make paper download faster. Wait for the printer, then pick up the paper, human."
-            : "A computer, yes. An assignment, no. One of those is rather useful for knowing what to do. Pick up the paper from the printer, human.",
+            ? "The assignment is still printing. Even your enthusiasm cannot make paper download faster. Wait for the printer, then pick up the paper next to the computer and read it, human."
+            : detail === "collected"
+              ? "You picked up the assignment, but you have not opened it. Paper is a poor wireless transmitter. Open and read the assignment next to the computer, human."
+              : "A computer, yes. An assignment, no. One of those is rather useful for knowing what to do. Pick up the paper next to the computer and read it, human.",
       ];
     case "help":
       return chapter.help;

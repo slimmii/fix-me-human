@@ -1,15 +1,65 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { unlockedTopics } from "../course";
+import type { CoursePage } from "../course/types";
 import { ContentScreen, LessonMarkdown } from "./ContentScreen";
+
+function CourseMaterial({
+  page,
+  onJoke,
+  ...reader
+}: Omit<ComponentProps<typeof ContentScreen>, "children" | "onRead"> & {
+  page: CoursePage;
+  onJoke: (text: string) => void;
+}) {
+  const [read, setRead] = useState(false);
+  const openedAt = useRef<number | null>(null);
+  const finished = useRef(false);
+  const tellJoke = useRef(onJoke);
+  tellJoke.current = onJoke;
+
+  useEffect(() => {
+    if (!reader.keyboardActive || openedAt.current !== null) return;
+    openedAt.current = performance.now();
+    tellJoke.current(page.jokes.opened);
+  }, [page, reader.keyboardActive]);
+
+  useEffect(() => {
+    if (
+      !reader.keyboardActive ||
+      !read ||
+      finished.current ||
+      openedAt.current === null
+    )
+      return;
+    // Keep the opening line readable, including when the entire page fits.
+    const remaining = Math.max(
+      0,
+      4000 - (performance.now() - openedAt.current),
+    );
+    const timer = window.setTimeout(() => {
+      finished.current = true;
+      tellJoke.current(page.jokes.read);
+    }, remaining);
+    return () => window.clearTimeout(timer);
+  }, [page, read, reader.keyboardActive]);
+
+  return (
+    <ContentScreen {...reader} onRead={() => setRead(true)}>
+      <LessonMarkdown path={page.markdown} />
+    </ContentScreen>
+  );
+}
 
 export function EditorHelp({
   completed,
   keyboardActive,
   onClose,
+  onJoke,
 }: {
   completed: string[];
   keyboardActive: boolean;
   onClose: () => void;
+  onJoke: (text: string) => void;
 }) {
   const [topicId, setTopicId] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
@@ -21,6 +71,33 @@ export function EditorHelp({
     topic && index < topic.pages.length - 1
       ? () => setIndex(index + 1)
       : undefined;
+  const reader = {
+    title: page?.title ?? "Course topics",
+    eyebrow: topic?.title ?? "YOUR REFERENCE LIBRARY",
+    contentKey: page?.id ?? "course-topics",
+    keyboardActive,
+    courseNavigation: !!topic,
+    onPrevious: previous,
+    onNext: next,
+    actions: (
+      <>
+        {topic && (
+          <>
+            <button disabled={!previous} onClick={previous}>
+              ← Previous
+            </button>
+            <span aria-live="polite">
+              Page {index + 1} of {topic.pages.length}
+            </span>
+            <button disabled={!next} onClick={next}>
+              Next →
+            </button>
+            <button onClick={() => setTopicId(null)}>Topics</button>
+          </>
+        )}
+      </>
+    ),
+  };
   return (
     <aside
       className="editor-help"
@@ -39,36 +116,10 @@ export function EditorHelp({
           Editor · Esc
         </button>
       </header>
-      <ContentScreen
-        title={page?.title ?? "Course topics"}
-        eyebrow={topic?.title ?? "YOUR REFERENCE LIBRARY"}
-        contentKey={page?.id ?? "course-topics"}
-        keyboardActive={keyboardActive}
-        courseNavigation={!!topic}
-        onPrevious={previous}
-        onNext={next}
-        actions={
-          <>
-            {topic && (
-              <>
-                <button disabled={!previous} onClick={previous}>
-                  ← Previous
-                </button>
-                <span aria-live="polite">
-                  Page {index + 1} of {topic.pages.length}
-                </span>
-                <button disabled={!next} onClick={next}>
-                  Next →
-                </button>
-                <button onClick={() => setTopicId(null)}>Topics</button>
-              </>
-            )}
-          </>
-        }
-      >
-        {page ? (
-          <LessonMarkdown path={page.markdown} />
-        ) : (
+      {page ? (
+        <CourseMaterial key={page.id} page={page} onJoke={onJoke} {...reader} />
+      ) : (
+        <ContentScreen {...reader}>
           <>
             <div className="lesson-markdown">
               <p>
@@ -98,8 +149,8 @@ export function EditorHelp({
               ))}
             </ul>
           </>
-        )}
-      </ContentScreen>
+        </ContentScreen>
+      )}
     </aside>
   );
 }

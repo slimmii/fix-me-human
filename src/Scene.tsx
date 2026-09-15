@@ -22,6 +22,7 @@ export default function Scene(props: Props) {
     | ((pointer: THREE.Vector2, event: { stopPropagation: () => void }) => void)
     | null
   >(null);
+  const robotClick = useRef<((pointer: THREE.Vector2) => boolean) | null>(null);
   useEffect(() => {
     if (props.focused) setWallFocus(null);
   }, [props.focused]);
@@ -74,12 +75,18 @@ export default function Scene(props: Props) {
         key={String(quality.antialias)}
         onPointerMissed={() => setWallFocus(null)}
         onClickCapture={(e) => {
-          if (!wallFocus) return;
+          if (props.focused && !(e.target instanceof HTMLCanvasElement)) return;
+          if (!wallFocus && !props.focused) return;
           const rect = e.currentTarget.getBoundingClientRect();
           const pointer = new THREE.Vector2(
             ((e.clientX - rect.left) / rect.width) * 2 - 1,
             (-(e.clientY - rect.top) / rect.height) * 2 + 1,
           );
+          if (props.focused) {
+            e.stopPropagation();
+            if (!robotClick.current?.(pointer)) props.onLeaveComputer();
+            return;
+          }
           wallClick.current?.(pointer, e);
         }}
         frameloop={props.reduced && idle ? "demand" : "always"}
@@ -100,6 +107,7 @@ export default function Scene(props: Props) {
             onCertificate={() => setWallFocus("certificate")}
             onDesk={() => setWallFocus(null)}
             wallClick={wallClick}
+            robotClick={robotClick}
           />
         </Suspense>
       </Canvas>

@@ -16,6 +16,57 @@ async function seed(page: import("@playwright/test").Page) {
   );
 }
 
+test("B.U.G. reminds the player to read collected paper and stops after it is opened", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/");
+  const dialogue = page.getByRole("region", {
+    name: "Conversation with B.U.G.",
+  });
+  const next = page.getByRole("button", { name: "Continue B.U.G. dialogue" });
+  const editor = page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByLabel("Your React code");
+  await page.locator('[data-surface="crt-glass"]').click();
+  await page.getByRole("button", { name: "Ask B.U.G. for a hint" }).click();
+  await expect(dialogue).toContainText("Hint 1:");
+  await expect(dialogue).toContainText(
+    "pick up the printed assignment next to the computer and read it",
+  );
+  await next.click();
+  await next.click();
+  await next.click();
+  await editor.press("Escape");
+  const pickup = page.getByRole("button", { name: /^Grab new assignment:/ });
+  await expect(pickup).toBeEnabled({ timeout: 15000 });
+  await pickup.click();
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "missing-paper");
+  await expect(dialogue).toContainText(
+    "Open and read the assignment next to the computer",
+  );
+  await page.getByRole("button", { name: "Ask B.U.G. for a hint" }).click();
+  await expect(dialogue).toContainText("Hint 2:");
+  await expect(dialogue).toContainText(
+    "Open and read the assignment next to the computer",
+  );
+  await editor.press("Escape");
+  await page.reload();
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "missing-paper");
+  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "paper");
+  await page.getByRole("button", { name: "Put assignment down" }).click();
+  await page.reload();
+  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(dialogue).toHaveAttribute("data-story-event", "monitor");
+  await page.getByRole("button", { name: "Ask B.U.G. for a hint" }).click();
+  await expect(dialogue).toContainText("Hint 1:");
+  await expect(dialogue).not.toContainText("Open and read the assignment");
+  await expect(dialogue).not.toContainText("pick up the printed assignment");
+});
+
 test("player-led story prints, remembers delivery and reacts to the whole first chapter", async ({
   page,
 }) => {
@@ -103,7 +154,10 @@ test("player-led story prints, remembers delivery and reacts to the whole first 
   await expect(caption).toContainText(first.robot!.retry);
   await expect(caption).toContainText("Sprint board");
   await page.getByRole("button", { name: "← Editor F6" }).click();
-  await page.getByRole("menuitem", { name: "Hint", exact: true }).click();
+  await expect(
+    page.getByRole("menuitem", { name: "Hint", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Ask B.U.G. for a hint" }).click();
   await expect(caption).toContainText(first.hints[0]);
   await next.click();
   await expect(caption).toContainText("A hint is part of learning");

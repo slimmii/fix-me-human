@@ -17,10 +17,39 @@ const context: StoryContext = {
   assignment: assignments[0],
   chapter: 0,
   collected: false,
+  read: false,
   completed: false,
 };
 
 describe("B.U.G. story director", () => {
+  it("shows requested hints immediately without skipping the print decision", () => {
+    const script = initialStory(context);
+    const reminded = tellStory(script, "monitor", context);
+    const hint = tellStory(
+      reminded,
+      "hint",
+      context,
+      "Hint 1: Start with a component.",
+    );
+    expect(hint.current).toEqual(script.current);
+    expect(hint.aside?.event).toBe("hint");
+    expect(hint.aside?.detail).toContain("Start with a component");
+    expect(decodeStory(hint, context)).toEqual(hint);
+    const encouragement = continueStory(hint, context);
+    expect(encouragement.aside?.page).toBe(1);
+    expect(encouragement.delivery).toBe("waiting");
+    expect(continueStory(encouragement, context)).toEqual(script);
+    const working = { ...context, collected: true };
+    const remark = tellStory(
+      initialStory(working),
+      "aside",
+      working,
+      "Coffee.",
+    );
+    const requested = tellStory(remark, "hint", working, "Hint 2: Return JSX.");
+    expect(requested.aside).toBeUndefined();
+    expect(requested.current.detail).toBe("Hint 2: Return JSX.");
+  });
   it("only the player's continuation of a briefing requests printing", () => {
     let story = initialStory(context);
     expect(story.delivery).toBe("waiting");
@@ -44,6 +73,9 @@ describe("B.U.G. story director", () => {
       expect(dialogueLines(reminded.aside!, context)[0]).toMatch(
         /pick up the paper/i,
       );
+      expect(dialogueLines(reminded.aside!, context)[0]).toContain(
+        "next to the computer and read it",
+      );
       expect(reminded.current).toEqual(story.current);
       expect(reminded.delivery).toBe(delivery);
       expect(reminded.seen).not.toContain("monitor");
@@ -63,12 +95,45 @@ describe("B.U.G. story director", () => {
         "monitor",
         collected,
       );
-      expect(entered.current.event).toBe("monitor");
+      expect(entered.aside?.event).toBe("missing-paper");
+      expect(dialogueLines(entered.aside!, collected)[0]).toContain(
+        "Open and read the assignment next to the computer",
+      );
+      expect(entered.seen).not.toContain("monitor");
+      const read = { ...collected, read: true };
+      const opened = tellStory(entered, "paper", read);
+      expect(opened.aside).toBeUndefined();
+      expect(opened.current.event).toBe("paper");
+      expect(tellStory(opened, "monitor", read).current.event).toBe("monitor");
     }
     const completed = { ...context, completed: true };
     expect(
       tellStory(initialStory(completed), "monitor", completed).aside,
     ).toBeUndefined();
+  });
+  it("includes pickup or reading reminders in hints until the assignment is read", () => {
+    const cue = {
+      event: "hint" as const,
+      page: 0,
+      detail: "Hint 1: Return JSX.",
+    };
+    const lines = dialogueLines(cue, context);
+    expect(lines[0]).toContain(cue.detail);
+    expect(lines[0]).toContain(
+      "pick up the printed assignment next to the computer and read it",
+    );
+    expect(dialogueLines(cue, { ...context, collected: true })[0]).toContain(
+      "Open and read the assignment next to the computer",
+    );
+    for (const finished of [
+      { ...context, collected: true, read: true },
+      { ...context, completed: true },
+    ]) {
+      expect(dialogueLines(cue, finished)[0]).toBe(cue.detail);
+      const reminded = tellStory(initialStory(context), "monitor", context);
+      expect(decodeStory(reminded, finished).aside).toBeUndefined();
+    }
+    expect(lines).toHaveLength(2);
   });
   it("plays a handoff and briefing before every subsequent print", () => {
     for (const [chapter, assignment] of assignments.entries()) {
@@ -93,7 +158,7 @@ describe("B.U.G. story director", () => {
     }
   });
   it("encourages typing once and preserves the rest of the interrupted tutorial", () => {
-    const ctx = { ...context, collected: true };
+    const ctx = { ...context, collected: true, read: true };
     let story = tellStory(initialStory(ctx), "monitor", ctx);
     story = tellStory(story, "typing", ctx);
     expect(story.current.event).toBe("typing");
@@ -217,7 +282,7 @@ describe("B.U.G. story director", () => {
     expect(continueStory(ready, context).current.event).toBe("ready");
   });
   it("restores remarks with their script cursor and repairs old off-script saves", () => {
-    const ctx = { ...context, collected: true };
+    const ctx = { ...context, collected: true, read: true };
     let script = tellStory(initialStory(ctx), "monitor", ctx);
     script = continueStory(script, ctx);
     const interrupted = tellStory(script, "aside", ctx, "Keyboard.");

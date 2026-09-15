@@ -38,6 +38,7 @@ function contextFor(save: Save): StoryContext {
     chapter,
     assignment: assignments[chapter],
     collected: save.collectedAssignments.includes(save.assignmentId),
+    read: save.readAssignments.includes(save.assignmentId),
     completed: save.completed.includes(save.assignmentId),
   };
 }
@@ -92,12 +93,16 @@ export function useGame() {
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [computerApp, setComputerApp] = useState<"basic" | "desktop" | "snake">(
+    "basic",
+  );
   const [settings, setSettings] = useState(false);
   const [saved, setSaved] = useState(true);
   const [showTasks, setShowTasks] = useState(false);
   const [editorRevision, setEditorRevision] = useState(0);
   const context = contextFor(save);
   const { assignment, chapter } = context;
+  const hintCursor = useRef({ assignmentKey: "", next: 0 });
   const lesson = curriculum.find((item) => item.id === save.lessonId)!;
   const story = storyFor(save);
   const dialogue = story.aside ?? story.current;
@@ -248,6 +253,20 @@ export function useGame() {
     setHelpOpen(true);
     activity("help");
   }
+  function requestHint() {
+    if (!focused || settings) return;
+    const assignmentKey = `${assignment.id}:${editorRevision}`;
+    if (hintCursor.current.assignmentKey !== assignmentKey)
+      hintCursor.current = { assignmentKey, next: 0 };
+    const index = assignment.hints.length
+      ? hintCursor.current.next % assignment.hints.length
+      : -1;
+    hintCursor.current.next = index + 1;
+    activity(
+      "hint",
+      index >= 0 ? `Hint ${index + 1}: ${assignment.hints[index]}` : undefined,
+    );
+  }
   function dispatch(action: Action) {
     setSave((current) => {
       let next = transition(current, action);
@@ -359,8 +378,11 @@ export function useGame() {
     helpOpen,
     setHelpOpen,
     openHelp,
+    requestHint,
     focused,
     setFocused,
+    computerApp,
+    setComputerApp,
     settings,
     setSettings,
     saved,
@@ -378,7 +400,9 @@ export function useGame() {
     continueDialogue,
     canContinueDialogue: canContinueStory(story, context),
     continueLabel: story.aside
-      ? "BACK TO WORK"
+      ? dialogue.page + 1 >= dialogueLines(dialogue, context).length
+        ? "BACK TO WORK"
+        : "Next"
       : story.current.event === "briefing" && story.delivery === "waiting"
         ? "Print assignment"
         : "Next",

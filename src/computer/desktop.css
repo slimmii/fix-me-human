@@ -1,0 +1,306 @@
+.bug-desktop {
+  --desktop-ink: #1b332c;
+  --desktop-paper: #d9dac2;
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  color: var(--desktop-ink);
+  background: #526d5e;
+  font-size: var(--terminal-font-size);
+}
+.desktop-surface {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  background-image: radial-gradient(#233f363d 0.7px, transparent 0.7px);
+  background-size: 3px 3px;
+}
+.desktop-menubar,
+.desktop-status {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+  background: var(--desktop-paper);
+  padding: 5px 22px;
+}
+.desktop-menubar {
+  min-height: 32px;
+  border-bottom: 2px solid var(--desktop-ink);
+  box-shadow: inset 0 1px #f4efd6;
+}
+.desktop-menubar b {
+  letter-spacing: 1px;
+}
+.desktop-menubar b span {
+  margin-right: 6px;
+}
+.desktop-menubar small {
+  margin-left: auto;
+  font-size: 0.8em;
+}
+.desktop-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 28px;
+  z-index: 1;
+}
+.machine-screen .desktop-icons button {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  width: 130px;
+  padding: 8px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  border-radius: 0;
+  color: #f0ecd3;
+  font-size: 1em;
+  font-weight: normal;
+  line-height: 1.2;
+}
+.desktop-icons svg {
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(2px 3px 0 #203b3655);
+}
+.desktop-icons button span {
+  padding: 3px 5px;
+  background: #3b5649;
+  white-space: nowrap;
+}
+.machine-screen .desktop-icons button:is(:hover, :focus-visible) {
+  color: #fff8dd;
+  background: #d9dac210;
+  border: 1px dotted #eae9ca;
+  outline: none;
+}
+.desktop-icons button:focus-visible span {
+  background: var(--desktop-paper);
+  color: var(--desktop-ink);
+}
+.desktop-watermark {
+  position: absolute;
+  right: 9%;
+  bottom: 20%;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  color: #d5e2c24d;
+  pointer-events: none;
+}
+.desktop-watermark > span {
+  font-size: 64px;
+  line-height: 1;
+}
+.desktop-watermark b {
+  font-size: 36px;
+  letter-spacing: -2px;
+  line-height: 1.5;
+}
+.desktop-watermark small {
+  font-size: 0.85em;
+  letter-spacing: 1px;
+}
+.desktop-status {
+  margin-top: auto;
+  justify-content: space-between;
+  border-top: 1px solid var(--desktop-ink);
+  font-size: 0.8em;
+  line-height: 1.4;
+}
+.desktop-window-layer {
+  position: absolute;
+  inset: 32px 0 28px;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 12px 20px;
+  z-index: 2;
+}
+.snake-window {
+  display: flex;
+  flex-direction: column;
+  width: min(550px, 100%);
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--desktop-paper);
+  border: 2px solid var(--desktop-ink);
+  box-shadow:
+    6px 6px 0 #172e2966,
+    inset 1px 1px #f7f1d8;
+  outline: none;
+  color: var(--desktop-ink);
+}
+.snake-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 6px 4px 12px;
+  margin: 3px;
+  background: #344e40;
+  color: #f0ecd3;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+.snake-titlebar small {
+  margin-left: auto;
+  font-size: 0.75em;
+}
+.machine-screen .snake-titlebar button {
+  padding: 0;
+  width: 23px;
+  height: 22px;
+  border-width: 1px 1px 2px;
+  border-radius: 0;
+  font-size: 20px;
+  line-height: 16px;
+}
+.snake-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max(108px, 7em);
+  gap: 16px;
+  padding: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+.snake-lcd {
+  --lcd-ink: #293b1f;
+  align-self: center;
+  padding: 10px;
+  color: var(--lcd-ink);
+  background: #a8b97b;
+  border: 2px solid #737e57;
+  border-top-color: #586346;
+  box-shadow:
+    inset 2px 2px 0 #293b1f26,
+    1px 1px 0 #f7f1d8;
+}
+.snake-scoreboard {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+.snake-scoreboard b {
+  font-variant-numeric: tabular-nums;
+}
+.snake-board {
+  position: relative;
+  border: 2px solid var(--lcd-ink);
+}
+.snake-board svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+}
+.snake-lcd-footer {
+  padding-top: 8px;
+  text-align: center;
+  font-size: 0.75em;
+  line-height: 1.2;
+}
+.snake-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  background: #a8b97bed;
+  text-align: center;
+  padding: 10px;
+}
+.snake-overlay strong {
+  font-size: 2em;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.snake-overlay > span,
+.snake-overlay small {
+  font-size: 0.8em;
+  line-height: 1.2;
+}
+.machine-screen .snake-overlay button {
+  margin-top: 4px;
+  background: var(--lcd-ink);
+  color: #b8c88d;
+  border: 2px solid var(--lcd-ink);
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+.machine-screen .snake-overlay button:is(:hover, :focus-visible) {
+  background: #b8c88d;
+  color: var(--lcd-ink);
+  outline-color: var(--lcd-ink);
+}
+.snake-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+.snake-wordmark {
+  font-size: 1.4em;
+  font-weight: bold;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.snake-wordmark small {
+  display: block;
+  margin-top: 5px;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.snake-controls p,
+.snake-controls > small {
+  margin: 0;
+  font-size: 0.75em;
+  line-height: 1.4;
+}
+.machine-screen .snake-controls > button {
+  padding: 3px 5px;
+  font-size: 0.85em;
+  line-height: 1.25;
+}
+.snake-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin: 3px 0;
+}
+.machine-screen .snake-dpad button {
+  padding: 2px 0;
+  line-height: 20px;
+  font-size: 18px;
+  touch-action: manipulation;
+}
+.snake-up {
+  grid-column: 2;
+}
+.snake-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.snake-down {
+  grid-column: 2;
+  grid-row: 2;
+}
+.snake-right {
+  grid-column: 3;
+  grid-row: 2;
+}

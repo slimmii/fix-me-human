@@ -72,6 +72,7 @@ export function prepareAssignment(
         assignment,
         chapter,
         collected: true,
+        read: save.readAssignments.includes(assignment.id),
         completed: save.completed.includes(assignment.id),
       }),
     },

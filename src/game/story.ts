@@ -39,6 +39,7 @@ export type StoryContext = {
   assignment: Assignment;
   chapter: number;
   collected: boolean;
+  read: boolean;
   completed: boolean;
 };
 const once: StoryEvent[] = ["monitor", "paper", "help", "typing", "run"];
@@ -59,12 +60,19 @@ export function initialStory(context: StoryContext): AssignmentStory {
   };
 }
 export function dialogueLines(cue: StoryCue, context: StoryContext): string[] {
-  return chapterLines(
+  const lines = chapterLines(
     cue.event,
     context.assignment,
     context.chapter,
     cue.detail,
   );
+  if (cue.event === "hint" && !context.read && !context.completed) {
+    const reminder = context.collected
+      ? "Open and read the assignment next to the computer, human. Picking it up does not transfer its contents into your brain."
+      : "Remember to pick up the printed assignment next to the computer and read it, human. Even my hints appreciate context.";
+    return [`${lines[0]} ${reminder}`, ...lines.slice(1)];
+  }
+  return lines;
 }
 const isGate = (story: AssignmentStory) =>
   story.delivery === "waiting" &&
@@ -78,16 +86,23 @@ export function tellStory(
   detail?: string,
   mood?: StoryMood,
 ): AssignmentStory {
-  if (event === "monitor" && !context.collected && !context.completed)
+  if (
+    event === "monitor" &&
+    (!context.collected || !context.read) &&
+    !context.completed
+  )
     return {
       ...story,
       aside: {
         event: "missing-paper",
         page: 0,
-        detail: story.delivery,
+        detail: context.collected ? "collected" : story.delivery,
       },
     };
-  if (event === "collected" && story.aside?.event === "missing-paper") {
+  if (
+    (event === "collected" || event === "paper") &&
+    story.aside?.event === "missing-paper"
+  ) {
     const { aside, ...script } = story;
     story = script;
   }
@@ -101,6 +116,12 @@ export function tellStory(
   // Prop remarks temporarily cover the script without replacing its cursor.
   // Repeated remarks replace each other, so one dismissal always returns to work.
   if (event === "aside") return { ...story, aside: cue };
+  if (event === "hint") {
+    // A direct request must be visible even before the print decision.
+    if (isGate(story)) return { ...story, aside: cue };
+    const { aside, ...script } = story;
+    story = script;
+  }
   const seen = [...new Set([...story.seen, event])];
   const pending = story.pending.filter(
     (item) =>
@@ -141,6 +162,11 @@ export function continueStory(
   context: StoryContext,
 ): AssignmentStory {
   if (story.aside) {
+    if (story.aside.page + 1 < dialogueLines(story.aside, context).length)
+      return {
+        ...story,
+        aside: { ...story.aside, page: story.aside.page + 1 },
+      };
     const { aside, ...script } = story;
     return script;
   }
@@ -205,9 +231,16 @@ export function decodeStory(
         ? data.delivery
         : "waiting";
   let current = cue(data.current) ?? fallback.current;
-  const remark = cue(data.aside);
+  const decodedRemark = cue(data.aside);
+  const remark =
+    decodedRemark?.event === "missing-paper" &&
+    (context.read || context.completed)
+      ? undefined
+      : decodedRemark;
   const aside =
-    remark?.event === "aside" || remark?.event === "missing-paper"
+    remark?.event === "aside" ||
+    remark?.event === "missing-paper" ||
+    remark?.event === "hint"
       ? remark
       : current.event === "aside"
         ? current

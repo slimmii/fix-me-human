@@ -66,7 +66,6 @@ export default function TypedComputer({
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Ready");
   const [accepted, setAccepted] = useState(false);
-  const [hint, setHint] = useState(0);
   const [active, setActive] = useState<"editor" | "browser">("editor");
   const [menu, setMenu] = useState<Menu | null>(null);
   const [position, setPosition] = useState({ line: 1, column: 1 });
@@ -114,7 +113,7 @@ export default function TypedComputer({
   function backToEditor() {
     setActive("editor");
     setMenu(null);
-    requestAnimationFrame(() => editor.current?.focus());
+    if (focused) requestAnimationFrame(() => editor.current?.focus());
   }
   function finishRun(reveal: () => void) {
     clearTimeout(timeout.current);
@@ -320,12 +319,6 @@ export default function TypedComputer({
       activeFile: draft.activeFile === name ? ENTRY_FILE : draft.activeFile,
     });
   }
-  function getHint() {
-    const index = Math.min(hint, exercise.hints.length - 1);
-    setHint((h) => h + 1);
-    setMenu(null);
-    onActivity("hint", `Hint ${index + 1}: ${exercise.hints[index]}`);
-  }
   const items: Record<
     Menu,
     { label: string; key?: string; action: () => void; disabled?: boolean }[]
@@ -444,6 +437,7 @@ export default function TypedComputer({
         <EditorHelp
           completed={completed}
           keyboardActive={focused}
+          onJoke={(text) => onActivity("aside", text)}
           onClose={() => {
             onCloseHelp();
             backToEditor();
@@ -519,9 +513,6 @@ export default function TypedComputer({
             }}
           >
             <u>H</u>elp
-          </button>
-          <button role="menuitem" onClick={getHint}>
-            Hint
           </button>
           <span className="qbasic-program">B.U.G. BASIC / REACT</span>
         </div>

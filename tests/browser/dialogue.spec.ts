@@ -39,8 +39,8 @@ test("course Help fills the terminal with retro scroll controls and arrow naviga
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("menuitem", { name: "File", exact: true }).click();
   await page.getByRole("menuitem", { name: "Exit", exact: true }).click();
-  await expect(page.locator("main")).not.toHaveClass(/focused/);
-  await page.locator('[data-surface="crt-glass"]').click();
+  await expect(page.locator("main")).toHaveClass(/focused/);
+  await page.getByRole("button", { name: "B.U.G. Basic", exact: true }).click();
   const helpMenu = page.getByRole("menuitem", { name: "Help", exact: true });
   await expect(helpMenu).not.toHaveAttribute("aria-haspopup", "menu");
   await helpMenu.click();

@@ -18,6 +18,8 @@ export type SceneProps = {
   reduced: boolean;
   graphicsQuality: import("../graphics").GraphicsQuality;
   onComputer: () => void;
+  onLeaveComputer: () => void;
+  onHint: () => void;
   onProp: (s: string) => void;
   celebrate: boolean;
   mood: "neutral" | "happy" | "confused";
@@ -29,6 +31,9 @@ export type WallClickHandler = (
   event: { stopPropagation: () => void },
 ) => void;
 export type WorldProps = SceneProps & {
+  robotClick: import("react").RefObject<
+    ((pointer: import("three").Vector2) => boolean) | null
+  >;
   wallFocus: WallFocus;
   certificateEarned: boolean;
   onPoster: () => void;

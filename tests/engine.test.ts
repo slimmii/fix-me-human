@@ -77,6 +77,15 @@ describe("independent tasks and course topics", () => {
       (c: typeof courseTopics) => {
         c[1].pages[0].markdown = "";
       },
+      (c: typeof courseTopics) => {
+        c[1].pages[0].jokes.opened = " ";
+      },
+      (c: typeof courseTopics) => {
+        c[1].pages[0].jokes.read = "";
+      },
+      (c: typeof courseTopics) => {
+        c[1].pages[0].jokes.read = c[1].pages[0].jokes.opened;
+      },
     ]) {
       const copy = structuredClone(courseTopics);
       change(copy);

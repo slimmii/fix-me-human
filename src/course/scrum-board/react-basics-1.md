@@ -1,13 +1,13 @@
+### Components
+
 A React component is a function that describes part of a page. It returns JSX: markup written inside JavaScript. A `.tsx` file combines JSX with TypeScript.
 
 ```tsx
 export default function App() {
-  const place : string = "Corner café";
-
   return (
     <section>
-      <h1>{place}</h1>
-      <p>Fresh coffee from {8 + 1} in the morning.</p>
+      <h1>Corner café</h1>
+      <p>Fresh coffee every morning.</p>
     </section>
   );
 }
@@ -63,19 +63,4 @@ return (
     <h1>Hello</h1>
     <p>World</p>
   </>); // ✅
-```
-
-Next to the html-like tags, you can write JavaScript expressions inside braces `{}`. The expression is evaluated and the result is inserted into the JSX. For example, `{place}` displays the string and `{8 + 1}` displays 9. Text outside braces stays literal. You can even call functions and use variables inside braces. For example, `{place.toUpperCase()}` displays `CORNER CAFÉ`.
-
-```tsx
-export default function App() {
-  const place : string = "Corner café";
-
-  return (
-    <section>
-      <h1>{place.toUpperCase()}</h1>
-      <p>Fresh coffee from {8 + 1} in the morning.</p>
-    </section>
-  );
-}
 ```

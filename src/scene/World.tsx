@@ -1,7 +1,7 @@
 import { ContactShadows } from "@react-three/drei";
 import { useMemo } from "react";
 import { CoffeeMug } from "./CoffeeMug";
-import { Cubicle } from "./Cubicle";
+import { Cubicle, FLOOR_HEIGHT } from "./Cubicle";
 import { DeskFan } from "./DeskFan";
 import { createFanAirflow } from "./fanAirflow";
 import { Radio } from "./Radio";
@@ -81,6 +81,9 @@ export function World(props: WorldProps) {
         onProp={onProp}
       />
       <Robot
+        focused={focused}
+        onHint={props.onHint}
+        robotClick={props.robotClick}
         reduced={reduced}
         onProp={onProp}
         celebrate={celebrate}
@@ -89,11 +92,11 @@ export function World(props: WorldProps) {
       <ContactShadows
         frames={1}
         resolution={256}
-        position={[0, 0.01, 0]}
+        position={[0, FLOOR_HEIGHT + 0.01, 0]}
         opacity={0.3}
         scale={15}
         blur={2}
-        far={5}
+        far={5 - FLOOR_HEIGHT}
       />
       {celebrate && !reduced && <Confetti />}
     </group>

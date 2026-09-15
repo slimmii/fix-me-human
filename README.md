@@ -41,8 +41,8 @@ Click the computer to open App.tsx. The first exercise starts empty; later exerc
 - **File → Tasks:** restore a previous assignment or open the next available exercise.
 - **Tab:** indent. **Ctrl/Cmd+F:** find/replace. Standard undo/redo shortcuts work.
 - **Alt+F/E/S/R:** open a menu; **Alt+H:** open Help.
-- **Hint:** request the next exercise hint. **Submit assignment:** available after source and runtime checks pass.
-- **File → Exit / Escape:** step back from the computer. Replay resets only its selected draft while preserving earned completion.
+- **Click B.U.G. while zoomed into the computer:** cycle through the exercise hints, returning to the first after the last. His dialogue avatar also supports mouse and keyboard activation. **Submit assignment:** available after source and runtime checks pass.
+- **File → Exit:** return to the B.U.G. OS desktop. **Escape:** step back from the computer. Replay resets only its selected draft while preserving earned completion.
 
 Checks create, move, edit, delete and search actual rendered cards. Each scenario uses a fresh mount and the preview resets after checking so the learner can try a clean board. The previous short example track is no longer registered; older authoring references remain in the repository.
 

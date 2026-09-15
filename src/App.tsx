@@ -34,7 +34,7 @@ export default function App() {
         if (
           target instanceof Element &&
           target.closest(
-            ".crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper",
+            "canvas,.crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper",
           )
         )
           return;
@@ -65,6 +65,8 @@ export default function App() {
         reduced={save.settings.reducedMotion}
         graphicsQuality={save.settings.graphicsQuality}
         onComputer={enter}
+        onLeaveComputer={() => setFocused(false)}
+        onHint={game.requestHint}
         onProp={say}
         celebrate={false}
         mood={mood}
@@ -99,6 +101,7 @@ export default function App() {
         canContinue={game.canContinueDialogue}
         onContinue={game.continueDialogue}
         continueLabel={game.continueLabel}
+        onHint={focused && !settings ? game.requestHint : undefined}
       />
       {settings && (
         <SettingsDialog

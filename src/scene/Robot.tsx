@@ -1,19 +1,54 @@
 import { useHoverHighlight } from "./useHoverHighlight";
 import { Html } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useLayoutEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Box, cream, dark } from "./primitives";
-import type { SceneProps as Props } from "./types";
+import type { WorldProps as Props } from "./types";
 export function Robot({
   reduced,
   onProp,
   celebrate,
   mood,
-}: Pick<Props, "reduced" | "onProp" | "celebrate" | "mood">) {
+  focused,
+  onHint,
+  robotClick,
+}: Pick<
+  Props,
+  | "reduced"
+  | "onProp"
+  | "celebrate"
+  | "mood"
+  | "focused"
+  | "onHint"
+  | "robotClick"
+>) {
   const body = useRef<THREE.Group>(null);
   const highlight = useHoverHighlight(body);
   const [excited, setExcited] = useState(0);
+  const { camera } = useThree();
+  function interact() {
+    setExcited(performance.now() / 1000 + 2);
+    if (focused) onHint();
+    else
+      onProp(
+        "B.U.G.: I generated 400 bugs today. You’re welcome for the job security.",
+      );
+  }
+  useLayoutEffect(() => {
+    // Hit-test before the focused computer's click-away handler zooms out.
+    const ray = new THREE.Raycaster();
+    robotClick.current = (pointer) => {
+      if (!body.current) return false;
+      ray.setFromCamera(pointer, camera);
+      if (!ray.intersectObject(body.current, true).length) return false;
+      interact();
+      return true;
+    };
+    return () => {
+      robotClick.current = null;
+    };
+  }, [camera, focused, onHint, onProp, robotClick]);
   useFrame(({ clock }) => {
     if (body.current && !reduced) {
       body.current.position.y = 2.9 + Math.sin(clock.elapsedTime * 1.6) * 0.1;
@@ -28,10 +63,7 @@ export function Robot({
       position={[2.1, 2.9, -0.3]}
       onClick={(e) => {
         e.stopPropagation();
-        setExcited(performance.now() / 1000 + 2);
-        onProp(
-          "B.U.G.: I generated 400 bugs today. You’re welcome for the job security.",
-        );
+        interact();
       }}
     >
       <Box

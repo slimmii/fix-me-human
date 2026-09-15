@@ -8,6 +8,6 @@ Build a small React application that displays **Hello B.U.G.** as a heading.
 - Run the application and check the result in BUGSCAPE.
 - Select **Submit assignment** once the checks pass.
 
-Start with an empty file and build your component. **Help** and **Hint** are always available in the editor.
+Start with an empty file and build your component. **Help** opens the course material. Click **B.U.G.** while using the computer to ask for a hint.
 
 > I have been assured that greeting your supervisor counts as professional development. — B.U.G.

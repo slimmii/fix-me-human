@@ -488,6 +488,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
           assignment: all[chapter],
           chapter,
           collected: result.collectedAssignments.includes(id),
+          read: result.readAssignments.includes(id),
           completed: result.completed.includes(id),
         });
       }

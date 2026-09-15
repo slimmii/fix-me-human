@@ -10,6 +10,7 @@ export function RobotDialogue({
   canContinue,
   onContinue,
   continueLabel,
+  onHint,
 }: {
   mood: SceneProps["mood"];
   quote: string;
@@ -19,18 +20,27 @@ export function RobotDialogue({
   canContinue: boolean;
   onContinue: () => void;
   continueLabel: string;
+  onHint?: () => void;
 }) {
+  const Avatar = onHint ? "button" : "div";
   return (
     <section
       className="robot-dialogue"
       aria-label="Conversation with B.U.G."
       data-story-event={event}
     >
-      <div className={`robot-avatar ${mood}`} aria-hidden="true">
+      <Avatar
+        className={`robot-avatar ${mood}`}
+        aria-hidden={onHint ? undefined : true}
+        aria-label={onHint ? "Ask B.U.G. for a hint" : undefined}
+        title={onHint ? "Ask B.U.G. for a hint" : undefined}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={onHint}
+      >
         <i />
         <i />
         <span />
-      </div>
+      </Avatar>
       <div className="robot-speech">
         <b>
           B.U.G.

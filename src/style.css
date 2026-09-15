@@ -211,7 +211,15 @@ summary:focus-visible {
   justify-content: center;
   gap: 9px;
   padding-top: 7px;
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 0;
   box-shadow: 0 3px 0 #bf8734;
+}
+button.robot-avatar:hover:not(:disabled) {
+  background: #234137;
+  border-color: #ffd863;
+  transform: none;
 }
 .robot-avatar i {
   width: 5px;

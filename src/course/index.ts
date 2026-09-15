@@ -44,6 +44,12 @@ export function validateCourse(
         !page.markdown.endsWith(".md")
       )
         throw new Error(`Invalid course page: ${page.id}`);
+      if (
+        !page.jokes?.opened.trim() ||
+        !page.jokes?.read.trim() ||
+        page.jokes.opened === page.jokes.read
+      )
+        throw new Error(`Missing or repeated course jokes: ${page.id}`);
     }
   }
 }
