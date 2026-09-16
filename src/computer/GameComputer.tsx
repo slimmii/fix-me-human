@@ -77,7 +77,7 @@ export function GameComputer({ game }: { game: GameController }) {
             <i aria-hidden="true" />
             {game.saved
               ? "All changes saved locally"
-              : "This session only · storage unavailable"}
+              : "This session only · local saving paused"}
           </span>
           <span>TypeScript JSX · UTF-8 · Spaces: 2</span>
         </div>

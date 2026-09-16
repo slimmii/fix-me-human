@@ -4,7 +4,7 @@ import { curriculum } from "../curriculum";
 import {
   lessonDone,
   loadSave,
-  persist,
+  createSessionWriter,
   transition,
   type Action,
   type Save,
@@ -181,11 +181,12 @@ export function useGame() {
       );
     });
   }, [assignment.id]);
+  const [writeSave] = useState(createSessionWriter);
   const latestSave = useRef(save);
   useEffect(() => {
     latestSave.current = save;
-    setSaved(persist(save));
-  }, [save]);
+    setSaved(writeSave(save));
+  }, [save, writeSave]);
   useEffect(() => {
     function setClockRunning(running: boolean) {
       const current = latestSave.current;
@@ -198,15 +199,15 @@ export function useGame() {
       latestSave.current = next;
       setSave(next);
       // Save synchronously: React may not commit another render before leaving.
-      setSaved(persist(next));
+      setSaved(writeSave(next));
     }
     const onVisibilityChange = () => setClockRunning(!document.hidden);
     const onPageHide = () => setClockRunning(false);
     const onPageShow = () => setClockRunning(!document.hidden);
     // Keep a recent checkpoint even if the browser is closed without pagehide.
     const timer = setInterval(() => {
-      if (!document.hidden) setSaved(persist(latestSave.current));
-    }, 1000);
+      if (!document.hidden) setSaved(writeSave(latestSave.current));
+    }, 30_000);
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("pagehide", onPageHide);
     window.addEventListener("pageshow", onPageShow);
@@ -216,7 +217,7 @@ export function useGame() {
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, []);
+  }, [writeSave]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.key !== "Escape") return;

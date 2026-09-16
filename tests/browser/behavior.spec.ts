@@ -136,7 +136,7 @@ test("WebGL and storage failures preserve the simple coding interface", async ({
     .first()
     .click();
   await expect(
-    page.getByText("This session only · storage unavailable"),
+    page.getByText("This session only · local saving paused"),
   ).toBeVisible();
   await expect(
     page

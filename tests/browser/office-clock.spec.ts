@@ -195,11 +195,13 @@ test("idle play time is checkpointed without needing a game action", async ({
 }) => {
   await page.clock.setFixedTime(start + 2.5 * OFFICE_DAY_MS);
   await expect
-    .poll(() =>
-      page.evaluate(
-        (key) => JSON.parse(localStorage.getItem(key)!).officeClock,
-        KEY,
-      ),
+    .poll(
+      () =>
+        page.evaluate(
+          (key) => JSON.parse(localStorage.getItem(key)!).officeClock,
+          KEY,
+        ),
+      { timeout: 35_000 },
     )
     .toEqual({
       elapsedMs: 2.5 * OFFICE_DAY_MS,

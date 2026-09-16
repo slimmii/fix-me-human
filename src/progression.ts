@@ -521,3 +521,23 @@ export function persist(save: Save): boolean {
     return false;
   }
 }
+
+/** Keep an open session from restoring a save explicitly deleted in DevTools. */
+export function createSessionWriter(): (save: Save) => boolean {
+  let hasSaved = false;
+  let cleared = false;
+  return (save) => {
+    if (cleared) return false;
+    try {
+      if (hasSaved && localStorage.getItem(KEY) === null) {
+        cleared = true;
+        return false;
+      }
+    } catch {
+      return false;
+    }
+    const saved = persist(save);
+    hasSaved ||= saved;
+    return saved;
+  };
+}
