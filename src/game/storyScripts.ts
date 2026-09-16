@@ -289,6 +289,10 @@ export function chapterLines(
           ? "A hint is part of learning. I have filed it under sensible use of your extremely supportive supervisor."
           : "You still need an occasional hint. Good. I mean: good use of the available expertise.",
       ];
+    case "resume":
+      return [
+        `Welcome back, human. We were working on ${assignment.title}. Your code is where you left it. Click the monitor when you are ready to continue.`,
+      ];
     case "return":
       return [
         "This assignment is already complete and pinned on the right wall. Review its code or use File > Tasks to choose another task.",

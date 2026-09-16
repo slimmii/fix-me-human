@@ -16,6 +16,7 @@ export const storyEvents = [
   "passed",
   "retry",
   "hint",
+  "resume",
   "return",
   "finale",
   "aside",
@@ -238,9 +239,7 @@ export function decodeStory(
       ? undefined
       : decodedRemark;
   const aside =
-    remark?.event === "aside" ||
-    remark?.event === "missing-paper" ||
-    remark?.event === "hint"
+    remark?.event === "aside" || remark?.event === "missing-paper"
       ? remark
       : current.event === "aside"
         ? current
@@ -293,9 +292,25 @@ export function decodeStory(
               "finale",
               "aside",
               "missing-paper",
+              "hint",
             ].includes(item.event),
         )
         .slice(0, 12)
     : [];
+  // Hints answer a request from the previous session. Resume queued dialogue
+  // or the task itself instead of greeting the player with stale encouragement.
+  if (current.event === "hint")
+    current = pending.shift() ?? {
+      event: context.completed
+        ? "return"
+        : context.collected
+          ? context.read
+            ? "resume"
+            : "collected"
+          : delivery === "waiting"
+            ? "briefing"
+            : delivery,
+      page: 0,
+    };
   return { delivery, current, seen, pending, ...(aside ? { aside } : {}) };
 }

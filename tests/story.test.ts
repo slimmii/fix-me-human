@@ -34,7 +34,7 @@ describe("B.U.G. story director", () => {
     expect(hint.current).toEqual(script.current);
     expect(hint.aside?.event).toBe("hint");
     expect(hint.aside?.detail).toContain("Start with a component");
-    expect(decodeStory(hint, context)).toEqual(hint);
+    expect(decodeStory(hint, context)).toEqual(script);
     const encouragement = continueStory(hint, context);
     expect(encouragement.aside?.page).toBe(1);
     expect(encouragement.delivery).toBe("waiting");
@@ -208,6 +208,110 @@ describe("B.U.G. story director", () => {
     expect(
       continueStory(completed, { ...context, completed: true }).delivery,
     ).toBe("ready");
+  });
+  it("resumes the task after a saved hint without losing delivery or tutorial history", () => {
+    for (const page of [0, 1]) {
+      for (const state of [
+        {
+          collected: false,
+          read: false,
+          completed: false,
+          delivery: "waiting",
+          event: "briefing",
+        },
+        {
+          collected: false,
+          read: false,
+          completed: false,
+          delivery: "printing",
+          event: "printing",
+        },
+        {
+          collected: false,
+          read: false,
+          completed: false,
+          delivery: "ready",
+          event: "ready",
+        },
+        {
+          collected: true,
+          read: false,
+          completed: false,
+          delivery: "ready",
+          event: "collected",
+        },
+        {
+          collected: true,
+          read: true,
+          completed: false,
+          delivery: "ready",
+          event: "resume",
+        },
+        {
+          collected: true,
+          read: true,
+          completed: true,
+          delivery: "ready",
+          event: "return",
+        },
+      ] as const) {
+        const ctx = {
+          ...context,
+          ...state,
+          assignment: assignments[4],
+          chapter: 4,
+        };
+        const restored = decodeStory(
+          {
+            delivery: state.delivery,
+            current: { event: "hint", page, detail: "Hint 1: Update state." },
+            seen: ["monitor", "help", "typing", "hint"],
+            pending: [],
+          },
+          ctx,
+        );
+        expect(restored.current).toEqual({ event: state.event, page: 0 });
+        expect(restored.delivery).toBe(state.delivery);
+        expect(restored.seen).toEqual(["monitor", "help", "typing", "hint"]);
+        expect(dialogueLines(restored.current, ctx).join(" ")).not.toContain(
+          "occasional hint",
+        );
+      }
+    }
+  });
+  it("resumes interrupted dialogue and drops queued hints on reload", () => {
+    const ctx = { ...context, collected: true, read: true };
+    const restored = decodeStory(
+      {
+        ...initialStory(ctx),
+        current: { event: "hint", page: 1 },
+        pending: [
+          { event: "hint", page: 0 },
+          { event: "monitor", page: 1 },
+          { event: "help", page: 0 },
+        ],
+      },
+      ctx,
+    );
+    expect(restored.current).toEqual({ event: "monitor", page: 1 });
+    expect(restored.pending).toEqual([{ event: "help", page: 0 }]);
+    expect(continueStory(restored, ctx).current.event).toBe("help");
+  });
+  it("dismisses saved hint asides without advancing handoffs or the finale", () => {
+    for (const event of ["briefing", "handoff", "finale"] as const) {
+      const ctx = { ...context, completed: event === "finale" };
+      const script = { ...initialStory(ctx), current: { event, page: 0 } };
+      for (const page of [0, 1]) {
+        const restored = decodeStory(
+          {
+            ...script,
+            aside: { event: "hint", page, detail: "Hint 1: Return JSX." },
+          },
+          ctx,
+        );
+        expect(restored).toEqual(script);
+      }
+    }
   });
   it("authors distinct reactions for every chapter and a finite finale", () => {
     expect(storyChapters).toHaveLength(11);
