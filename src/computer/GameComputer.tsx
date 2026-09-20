@@ -12,7 +12,7 @@ export function GameComputer({ game }: { game: GameController }) {
   const { save, assignment, dispatch } = game;
   const reviewing = save.phase === "review" || save.phase === "complete";
   const basicOpen = game.computerApp === "basic";
-  const keyboardActive = game.focused && !game.settings;
+  const keyboardActive = game.focused && !game.settings && !game.accountOpen;
   function exitBasic() {
     game.setShowTasks(false);
     game.setHelpOpen(false);

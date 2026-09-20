@@ -1,0 +1,109 @@
+.account-controls {
+  display: flex;
+  align-items: center;
+}
+.account-avatar,
+.account-sign-in {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  min-width: 40px;
+  background: #e4e9ce;
+  border: 1px solid #436e5780;
+  color: #233f38;
+  box-shadow: 0 2px 10px #16382d20;
+}
+.account-avatar {
+  border-radius: 50%;
+  padding: 2px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+}
+.account-avatar img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.account-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 30px;
+  border: 1px solid #6e8565;
+  border-radius: 18px;
+  background: #f5f2dc;
+  color: #233f38;
+  box-shadow: 0 24px 90px #102d3560;
+  font-family: "DM Sans", sans-serif;
+}
+.account-dialog::backdrop {
+  background: #17342b70;
+  backdrop-filter: blur(4px);
+}
+.account-dialog h2 {
+  margin: 10px 0 18px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 28px;
+}
+.account-dialog p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.account-dialog .account-help {
+  color: #526a59;
+  font-size: 13px;
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.account-actions button {
+  min-height: 42px;
+}
+.account-dialog label {
+  display: block;
+  font-weight: 700;
+  margin: 20px 0 8px;
+}
+.account-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #6e8565;
+  border-radius: 7px;
+  background: #fffdf1;
+  color: #233f38;
+  padding: 12px;
+  font: inherit;
+}
+.account-dialog .account-error {
+  color: #943d28;
+  background: #fae5d6;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.account-dialog .account-intro-avatar {
+  float: left;
+  margin: 4px 18px 6px 0;
+}
+.account-sync {
+  font-weight: 700;
+}
+.account-controls button:focus-visible,
+.account-dialog input:focus-visible {
+  outline: 3px solid #bb7425;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .account-dialog {
+    padding: 22px;
+  }
+}

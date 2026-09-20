@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import type { ProgressStore } from "../account/progress-store";
 import { sound } from "../audio";
 import { curriculum } from "../curriculum";
-import {
-  lessonDone,
-  loadSave,
-  createSessionWriter,
-  transition,
-  type Action,
-  type Save,
-} from "../progression";
+import { lessonDone, transition, type Action, type Save } from "../progression";
 import {
   canContinueStory,
   continueStory,
@@ -27,7 +27,6 @@ import {
   recordOfficeBug,
   resumeOfficeClock,
 } from "./officeTime";
-import { createWorkstationId } from "./workstation";
 
 const assignments = curriculum.flatMap((lesson) => lesson.assignments);
 function contextFor(save: Save): StoryContext {
@@ -69,17 +68,10 @@ function record(
     ? save
     : { ...save, story: { ...save.story, [save.assignmentId]: next } };
 }
-export function useGame() {
-  const [save, setSave] = useState<Save>(() => {
-    const saved = loadSave();
-    return {
-      ...saved,
-      officeClock: (document.hidden ? pauseOfficeClock : resumeOfficeClock)(
-        saved.officeClock ?? createOfficeClock(),
-      ),
-      workstationId: saved.workstationId ?? createWorkstationId(),
-    };
-  });
+export function useGame(store: ProgressStore, accountOpen = false) {
+  const persisted = useSyncExternalStore(store.subscribe, store.getState);
+  const { save, saved } = persisted;
+  const setSave = store.update;
   const reportBug = useCallback(() => {
     const now = Date.now();
     setSave((current) => ({
@@ -89,7 +81,7 @@ export function useGame() {
         now,
       ),
     }));
-  }, []);
+  }, [setSave]);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -97,7 +89,6 @@ export function useGame() {
     "basic",
   );
   const [settings, setSettings] = useState(false);
-  const [saved, setSaved] = useState(true);
   const [showTasks, setShowTasks] = useState(false);
   const [editorRevision, setEditorRevision] = useState(0);
   const context = contextFor(save);
@@ -158,7 +149,7 @@ export function useGame() {
       return next === previous
         ? current
         : { ...current, story: { ...current.story, [assignment.id]: next } };
-    });
+    }, false);
   }, [assignment.id]);
   const collectAssignment = useCallback(() => {
     setSave((current) => {
@@ -181,32 +172,26 @@ export function useGame() {
       );
     });
   }, [assignment.id]);
-  const [writeSave] = useState(createSessionWriter);
-  const latestSave = useRef(save);
   useEffect(() => {
-    latestSave.current = save;
-    setSaved(writeSave(save));
-  }, [save, writeSave]);
+    store.checkpoint();
+  }, [store]);
   useEffect(() => {
     function setClockRunning(running: boolean) {
-      const current = latestSave.current;
+      const current = store.getState().save;
       const next = {
         ...current,
         officeClock: (running ? resumeOfficeClock : pauseOfficeClock)(
           current.officeClock ?? createOfficeClock(),
         ),
       };
-      latestSave.current = next;
       setSave(next);
-      // Save synchronously: React may not commit another render before leaving.
-      setSaved(writeSave(next));
     }
     const onVisibilityChange = () => setClockRunning(!document.hidden);
     const onPageHide = () => setClockRunning(false);
     const onPageShow = () => setClockRunning(!document.hidden);
     // Keep a recent checkpoint even if the browser is closed without pagehide.
     const timer = setInterval(() => {
-      if (!document.hidden) setSaved(writeSave(latestSave.current));
+      if (!document.hidden) store.checkpoint();
     }, 30_000);
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("pagehide", onPageHide);
@@ -217,10 +202,17 @@ export function useGame() {
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [writeSave]);
+  }, [store, setSave]);
+  useEffect(() => {
+    setAssignmentOpen(false);
+    setHelpOpen(false);
+    setShowTasks(false);
+    setSettings(false);
+  }, [persisted.restoration]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.key !== "Escape") return;
+      if (accountOpen || event.defaultPrevented || event.key !== "Escape")
+        return;
       if (settings) {
         setSettings(false);
         return;
@@ -237,7 +229,7 @@ export function useGame() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [assignmentOpen, settings, showTasks]);
+  }, [assignmentOpen, settings, showTasks, accountOpen]);
   useEffect(() => {
     setAssignmentOpen(false);
     setHelpOpen(false);
@@ -255,7 +247,7 @@ export function useGame() {
     activity("help");
   }
   function requestHint() {
-    if (!focused || settings) return;
+    if (!focused || settings || accountOpen) return;
     const assignmentKey = `${assignment.id}:${editorRevision}`;
     if (hintCursor.current.assignmentKey !== assignmentKey)
       hintCursor.current = { assignmentKey, next: 0 };
@@ -365,7 +357,8 @@ export function useGame() {
     officeClock: save.officeClock!,
     workstationId: save.workstationId!,
     setSave,
-    editorRevision,
+    editorRevision: editorRevision + persisted.restoration,
+    accountOpen,
     setEditorRevision,
     assignmentOpen,
     setAssignmentOpen,

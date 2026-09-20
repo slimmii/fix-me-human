@@ -6,12 +6,16 @@ import { GameHud } from "./ui/GameHud";
 import { RobotDialogue } from "./ui/RobotDialogue";
 import { SettingsDialog } from "./ui/SettingsDialog";
 import { lazy, Suspense } from "react";
+import { useAccount } from "./account/useAccount";
+import { AccountControls } from "./account/AccountControls";
+import "./account/account.css";
 
 const DevelopmentTools = import.meta.env.DEV
   ? lazy(() => import("./devtools/DevelopmentTools"))
   : null;
 export default function App() {
-  const game = useGame();
+  const account = useAccount();
+  const game = useGame(account.store, !!account.dialog);
   const {
     save,
     setSave,
@@ -29,12 +33,12 @@ export default function App() {
     <main
       className={`game ${focused ? "focused" : ""} ${game.assignmentOpen ? "paper-open" : ""} ${save.settings.reducedMotion ? "reduced" : ""}`}
       onClickCapture={(e) => {
-        if (!focused || settings) return;
+        if (!focused || settings || account.dialog) return;
         const target = e.target;
         if (
           target instanceof Element &&
           target.closest(
-            "canvas,.crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper",
+            "canvas,.crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper,.account-controls",
           )
         )
           return;
@@ -79,19 +83,19 @@ export default function App() {
           onClose={() => game.setAssignmentOpen(false)}
         />
       )}
-      {!focused && (
-        <GameHud
-          mute={save.settings.mute}
-          onDesk={() => setFocused(false)}
-          onSettings={() => setSettings(true)}
-          onToggleSound={() =>
-            setSave((s) => ({
-              ...s,
-              settings: { ...s.settings, mute: !s.settings.mute },
-            }))
-          }
-        />
-      )}
+      <GameHud
+        focused={focused}
+        accountControls={<AccountControls account={account} />}
+        mute={save.settings.mute}
+        onDesk={() => setFocused(false)}
+        onSettings={() => setSettings(true)}
+        onToggleSound={() =>
+          setSave((s) => ({
+            ...s,
+            settings: { ...s.settings, mute: !s.settings.mute },
+          }))
+        }
+      />
       <RobotDialogue
         mood={mood}
         quote={quote}

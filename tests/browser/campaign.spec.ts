@@ -159,12 +159,13 @@ test("editor and references fit desktop screen sizes", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Read printed assignment: Sprint board" }),
   ).toBeVisible({ timeout: 15000 });
-  await page.locator('[data-surface="crt-glass"]').click();
-  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
+  // Settings live in the desk HUD, which hides when entering the computer.
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByLabel("Reduce motion").check();
   await page.getByLabel("Mute sound").check();
   await page.getByRole("button", { name: "Back to work" }).click();
+  await page.locator('[data-surface="crt-glass"]').click();
+  await page.getByRole("button", { name: /^Read printed assignment:/ }).click();
   await expect(
     page.getByRole("complementary", {
       name: "Printed assignment",
