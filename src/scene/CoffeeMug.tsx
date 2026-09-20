@@ -1,5 +1,5 @@
 import { useHoverHighlight } from "./useHoverHighlight";
-import { Html } from "@react-three/drei";
+import { CoffeeMugPrint } from "./CoffeeMugPrint";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -30,7 +30,8 @@ export function CoffeeMug({
   reduced,
   onProp,
   airflow,
-}: Pick<Props, "reduced" | "onProp"> & { airflow?: FanAirflow }) {
+  username,
+}: Pick<Props, "reduced" | "onProp" | "username"> & { airflow?: FanAirflow }) {
   const mug = useRef<THREE.Group>(null);
   const highlight = useHoverHighlight(mug);
   const { invalidate } = useThree();
@@ -216,19 +217,7 @@ export function CoffeeMug({
           <torusGeometry args={[0.17, 0.055, 8, 16]} />
           <meshStandardMaterial color="#f7eee0" />
         </mesh>
-        <Html
-          zIndexRange={[5, 0]}
-          pointerEvents="none"
-          style={{ pointerEvents: "none" }}
-          position={[0, 0, 0.25]}
-          transform
-          distanceFactor={1.8}
-        >
-          <b className="mug-label">
-            I ♥<br />
-            BUGS
-          </b>
-        </Html>
+        <CoffeeMugPrint username={username} />
       </group>
       <instancedMesh
         ref={drops}

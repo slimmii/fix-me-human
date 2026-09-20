@@ -35,7 +35,12 @@ export function World(props: WorldProps) {
         computer={props.computer}
       />
       <DeskFan reduced={reduced} onProp={onProp} airflow={fanAirflow} />
-      <CoffeeMug reduced={reduced} onProp={onProp} airflow={fanAirflow} />
+      <CoffeeMug
+        username={props.username}
+        reduced={reduced}
+        onProp={onProp}
+        airflow={fanAirflow}
+      />
       <Radio mute={props.mute} focused={focused} onProp={onProp} />
       <Printer
         completedAssignments={props.completedAssignments}

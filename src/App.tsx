@@ -52,6 +52,7 @@ export default function App() {
         </Suspense>
       )}
       <Scene
+        username={account.user ? (account.username ?? undefined) : undefined}
         workstationId={game.workstationId}
         officeClock={game.officeClock}
         completedAssignments={save.completed}

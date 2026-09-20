@@ -328,12 +328,6 @@ button.robot-avatar:hover:not(:disabled) {
   padding: 4px 8px;
   font-size: 15px;
 }
-.mug-label {
-  font: bold 18px sans-serif;
-  text-align: center;
-  display: block;
-  color: #496543;
-}
 .modal-backdrop {
   position: absolute;
   inset: 0;
@@ -1058,7 +1052,6 @@ button.robot-avatar:hover:not(:disabled) {
 
 /* Printed scenery labels behave like part of the physical props. */
 .robot-tag,
-.mug-label,
 .poster,
 .wall-note {
   user-select: none;

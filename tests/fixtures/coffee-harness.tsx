@@ -42,6 +42,9 @@ createRoot(document.getElementById("root")!).render(
       radius={0.01}
     />
     <CoffeeMug
+      username={
+        new URLSearchParams(location.search).get("username") ?? undefined
+      }
       reduced={new URLSearchParams(location.search).has("reduced")}
       onProp={(text) => {
         document.getElementById("quote")!.textContent = text;
