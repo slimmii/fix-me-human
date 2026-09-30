@@ -10,6 +10,7 @@ import type { WorldProps } from "./types";
 import { useSeatedCamera } from "./useSeatedCamera";
 import { Workstation } from "./Workstation";
 import { WorkstationSign } from "./WorkstationSign";
+import { WantedPoster } from "./WantedPoster";
 
 import { Confetti } from "./Confetti";
 import { MotivationalPoster } from "./Posters";
@@ -76,6 +77,7 @@ export function World(props: WorldProps) {
         />
       </Prop>
       <MotivationalPoster onClick={props.onPoster} />
+      {props.onBugHunts && <WantedPoster onClick={props.onBugHunts} />}
       <WorkstationSign workstationId={props.workstationId} onProp={onProp} />
       {props.certificateEarned && (
         <ReactBasicsCertificate onClick={props.onCertificate} />

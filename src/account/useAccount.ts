@@ -41,6 +41,7 @@ export function useAccount() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [invitation, setInvitation] = useState(() => {
@@ -316,6 +317,35 @@ export function useAccount() {
       setBusy(false);
     }
   }
+  async function resetProgress(clearGuest = false) {
+    if (!user || busy) return false;
+    const version = ++actionVersion.current;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const { guestCleared } = await store.resetProgress({ clearGuest });
+      if (version !== actionVersion.current) return false;
+      if (!guestCleared) {
+        setError(
+          "Your account progress was removed, but this browser blocked clearing the guest save. Enable browser storage and try again.",
+        );
+        return false;
+      }
+      setNotice(
+        clearGuest
+          ? "Your account progress and this browser’s guest save have been removed. You can start fresh."
+          : "Your account progress has been removed. You can start fresh.",
+      );
+      return true;
+    } catch {
+      if (version === actionVersion.current)
+        setError("The reset could not be confirmed. Reconnect and try again.");
+      return false;
+    } finally {
+      if (version === actionVersion.current) setBusy(false);
+    }
+  }
   const needsProfile = !!user && !username;
   const dialog = initializing
     ? "loading"
@@ -336,12 +366,14 @@ export function useAccount() {
     dialog,
     busy,
     error,
+    notice,
     profileLoading,
     profileError,
     configured: !!supabase,
     signIn,
     claimUsername,
     signOut,
+    resetProgress,
     cancelInitialization: () => {
       setInitializing(false);
       dismiss();
@@ -351,6 +383,7 @@ export function useAccount() {
     closeMenu: () => setMenu(false),
     open: () => {
       setError("");
+      setNotice("");
       if (user) setMenu(true);
       else setInvitation(true);
     },

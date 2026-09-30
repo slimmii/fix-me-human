@@ -31,10 +31,15 @@ export const supabase =
       })
     : null;
 
-function fromRow(row: { state: unknown; modified_at: string }) {
+function fromRow(row: {
+  state: unknown;
+  modified_at: string;
+  reset_version?: number;
+}) {
   const value = decodeSnapshot({
     save: row.state,
     modifiedAt: Date.parse(row.modified_at),
+    resetVersion: row.reset_version ?? 0,
   });
   if (!value)
     throw new Error("This cloud save is incompatible. Local progress is safe.");
@@ -54,7 +59,7 @@ export function progressRemote(client: SupabaseClient): ProgressRemote {
       const bearer = await authorization(userId);
       const { data, error } = await client
         .from("pfh_progress")
-        .select("state, modified_at")
+        .select("state, modified_at, reset_version")
         .eq("user_id", userId)
         .setHeader("Authorization", bearer)
         .abortSignal(AbortSignal.timeout(10_000))
@@ -69,12 +74,27 @@ export function progressRemote(client: SupabaseClient): ProgressRemote {
         .rpc("pfh_sync_progress", {
           p_state: snapshot.save,
           p_modified_at: new Date(snapshot.modifiedAt).toISOString(),
+          p_reset_version: snapshot.resetVersion ?? 0,
         })
         .setHeader("Authorization", bearer)
         .abortSignal(AbortSignal.timeout(10_000))
         .retry(false);
       if (error) throw error;
       if (!data?.[0]) throw new Error("Cloud save was not acknowledged.");
+      return fromRow(data[0]);
+    },
+    async reset(userId, snapshot) {
+      const bearer = await authorization(userId);
+      const { data, error } = await client
+        .rpc("pfh_reset_progress", {
+          p_state: snapshot.save,
+          p_expected_reset_version: snapshot.resetVersion ?? 0,
+        })
+        .setHeader("Authorization", bearer)
+        .abortSignal(AbortSignal.timeout(10_000))
+        .retry(false);
+      if (error) throw error;
+      if (!data?.[0]) throw new Error("Reset was not acknowledged.");
       return fromRow(data[0]);
     },
   };

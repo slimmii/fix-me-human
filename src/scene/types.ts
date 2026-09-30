@@ -19,6 +19,7 @@ export type SceneProps = {
   reduced: boolean;
   graphicsQuality: import("../graphics").GraphicsQuality;
   onComputer: () => void;
+  onBugHunts?: () => void;
   onLeaveComputer: () => void;
   onHint: () => void;
   onProp: (s: string) => void;

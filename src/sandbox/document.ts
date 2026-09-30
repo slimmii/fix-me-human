@@ -15,6 +15,8 @@ export function browserDocument(
   reduced: boolean,
   fontSize = DEFAULT_SCREEN_FONT_SIZE,
   previewTheme?: PreviewTheme,
+  testCode?: string,
+  previewCss = "",
 ) {
   const theme = previewTheme ? previewThemes[previewTheme] : undefined;
   const screenFontSize = isScreenFontSize(fontSize)
@@ -24,5 +26,10 @@ export function browserDocument(
   const prefix =
     "try {window.React=window.__REACT;const exports={};const module={exports};const require=name=>{if(name==='react')return window.__REACT;throw Error('Only React is available.');};\n";
   const program = `${prefix}${compiled.code}\nwindow.__mount(exports[${JSON.stringify(compiled.entry)}]);}catch(e){window.__reportError(e);}\n//# sourceURL=${PREVIEW_SOURCE_URL}\n`;
-  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>${css}${theme?.css ?? ""}${reduced ? "*{transition:none!important;transform:none!important}" : ""}</style></head><body class="machine-screen" style="--screen-font-size:${screenFontSize}px"><div id="app" class="${theme?.className ?? ""}"></div><div id="browser-console" role="status"></div><script>window.__TOKEN=${JSON.stringify(token)};window.__RULES=${safe(JSON.stringify(rules))};window.__SOURCES=${safe(JSON.stringify(compiled.sources ?? []))};window.__SCRIPT_OFFSET=${prefix.split("\n").length - 1};${safe(runtime)}</script><script>${safe(program)}</script></body></html>`;
+  const huntTests =
+    testCode === undefined
+      ? ""
+      : `<script>window.__HUNT_TESTS = function(test) {\n${safe(testCode)}\n};</script>`;
+  const safePreviewCss = previewCss.replace(/<\/style/gi, "<\\/style");
+  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>${css}${theme?.css ?? ""}${safePreviewCss}${reduced ? "*{transition:none!important;transform:none!important}" : ""}</style></head><body class="machine-screen" style="--screen-font-size:${screenFontSize}px"><div id="app" class="${theme?.className ?? ""}"></div><div id="browser-console" role="status"></div><script>window.__TOKEN=${JSON.stringify(token)};window.__RULES=${safe(JSON.stringify(rules))};window.__SOURCES=${safe(JSON.stringify(compiled.sources ?? []))};window.__SCRIPT_OFFSET=${prefix.split("\n").length - 1};${safe(runtime)}</script>${huntTests}<script>${safe(program)}</script></body></html>`;
 }

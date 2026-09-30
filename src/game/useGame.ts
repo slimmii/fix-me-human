@@ -85,9 +85,9 @@ export function useGame(store: ProgressStore, accountOpen = false) {
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [computerApp, setComputerApp] = useState<"basic" | "desktop" | "snake">(
-    "basic",
-  );
+  const [computerApp, setComputerApp] = useState<
+    "basic" | "desktop" | "snake" | "hunts"
+  >("basic");
   const [settings, setSettings] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
   const [editorRevision, setEditorRevision] = useState(0);
@@ -247,7 +247,7 @@ export function useGame(store: ProgressStore, accountOpen = false) {
     activity("help");
   }
   function requestHint() {
-    if (!focused || settings || accountOpen) return;
+    if (!focused || settings || accountOpen || computerApp === "hunts") return;
     const assignmentKey = `${assignment.id}:${editorRevision}`;
     if (hintCursor.current.assignmentKey !== assignmentKey)
       hintCursor.current = { assignmentKey, next: 0 };
@@ -341,6 +341,7 @@ export function useGame(store: ProgressStore, accountOpen = false) {
   }
   function enter() {
     setFocused(true);
+    if (computerApp === "hunts") return;
     setSave((current) =>
       current.phase === "complete"
         ? current
@@ -391,6 +392,13 @@ export function useGame(store: ProgressStore, accountOpen = false) {
     reportBug,
     dispatch,
     enter,
+    openHunts: () => {
+      setAssignmentOpen(false);
+      setHelpOpen(false);
+      setShowTasks(false);
+      setComputerApp("hunts");
+      setFocused(true);
+    },
     continueDialogue,
     canContinueDialogue: canContinueStory(story, context),
     continueLabel: story.aside

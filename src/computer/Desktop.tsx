@@ -31,10 +31,12 @@ function ApplicationIcon({ app }: { app: "basic" | "snake" }) {
 export function Desktop({
   active,
   onOpen,
+  onBugHunts,
   children,
 }: {
   active: boolean;
   onOpen: (app: "basic" | "snake") => void;
+  onBugHunts: () => void;
   children?: ReactNode;
 }) {
   const firstIcon = useRef<HTMLButtonElement>(null);
@@ -61,6 +63,30 @@ export function Desktop({
             <ApplicationIcon app="snake" />
             <span>Snake</span>
           </button>
+          <button onClick={onBugHunts}>
+            <svg viewBox="0 0 48 48" aria-hidden="true">
+              <path
+                fill="#e6ca91"
+                stroke="#412d21"
+                strokeWidth="2"
+                d="M7 3h34v42H7z"
+              />
+              <text
+                x="24"
+                y="14"
+                textAnchor="middle"
+                fontSize="8"
+                fill="#412d21"
+              >
+                WANTED
+              </text>
+              <path
+                fill="#412d21"
+                d="M19 22h10v13H19zM23 17h2v5h-2zM13 23h6v2h-6zM29 23h6v2h-6zM13 30h6v2h-6zM29 30h6v2h-6z"
+              />
+            </svg>
+            <span>Bug hunts</span>
+          </button>
         </nav>
         <div className="desktop-watermark" aria-hidden="true">
           <span>▦</span>
@@ -68,7 +94,7 @@ export function Desktop({
           <small>A little room to think.</small>
         </div>
         <footer className="desktop-status">
-          <span>2 applications</span>
+          <span>3 applications</span>
           <span>Click an icon to open · Tab + Enter</span>
         </footer>
       </div>

@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { createRuntimeErrorFormatter } from "./errors";
 import type { CompiledSource, GeneratedLocation } from "./source-location";
 import { isScreenFontSize } from "../screen-font";
+import { evaluateHuntTests, type RegisterHuntTests } from "./hunt-tests";
 window.addEventListener("message", (event) => {
   if (
     event.source === parent &&
@@ -40,6 +41,7 @@ declare global {
   interface Window {
     __TOKEN: string;
     __RULES: RuntimeRule[];
+    __HUNT_TESTS?: RegisterHuntTests;
     __REACT: typeof React;
     __mount: (component: React.ComponentType) => void;
     __SOURCES: CompiledSource[];
@@ -169,7 +171,12 @@ window.__mount = (Component) => {
     checking = true;
     let checks;
     try {
-      checks = await evaluateRuntimeRules(root, window.__RULES, reset);
+      checks = window.__HUNT_TESTS
+        ? await evaluateHuntTests(window.__HUNT_TESTS, root, reset)
+        : await evaluateRuntimeRules(root, window.__RULES, reset);
+    } catch (error) {
+      window.__reportError(error);
+      return;
     } finally {
       checking = false;
       notifyTitle();

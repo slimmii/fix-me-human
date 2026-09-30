@@ -137,6 +137,14 @@ function UsernameForm({ account }: { account: AccountController }) {
 }
 
 export function AccountControls({ account }: { account: AccountController }) {
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [clearGuest, setClearGuest] = useState(false);
+  useEffect(() => {
+    if (!confirmReset) setClearGuest(false);
+  }, [confirmReset]);
+  useEffect(() => {
+    if (account.dialog !== "profile") setConfirmReset(false);
+  }, [account.dialog, account.user?.id]);
   const [failedAvatar, setFailedAvatar] = useState(false);
   const avatar = account.user?.user_metadata.avatar_url;
   const avatarUrl =
@@ -212,9 +220,9 @@ export function AccountControls({ account }: { account: AccountController }) {
           </div>
           <p>
             I’m B.U.G., your extremely qualified supervisor. Sign in with GitHub
-            to carry your progress between computers and get ready for future
-            bug hunts. Prefer to remain an unidentified human? You can keep
-            playing without an account.
+            to carry your course progress and bug hunts between computers.
+            Prefer to remain an unidentified human? You can keep playing without
+            an account.
           </p>
           <p className="account-help">
             Playing as a guest saves your progress on this computer.
@@ -277,37 +285,115 @@ export function AccountControls({ account }: { account: AccountController }) {
       )}
       {account.dialog === "profile" && (
         <AccountDialog
-          title={`Hello, ${account.username}.`}
-          onClose={account.closeMenu}
+          title={
+            confirmReset
+              ? "Remove all progress?"
+              : `Hello, ${account.username}.`
+          }
+          onClose={
+            account.busy
+              ? undefined
+              : confirmReset
+                ? () => setConfirmReset(false)
+                : account.closeMenu
+          }
         >
-          <p className="account-sync" role="status">
-            {status}
-          </p>
-          <p>
-            Your GitHub account carries your code and assignment progress
-            between computers.
-          </p>
-          {account.error && (
-            <p className="account-error" role="alert">
-              {account.error}
-            </p>
+          {confirmReset ? (
+            <>
+              <p>
+                This permanently removes your saved code, completed assignments,
+                and game progress, including bug hunt drafts and statistics,
+                from this account. It cannot be undone.
+              </p>
+              <p className="account-help">
+                Your username, GitHub sign-in, and device settings stay
+                unchanged. Other devices will start fresh when they reconnect.
+              </p>
+              <label className="account-guest-toggle">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={clearGuest}
+                  disabled={account.busy}
+                  onChange={(event) => setClearGuest(event.target.checked)}
+                  aria-describedby="guest-reset-help"
+                />
+                <span>Also clear my guest save</span>
+              </label>
+              <p id="guest-reset-help" className="account-help">
+                {clearGuest
+                  ? "This also removes guest progress and its backup from this browser. Signing out will start a new guest game."
+                  : "Your separate guest save in this browser will be kept."}
+              </p>
+              {account.error && (
+                <p className="account-error" role="alert">
+                  {account.error}
+                </p>
+              )}
+              <div className="account-actions">
+                <button
+                  autoFocus
+                  disabled={account.busy}
+                  onClick={() => setConfirmReset(false)}
+                >
+                  Keep my progress
+                </button>
+                <button
+                  className="account-danger"
+                  disabled={account.busy}
+                  onClick={async () => {
+                    if (await account.resetProgress(clearGuest))
+                      setConfirmReset(false);
+                  }}
+                >
+                  {account.busy
+                    ? "Removing progress…"
+                    : "Yes, remove all progress"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="account-sync" role="status">
+                {status}
+              </p>
+              <p>
+                Your GitHub account carries your code, bug hunts and assignment
+                progress between computers.
+              </p>
+              {account.notice && <p role="status">{account.notice}</p>}
+              {account.error && (
+                <p className="account-error" role="alert">
+                  {account.error}
+                </p>
+              )}
+              <div className="account-actions">
+                <button className="primary" onClick={account.closeMenu}>
+                  Back to work
+                </button>
+                {account.progress.status === "pending" && (
+                  <button onClick={() => void account.store.reconcile()}>
+                    Retry sync
+                  </button>
+                )}
+                <button
+                  onClick={() => void account.signOut()}
+                  disabled={account.busy}
+                >
+                  {account.busy ? "Signing out…" : "Sign out"}
+                </button>
+              </div>
+              <div className="account-reset">
+                <button
+                  className="account-danger"
+                  disabled={account.busy}
+                  onClick={() => setConfirmReset(true)}
+                >
+                  Remove all progress
+                </button>
+              </div>
+            </>
           )}
-          <div className="account-actions">
-            <button className="primary" onClick={account.closeMenu}>
-              Back to work
-            </button>
-            {account.progress.status === "pending" && (
-              <button onClick={() => void account.store.reconcile()}>
-                Retry sync
-              </button>
-            )}
-            <button
-              onClick={() => void account.signOut()}
-              disabled={account.busy}
-            >
-              {account.busy ? "Signing out…" : "Sign out"}
-            </button>
-          </div>
         </AccountDialog>
       )}
     </aside>

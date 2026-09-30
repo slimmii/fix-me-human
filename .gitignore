@@ -8,3 +8,4 @@ playwright-report/
 !.env.example
 
 src/sandbox/runtime.generated.js
+supabase/.temp/

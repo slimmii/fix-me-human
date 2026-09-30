@@ -861,6 +861,7 @@
 .machine-screen .terminal-list button:is(:hover, :focus-visible) {
   background: var(--terminal-raised);
   border-color: var(--terminal-amber);
+  color: var(--terminal-text);
 }
 
 .qbasic-dialog-shade {
@@ -996,6 +997,10 @@
   cursor: pointer;
   border-radius: 0;
   box-shadow: none;
+}
+.webgl-fallback .assignment-read {
+  position: relative;
+  z-index: 5;
 }
 .assignment-paper:hover:not(:disabled) {
   background: transparent;

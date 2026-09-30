@@ -38,7 +38,7 @@ export default function App() {
         if (
           target instanceof Element &&
           target.closest(
-            "canvas,.crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper,.account-controls",
+            "canvas,.crt-display,.fallback-computer,.hud,.robot-dialogue,.assignment-dock,.assignment-paper,.assignment-read,.account-controls",
           )
         )
           return;
@@ -64,12 +64,21 @@ export default function App() {
         assignmentUnread={game.assignmentUnread}
         onAssignmentReady={game.markAssignmentReady}
         onAssignmentCollected={game.collectAssignment}
-        onAssignment={game.openAssignment}
+        onAssignment={
+          game.computerApp === "hunts"
+            ? () =>
+                game.say(
+                  "You shouldn't be reading that while you're doing a bug hunt, human. Focus on the case file.",
+                  "confused",
+                )
+            : game.openAssignment
+        }
         mute={save.settings.mute}
         focused={focused}
         reduced={save.settings.reducedMotion}
         graphicsQuality={save.settings.graphicsQuality}
         onComputer={enter}
+        onBugHunts={game.openHunts}
         onLeaveComputer={() => setFocused(false)}
         onHint={game.requestHint}
         onProp={say}
@@ -77,7 +86,7 @@ export default function App() {
         mood={mood}
         computer={<GameComputer game={game} />}
       />
-      {game.assignmentCollected && (
+      {game.assignmentCollected && game.computerApp !== "hunts" && (
         <PrintedAssignment
           assignment={game.assignment}
           open={game.assignmentOpen}
@@ -97,17 +106,19 @@ export default function App() {
           }))
         }
       />
-      <RobotDialogue
-        mood={mood}
-        quote={quote}
-        chapter={game.chapter}
-        chapterTitle={game.chapterTitle}
-        event={game.storyEvent}
-        canContinue={game.canContinueDialogue}
-        onContinue={game.continueDialogue}
-        continueLabel={game.continueLabel}
-        onHint={focused && !settings ? game.requestHint : undefined}
-      />
+      {(game.computerApp !== "hunts" || game.storyEvent === "aside") && (
+        <RobotDialogue
+          mood={mood}
+          quote={quote}
+          chapter={game.chapter}
+          chapterTitle={game.chapterTitle}
+          event={game.storyEvent}
+          canContinue={game.canContinueDialogue}
+          onContinue={game.continueDialogue}
+          continueLabel={game.continueLabel}
+          onHint={focused && !settings ? game.requestHint : undefined}
+        />
+      )}
       {settings && (
         <SettingsDialog
           settings={save.settings}

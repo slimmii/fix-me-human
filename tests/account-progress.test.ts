@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fresh, KEY } from "../src/progression";
+import { startHunt, recordHuntRun } from "../src/bug-hunts/progress";
 import {
   accountKey,
   decodeSnapshot,
@@ -18,6 +19,9 @@ function memory() {
   return {
     values,
     getItem: (key: string) => values.get(key) ?? null,
+    removeItem: (key: string) => {
+      values.delete(key);
+    },
     setItem: (key: string, value: string) => {
       values.set(key, value);
     },
@@ -28,7 +32,17 @@ function server(initial: ProgressSnapshot | null = null) {
   const remote: ProgressRemote = {
     read: vi.fn(async () => value),
     write: vi.fn(async (_userId, next) => {
-      if (!value || next.modifiedAt > value.modifiedAt) value = next;
+      if (
+        !value ||
+        ((next.resetVersion ?? 0) === (value.resetVersion ?? 0) &&
+          next.modifiedAt > value.modifiedAt)
+      )
+        value = next;
+      return value!;
+    }),
+    reset: vi.fn(async (_userId, next) => {
+      if ((next.resetVersion ?? 0) === (value?.resetVersion ?? 0))
+        value = { ...next, resetVersion: (value?.resetVersion ?? 0) + 1 };
       return value!;
     }),
   };
@@ -44,6 +58,165 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe("account progress", () => {
+  it("imports guest hunts into an empty account, syncs them to another device, and includes them in reset", async () => {
+    const key = "44444444-4444-4444-8444-444444444444:1";
+    const storage = memory();
+    const store = new ProgressStore(storage, () => 1000);
+    const hunt = recordHuntRun(
+      startHunt(
+        { files: { "App.tsx": "// my repair" }, activeFile: "App.tsx" },
+        100,
+      ),
+      200,
+    );
+    store.update((s) => ({ ...s, bugHunts: { [key]: hunt } }));
+    const cloud = server();
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    expect(cloud.get()?.save.bugHunts[key]).toEqual(hunt);
+    const other = new ProgressStore(memory(), () => 2000);
+    other.connect("alice", cloud.remote);
+    await other.reconcile();
+    expect(other.getState().save.bugHunts[key]).toEqual(hunt);
+    await other.resetProgress();
+    await store.reconcile();
+    expect(store.getState().save.bugHunts).toEqual({});
+    store.disconnect();
+    expect(store.getState().save.bugHunts[key]).toEqual(hunt);
+  });
+  it("optionally clears guest storage and backups, then allows a fresh guest game to save", async () => {
+    const storage = memory();
+    const store = new ProgressStore(storage, () => 1000);
+    store.update(codeSave("old guest code"));
+    store.update((s) => ({ ...s, settings: { ...s.settings, mute: true } }));
+    storage.setItem(`${KEY}:backup`, "old backup");
+    const cloud = server();
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    expect(await store.resetProgress({ clearGuest: true })).toEqual({
+      guestCleared: true,
+    });
+    for (const key of [KEY, `${KEY}:sync`, `${KEY}:backup`])
+      expect(storage.getItem(key)).toBeNull();
+    const reloaded = new ProgressStore(storage);
+    expect(reloaded.getState().save.drafts).toEqual(fresh().drafts);
+    expect(reloaded.getState().save.settings.mute).toBe(true);
+    store.disconnect();
+    expect(store.getState().save.drafts).toEqual(fresh().drafts);
+    expect(store.getState().save.settings.mute).toBe(true);
+    store.update(codeSave("new guest code"));
+    expect(store.getState().saved).toBe(true);
+    expect(
+      new ProgressStore(storage).getState().save.drafts["board-shell"],
+    ).toBe("new guest code");
+  });
+  it("does not clear the guest save when the account reset fails", async () => {
+    const storage = memory();
+    const store = new ProgressStore(storage);
+    store.update(codeSave("keep guest"));
+    storage.setItem(`${KEY}:backup`, "keep backup");
+    const cloud = server();
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    vi.mocked(cloud.remote.reset!).mockRejectedValueOnce(new Error("offline"));
+    await expect(store.resetProgress({ clearGuest: true })).rejects.toThrow(
+      "offline",
+    );
+    expect(storage.getItem(`${KEY}:backup`)).toBe("keep backup");
+    store.disconnect();
+    expect(store.getState().save.drafts["board-shell"]).toBe("keep guest");
+  });
+  it("reports a blocked guest removal after a successful account reset", async () => {
+    const storage = memory();
+    const store = new ProgressStore(storage);
+    store.update(codeSave("old guest"));
+    const cloud = server();
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    const remove = storage.removeItem;
+    storage.removeItem = (key) => {
+      if (key === KEY) throw new Error("blocked");
+      remove(key);
+    };
+    expect(await store.resetProgress({ clearGuest: true })).toEqual({
+      guestCleared: false,
+    });
+    expect(cloud.get()?.save.drafts).toEqual(fresh().drafts);
+  });
+  it("resets cloud and cached progress, removes backups, and preserves the guest save and settings", async () => {
+    const storage = memory();
+    const cloud = server();
+    const store = new ProgressStore(storage, () => 1000);
+    store.update(codeSave("guest code"));
+    store.update((s) => ({ ...s, settings: { ...s.settings, mute: true } }));
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    store.update(codeSave("account code"));
+    store.update((s) => ({ ...s, settings: { ...s.settings, mute: true } }));
+    storage.setItem(`${accountKey("alice")}:backup`, "private backup");
+    await store.resetProgress();
+    await store.reconcile();
+    expect(store.getState().save.drafts).toEqual(fresh().drafts);
+    expect(store.getState().save.completed).toEqual([]);
+    expect(store.getState().save.settings.mute).toBe(true);
+    expect(cloud.get()?.resetVersion).toBe(1);
+    expect(storage.getItem(`${accountKey("alice")}:backup`)).toBeNull();
+    expect(
+      JSON.parse(storage.getItem(accountKey("alice"))!).save.drafts,
+    ).toEqual(fresh().drafts);
+    store.disconnect();
+    expect(store.getState().save.drafts["board-shell"]).toBe("guest code");
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    expect(store.getState().save.drafts).toEqual(fresh().drafts);
+  });
+  it("discards pre-reset offline edits even with a future clock, then allows new progress", async () => {
+    const cloud = server(snapshot(codeSave("old cloud"), 1000));
+    const first = new ProgressStore(memory(), () => 2000);
+    const storage = memory();
+    const stale = new ProgressStore(storage, () => 9999999);
+    first.connect("alice", cloud.remote);
+    stale.connect("alice", cloud.remote);
+    await Promise.all([first.reconcile(), stale.reconcile()]);
+    stale.update(codeSave("offline future edit"));
+    await first.resetProgress();
+    await stale.reconcile();
+    expect(stale.getState().save.drafts).toEqual(fresh().drafts);
+    expect(storage.getItem(`${accountKey("alice")}:backup`)).toBeNull();
+    stale.update(codeSave("after reset"));
+    await stale.reconcile();
+    expect(cloud.get()?.save.drafts["board-shell"]).toBe("after reset");
+    expect(cloud.get()?.resetVersion).toBe(1);
+  });
+  it("keeps local progress when reset fails offline", async () => {
+    const cloud = server(snapshot(codeSave("keep me"), 1000));
+    const store = new ProgressStore(memory());
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    vi.mocked(cloud.remote.reset!).mockRejectedValueOnce(new Error("offline"));
+    await expect(store.resetProgress()).rejects.toThrow("offline");
+    expect(store.getState().save.drafts["board-shell"]).toBe("keep me");
+  });
+  it("ignores a reset response after switching accounts", async () => {
+    const cloud = server(snapshot(codeSave("alice"), 1000));
+    const store = new ProgressStore(memory());
+    store.connect("alice", cloud.remote);
+    await store.reconcile();
+    let release!: (value: ProgressSnapshot) => void;
+    cloud.remote.reset = () =>
+      new Promise((resolve) => {
+        release = resolve;
+      });
+    const pending = store.resetProgress();
+    await Promise.resolve();
+    await Promise.resolve();
+    store.disconnect();
+    store.connect("bob", server(snapshot(codeSave("bob"), 2000)).remote);
+    await store.reconcile();
+    release(snapshot(fresh(), 3000, 1));
+    await expect(pending).rejects.toThrow("Account changed");
+    expect(store.getState().save.drafts["board-shell"]).toBe("bob");
+  });
   it("imports timestamp-free v4 data without inventing a new gameplay time", async () => {
     const storage = memory();
     storage.setItem(KEY, JSON.stringify(codeSave("guest code")));

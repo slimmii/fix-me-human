@@ -2,12 +2,13 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { useSimpleComputer } from "../fixtures/simple-computer";
 import { startAssignmentPrint } from "../fixtures/story";
 import { fresh, KEY } from "../../src/progression";
+import { coffeeHunt } from "../fixtures/bug-hunts";
 import {
   snapshot,
   type ProgressSnapshot,
 } from "../../src/account/progress-store";
 
-const origin = "http://localhost:5174";
+const origin = `http://localhost:${process.env.PFH_ACCOUNT_TEST_PORT ?? 5174}`;
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
 const AUTH_KEY = "sb-pfh-test-auth-token";
@@ -60,6 +61,7 @@ function backend() {
     state: value.save,
     modified_at: new Date(value.modifiedAt).toISOString(),
     updated_at: new Date().toISOString(),
+    reset_version: value.resetVersion ?? 0,
   });
   async function install(context: BrowserContext) {
     await context.route("https://pfh-test.supabase.co/**", async (route) => {
@@ -125,15 +127,31 @@ function backend() {
       }
       if (url.pathname.endsWith("/pfh_progress"))
         return json(progress.has(userId) ? [row(progress.get(userId)!)] : []);
+      if (url.pathname.endsWith("/pfh_reset_progress")) {
+        const body = request.postDataJSON();
+        const previous = progress.get(userId);
+        if ((previous?.resetVersion ?? 0) === body.p_expected_reset_version)
+          progress.set(userId, {
+            save: body.p_state,
+            modifiedAt: Date.now(),
+            resetVersion: (previous?.resetVersion ?? 0) + 1,
+          });
+        return json([row(progress.get(userId)!)]);
+      }
       if (url.pathname.endsWith("/pfh_sync_progress")) {
         writes++;
         const body = request.postDataJSON();
         const next = {
           save: body.p_state,
           modifiedAt: Date.parse(body.p_modified_at),
+          resetVersion: body.p_reset_version ?? 0,
         };
         const previous = progress.get(userId);
-        if (!previous || next.modifiedAt > previous.modifiedAt)
+        if (
+          !previous ||
+          (next.resetVersion === (previous.resetVersion ?? 0) &&
+            next.modifiedAt > previous.modifiedAt)
+        )
           progress.set(userId, next);
         return json([row(progress.get(userId)!)]);
       }
@@ -160,6 +178,209 @@ test.beforeEach(async ({ page }) => {
   await useSimpleComputer(page);
 });
 
+test("a signed-in hunt run syncs its code and statistics and survives a fresh device", async ({
+  page,
+  context,
+  browser,
+}) => {
+  const api = backend();
+  api.profiles.set(alice, "human_tester");
+  await api.install(context);
+  await context.route("**/rest/v1/pfh_bug_hunts?*", (route) =>
+    route.fulfill({
+      json: new URL(route.request().url()).searchParams.has("id")
+        ? coffeeHunt
+        : [coffeeHunt],
+    }),
+  );
+  await seed(page);
+  await page.goto("/");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "WANTED: Open bug hunts" }).click();
+  await page
+    .getByRole("button", {
+      name: "Open bug hunt: The coffee counter",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Start hunt", exact: true }).click();
+  await page
+    .frameLocator('iframe[title="Code editor"]')
+    .getByRole("textbox", { name: "Your React code" })
+    .press("F5");
+  const key = `${coffeeHunt.id}:1`;
+  await expect
+    .poll(() => api.progress.get(alice)?.save.bugHunts[key]?.failedRuns)
+    .toBe(1);
+  expect(api.progress.get(alice)?.save.bugHunts[key]?.runs).toBe(1);
+  expect(api.progress.get(alice)?.save.bugHunts[key]?.project.files).toEqual(
+    coffeeHunt.starter_files,
+  );
+  const second = await browser.newContext();
+  try {
+    await api.install(second);
+    await second.route("**/rest/v1/pfh_bug_hunts?*", (route) =>
+      route.fulfill({
+        json: new URL(route.request().url()).searchParams.has("id")
+          ? coffeeHunt
+          : [coffeeHunt],
+      }),
+    );
+    const device = await second.newPage();
+    await useSimpleComputer(device);
+    await seed(device);
+    await device.goto(origin);
+    await expect(device.getByRole("dialog")).toHaveCount(0);
+    await device
+      .getByRole("button", { name: "WANTED: Open bug hunts" })
+      .click();
+    await expect(
+      device.getByRole("button", {
+        name: "Open bug hunt: The coffee counter",
+        exact: true,
+      }),
+    ).toContainText("1 runs");
+    await device
+      .getByRole("button", {
+        name: "Open bug hunt: The coffee counter",
+        exact: true,
+      })
+      .click();
+    await expect(
+      device.getByRole("region", { name: "Latest check results" }),
+    ).toContainText("One click should add one cup");
+  } finally {
+    await second.close();
+  }
+});
+
+test("removing account progress requires confirmation, handles offline failure, and stays reset after reload", async ({
+  page,
+  context,
+}) => {
+  const api = backend();
+  api.profiles.set(alice, "human_tester");
+  const saved = fresh();
+  saved.drafts["board-shell"] = "// personal code";
+  saved.completed = ["board-shell"];
+  api.progress.set(alice, snapshot(saved, 1000));
+  await api.install(context);
+  await seed(page);
+  await page.goto("/");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Open profile" }).click();
+  await page
+    .getByRole("button", { name: "Remove all progress", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("It cannot be undone");
+  await expect(
+    page.getByRole("switch", { name: "Also clear my guest save" }),
+  ).not.toBeChecked();
+  await expect(
+    page.getByRole("button", { name: "Keep my progress" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Keep my progress" }).click();
+  expect(api.progress.get(alice)?.save.drafts["board-shell"]).toBe(
+    "// personal code",
+  );
+  await page
+    .getByRole("button", { name: "Remove all progress", exact: true })
+    .click();
+  api.setOffline(true);
+  await page.getByRole("button", { name: "Yes, remove all progress" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "reset could not be confirmed",
+  );
+  expect(api.progress.get(alice)?.save.completed).toEqual(["board-shell"]);
+  api.setOffline(false);
+  await page.screenshot({
+    path: "test-results/account-reset-confirmation.png",
+  });
+  await page.getByRole("button", { name: "Yes, remove all progress" }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Your account progress has been removed",
+  );
+  expect(api.progress.get(alice)?.save.drafts).toEqual(fresh().drafts);
+  expect(api.progress.get(alice)?.save.completed).toEqual([]);
+  expect(api.profiles.get(alice)).toBe("human_tester");
+  await page.reload();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Open profile" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Synced");
+  expect(api.progress.get(alice)?.save.drafts).toEqual(fresh().drafts);
+});
+
+test("guest-reset toggle is optional, resets on cancellation, and clears guest progress on confirmation", async ({
+  page,
+  context,
+}) => {
+  const api = backend();
+  api.profiles.set(alice, "human_tester");
+  await api.install(context);
+  await seed(page);
+  await page.addInitScript(
+    ({ key, save }) => {
+      if (!localStorage.getItem("guest-reset-seeded")) {
+        localStorage.setItem(key, JSON.stringify(save));
+        localStorage.setItem(`${key}:backup`, "guest backup");
+        localStorage.setItem("guest-reset-seeded", "true");
+      }
+    },
+    {
+      key: KEY,
+      save: { ...fresh(), drafts: { "board-shell": "// guest code" } },
+    },
+  );
+  await page.goto("/");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Open profile" }).click();
+  const remove = page.getByRole("button", {
+    name: "Remove all progress",
+    exact: true,
+  });
+  const toggle = page.getByRole("switch", { name: "Also clear my guest save" });
+  await remove.click();
+  await expect(toggle).not.toBeChecked();
+  await toggle.check();
+  await page.getByRole("button", { name: "Keep my progress" }).click();
+  await remove.click();
+  await expect(toggle).not.toBeChecked();
+  await toggle.focus();
+  await page.keyboard.press("Space");
+  await expect(toggle).toBeChecked();
+  await page.setViewportSize({ width: 640, height: 480 });
+  await toggle.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "test-results/guest-reset-toggle.png" });
+  await page.getByRole("button", { name: "Yes, remove all progress" }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "this browser’s guest save have been removed",
+  );
+  expect(
+    await page.evaluate(
+      (key) => [
+        localStorage.getItem(key),
+        localStorage.getItem(`${key}:backup`),
+      ],
+      KEY,
+    ),
+  ).toEqual([null, null]);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!).drafts,
+      KEY,
+    ),
+  ).toEqual(fresh().drafts);
+  await page.reload();
+  expect(
+    await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!).drafts,
+      KEY,
+    ),
+  ).toEqual(fresh().drafts);
+});
+
 test("B.U.G. introduces himself; skipping is remembered and printing stays explicit", async ({
   page,
   context,
@@ -169,7 +390,7 @@ test("B.U.G. introduces himself; skipping is remembered and printing stays expli
   await page.goto("/");
   const dialog = page.getByRole("dialog", { name: "Welcome, human." });
   await expect(dialog).toContainText("I’m B.U.G.");
-  await expect(dialog).toContainText("future bug hunts");
+  await expect(dialog).toContainText("course progress and bug hunts");
   await page.screenshot({ path: "test-results/account-introduction.png" });
   await page
     .getByRole("button", { name: "Continue without signing in" })

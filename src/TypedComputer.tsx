@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StoryEvent } from "./game/story";
 import type { Assignment } from "./curriculum/types";
 import type { CodeCheck } from "./validation/types";
@@ -9,6 +9,7 @@ import type { Compiled } from "./typed-engine";
 import { FileDialog } from "./computer/FileDialog";
 import { RunProgress } from "./computer/RunProgress";
 import { ENTRY_FILE, type CodeProject } from "./project";
+import type { RunOutcome, RunResult } from "./bug-hunts/progress";
 export const TAGS = [
   "div",
   "section",
@@ -39,6 +40,11 @@ type Props = {
   fontSize: number;
   onHelp: () => void;
   onExit: () => void;
+  testCode?: string;
+  previewCss?: string;
+  onRunStart?: () => void;
+  onRunResult?: (result: RunResult) => void;
+  workspaceNavigation?: ReactNode;
 };
 type Menu = "File" | "Edit" | "Search" | "Run";
 export default function TypedComputer({
@@ -58,7 +64,14 @@ export default function TypedComputer({
   fontSize,
   onHelp,
   onExit,
+  testCode,
+  previewCss,
+  onRunStart,
+  onRunResult,
+  workspaceNavigation,
 }: Props) {
+  const hunt = testCode !== undefined;
+  const submitLabel = hunt ? "Back to wanted board" : "Submit assignment";
   const [draft, setDraft] = useState(project);
   const [fileDialog, setFileDialog] = useState<"new" | "open" | null>(null);
   const [page, setPage] = useState("");
@@ -82,6 +95,23 @@ export default function TypedComputer({
     undefined,
   );
   const runStarted = useRef(0);
+  const reported = useRef(true);
+  const resultCallback = useRef(onRunResult);
+  resultCallback.current = onRunResult;
+  function reportRun(
+    outcome: RunOutcome,
+    checks: CodeCheck[] = [],
+    error?: string,
+  ) {
+    if (reported.current) return;
+    reported.current = true;
+    resultCallback.current?.({
+      outcome,
+      checks,
+      error: error?.slice(0, 2000),
+      durationMs: Math.round(performance.now() - runStarted.current),
+    });
+  }
   const latestSource = useRef(draft);
   latestSource.current = draft;
   function syncPreviewFont() {
@@ -148,6 +178,7 @@ export default function TypedComputer({
       }
       if (event.data.type === "error") {
         finishRun(() => {
+          reportRun("runtime-error", [], String(event.data.detail));
           onBug();
           setAccepted(false);
           setError(String(event.data.detail));
@@ -168,11 +199,16 @@ export default function TypedComputer({
           checks.length > 0 && checks.every((c) => c.pass) && runtime.valid;
         const failure = checks.find((check) => !check.pass);
         finishRun(() => {
+          reportRun(ok ? "passed" : "failed", checks);
           setAccepted(ok);
           setStatus(
             ok
-              ? "Program ran successfully. Assignment checks passed."
-              : "Program running. Assignment needs another look.",
+              ? hunt
+                ? "Bug hunt solved. All checks passed!"
+                : "Program ran successfully. Assignment checks passed."
+              : hunt
+                ? "Bugs remain. Review the check results."
+                : "Program running. Assignment needs another look.",
           );
           onActivity(
             ok ? "passed" : "retry",
@@ -190,10 +226,12 @@ export default function TypedComputer({
     if (!worker.current || busy || fileDialog) return;
     onKey();
     onActivity("run");
+    onRunStart?.();
     setMenu(null);
     setActive("browser");
     clearTimeout(revealTimeout.current);
     runStarted.current = performance.now();
+    reported.current = false;
     setBusy(true);
     token.current = "";
     pending.current = null;
@@ -216,6 +254,7 @@ export default function TypedComputer({
       pending.current = result;
       if (result.errors.length) {
         finishRun(() => {
+          reportRun("compile-error", [], result.errors[0]);
           onBug();
           setStatus("Compile error");
           setError(result.errors[0]);
@@ -233,14 +272,19 @@ export default function TypedComputer({
           reduced,
           fontSize,
           exercise.previewTheme,
+          testCode,
+          previewCss,
         ),
       );
       clearTimeout(timeout.current);
       timeout.current = setTimeout(() => {
+        token.current = "";
+        reportRun("timeout", [], "Program did not respond within 12 seconds.");
         onBug();
         setBusy(false);
         setAccepted(false);
         setPage("");
+        setStatus("Run timed out");
         setError("Program did not respond. Check for endless recursion.");
         setBrowserTitle("");
         onActivity(
@@ -326,7 +370,7 @@ export default function TypedComputer({
     File: [
       { label: "New file", key: "Ctrl+N", action: () => openFileDialog("new") },
       { label: "Open", key: "Ctrl+O", action: () => openFileDialog("open") },
-      { label: "Tasks", action: onOpenTasks },
+      { label: hunt ? "Wanted board" : "Tasks", action: onOpenTasks },
       { label: "Exit", action: onExit },
     ],
     Edit: [
@@ -353,7 +397,7 @@ export default function TypedComputer({
         action: () => setActive("browser"),
         disabled: !page,
       },
-      { label: "Submit assignment", action: onPass, disabled: !accepted },
+      { label: submitLabel, action: onPass, disabled: !accepted },
     ],
   };
   return (
@@ -514,7 +558,11 @@ export default function TypedComputer({
           >
             <u>H</u>elp
           </button>
-          <span className="qbasic-program">B.U.G. BASIC / REACT</span>
+          {workspaceNavigation ?? (
+            <span className="qbasic-program">
+              {hunt ? "B.U.G. HUNT / REACT" : "B.U.G. BASIC / REACT"}
+            </span>
+          )}
         </div>
         <div className="editor-panes">
           <div className="editor-main">
@@ -554,15 +602,17 @@ export default function TypedComputer({
               </div>
             </div>
             <div className="retro-browser" hidden={active !== "browser"}>
-              <div className="retro-browser-title">
-                <b>
-                  ▣ BUGSCAPE Navigator 1.0 —{" "}
-                  {(!busy && browserTitle) || "Local Intranet"}
-                </b>
-                <button onClick={backToEditor} aria-label="Close browser">
-                  [×]
-                </button>
-              </div>
+              {!workspaceNavigation && (
+                <div className="retro-browser-title">
+                  <b>
+                    ▣ BUGSCAPE Navigator 1.0 —{" "}
+                    {(!busy && browserTitle) || "Local Intranet"}
+                  </b>
+                  <button onClick={backToEditor} aria-label="Close browser">
+                    [×]
+                  </button>
+                </div>
+              )}
               <div className="retro-browser-tools">
                 <button onClick={backToEditor}>
                   ← Editor <small>F6</small>
@@ -570,9 +620,25 @@ export default function TypedComputer({
                 <button disabled={busy} onClick={run}>
                   Reload <small>F5</small>
                 </button>
-                <span>Location:</span>
-                <span className="retro-url">human://office/{exercise.id}</span>
-                <b>▦</b>
+                {workspaceNavigation ? (
+                  <>
+                    <b
+                      className="hunt-browser-title"
+                      title={(!busy && browserTitle) || "BUGSCAPE Navigator"}
+                    >
+                      {(!busy && browserTitle) || "BUGSCAPE Navigator"}
+                    </b>
+                    {workspaceNavigation}
+                  </>
+                ) : (
+                  <>
+                    <span>Location:</span>
+                    <span className="retro-url">
+                      human://office/{exercise.id}
+                    </span>
+                    <b>▦</b>
+                  </>
+                )}
               </div>
               <div className="retro-browser-page" aria-busy={busy}>
                 {error ? (
@@ -602,9 +668,7 @@ export default function TypedComputer({
               </div>
               <div className="retro-browser-status">
                 <span>● {status}</span>
-                {accepted && (
-                  <button onClick={onPass}>Submit assignment ✓</button>
-                )}
+                {accepted && <button onClick={onPass}>{submitLabel} ✓</button>}
               </div>
             </div>
           </div>

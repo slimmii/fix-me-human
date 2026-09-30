@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const name = `pfh-account-test-${process.pid}`;
 function docker(args, input) {
@@ -77,8 +77,13 @@ try {
   if (!ready) throw new Error("PostgreSQL did not become ready.");
   for (const path of [
     "supabase/tests/bootstrap.sql",
-    "supabase/migrations/20260920124738_accounts_and_progress.sql",
+    ...readdirSync("supabase/migrations")
+      .filter((name) => name.endsWith(".sql"))
+      .sort()
+      .map((name) => `supabase/migrations/${name}`),
     "supabase/tests/account_policies.sql",
+    "supabase/tests/account_reset.sql",
+    "supabase/tests/bug_hunts.sql",
   ])
     sql(readFileSync(path, "utf8"));
   const first = "11111111-1111-4111-8111-111111111111";
@@ -130,8 +135,30 @@ try {
     ).trim() !== "new"
   )
     throw new Error("Concurrent writes replaced newer progress.");
+  const resetting = await Promise.all([
+    concurrentSql(
+      asUser(
+        third,
+        `select * from public.pfh_reset_progress('{"version":4,"draft":"reset"}', 0); select pg_sleep(0.2)`,
+      ),
+    ),
+    concurrentSql(
+      asUser(
+        third,
+        `select * from public.pfh_sync_progress('{"version":4,"draft":"stale device"}', '2100-01-01', 0)`,
+      ),
+    ),
+  ]);
+  if (resetting.some((result) => result.code !== 0))
+    throw new Error(JSON.stringify(resetting));
+  if (
+    sql(
+      `select state->>'draft' from public.pfh_progress where user_id='${third}' and reset_version=1;`,
+    ).trim() !== "reset"
+  )
+    throw new Error("Concurrent stale upload undid an account reset.");
   console.log(
-    "Passed: migration, RLS, constraints, account deletion, simultaneous username claims, and out-of-order concurrent saves.",
+    "Passed: migrations, RLS, constraints, account deletion, username races, save ordering, reset idempotence, concurrent reset/stale-upload protection, bug-hunt publication and revisions.",
   );
 } finally {
   if (started) docker(["stop", name]);

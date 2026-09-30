@@ -7,11 +7,13 @@ import { TaskMenu } from "./TaskMenu";
 import { Desktop } from "./Desktop";
 import { Snake } from "./Snake";
 import type { CSSProperties } from "react";
+import { BugHuntComputer } from "../bug-hunts/BugHuntComputer";
 
 export function GameComputer({ game }: { game: GameController }) {
   const { save, assignment, dispatch } = game;
   const reviewing = save.phase === "review" || save.phase === "complete";
   const basicOpen = game.computerApp === "basic";
+  const huntsOpen = game.computerApp === "hunts";
   const keyboardActive = game.focused && !game.settings && !game.accountOpen;
   function exitBasic() {
     game.setShowTasks(false);
@@ -27,10 +29,12 @@ export function GameComputer({ game }: { game: GameController }) {
         } as CSSProperties
       }
     >
-      {!basicOpen && (
+      {huntsOpen && <BugHuntComputer key={game.editorRevision} game={game} />}
+      {!basicOpen && !huntsOpen && (
         <Desktop
           active={keyboardActive && game.computerApp === "desktop"}
           onOpen={game.setComputerApp}
+          onBugHunts={game.openHunts}
         >
           {game.computerApp === "snake" && (
             <Snake
@@ -44,7 +48,7 @@ export function GameComputer({ game }: { game: GameController }) {
       {basicOpen && reviewing && !game.showTasks && (
         <AssignmentReview game={game} />
       )}
-      {!reviewing && (
+      {!reviewing && !huntsOpen && (
         <div
           className="assignment-workspace"
           hidden={!basicOpen || game.showTasks}

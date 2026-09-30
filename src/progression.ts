@@ -19,6 +19,7 @@ import {
 } from "./game/officeTime";
 import { DEFAULT_SCREEN_FONT_SIZE, isScreenFontSize } from "./screen-font";
 import { decodeWorkstationId } from "./game/workstation";
+import { decodeHuntProgress, type HuntProgress } from "./bug-hunts/progress";
 export type Phase = "onboarding" | "coding" | "review" | "complete";
 export type Save = {
   version: 4;
@@ -32,6 +33,7 @@ export type Save = {
   revisitingAssignment: boolean;
   drafts: Record<string, string>;
   projects: Record<string, CodeProject>;
+  bugHunts: Record<string, HuntProgress>;
   story: Record<string, AssignmentStory>;
   officeClock: OfficeClock | null;
   workstationId: string | null;
@@ -56,6 +58,7 @@ export const fresh = (lessons = curriculum): Save => ({
   revisitingAssignment: false,
   drafts: {},
   projects: {},
+  bugHunts: {},
   story: {},
   officeClock: null,
   workstationId: null,
@@ -295,6 +298,7 @@ export function decode(raw: string | null, lessons = curriculum): Save {
     if (!value || value.version !== 4) return result;
     result.officeClock = decodeOfficeClock(value.officeClock);
     result.workstationId = decodeWorkstationId(value.workstationId);
+    result.bugHunts = decodeHuntProgress(value.bugHunts);
     const completed: string[] = Array.isArray(value.completed)
       ? value.completed.filter(
           (id: unknown): id is string => typeof id === "string",

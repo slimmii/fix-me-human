@@ -71,6 +71,11 @@ export default function Scene(props: Props) {
   return webgl ? (
     <>
       <OfficeClockReadout clock={props.officeClock} hidden />
+      {!props.focused && props.onBugHunts && (
+        <button className="wanted-access" onClick={props.onBugHunts}>
+          WANTED: Open bug hunts
+        </button>
+      )}
       <Canvas
         key={String(quality.antialias)}
         onPointerMissed={() => setWallFocus(null)}
@@ -129,6 +134,9 @@ export default function Scene(props: Props) {
         </article>
       )}
       <button onClick={props.onComputer}>Start</button>
+      {props.onBugHunts && (
+        <button onClick={props.onBugHunts}>WANTED: Open bug hunts</button>
+      )}
       {props.completedAssignments.includes(
         props.assignment.id,
       ) ? null : !props.assignmentPrintRequested &&
@@ -141,7 +149,7 @@ export default function Scene(props: Props) {
           Grab new assignment: {props.assignment.title}
         </button>
       ) : (
-        <button onClick={props.onAssignment}>
+        <button className="assignment-read" onClick={props.onAssignment}>
           Read printed assignment: {props.assignment.title}
         </button>
       )}

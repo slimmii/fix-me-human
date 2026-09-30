@@ -97,6 +97,51 @@
 .account-sync {
   font-weight: 700;
 }
+.account-reset {
+  border-top: 1px solid #6e856540;
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.account-dialog .account-guest-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.account-dialog .account-guest-toggle input {
+  appearance: none;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  margin: 0;
+  border-radius: 12px;
+  background: #c6ccbb;
+  cursor: pointer;
+}
+.account-guest-toggle input::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fffdf1;
+}
+.account-dialog .account-guest-toggle input:checked {
+  background: #436e57;
+}
+.account-guest-toggle input:checked::before {
+  transform: translateX(16px);
+}
+.account-guest-toggle input:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.account-controls .account-danger {
+  color: #842e20;
+  border-color: #b96d5e;
+  background: #fae5d6;
+}
 .account-controls button:focus-visible,
 .account-dialog input:focus-visible {
   outline: 3px solid #bb7425;

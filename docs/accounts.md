@@ -1,8 +1,8 @@
 # GitHub accounts and cloud progress
 
 Accounts are optional. Guests keep playing with the existing browser save. GitHub
-authentication adds a unique game username and progress synchronization; playable
-bug hunts are not part of this release.
+authentication adds a unique game username and progress synchronization, including
+bug hunt drafts and statistics. See [Bug hunts](bug-hunts.md) for authoring and scheduling.
 
 ## Configure the existing project
 
@@ -69,6 +69,40 @@ and supports guest play. No actual hosted project configuration or OAuth smoke
 test is implied by the presence of these files.
 
 ## Player data and conflict behavior
+
+### Removing account progress
+
+Open your profile and choose **Remove all progress**, then confirm. Turn on
+**Also clear my guest save** to also remove this browser's guest progress, sync
+metadata, and backup after the account reset succeeds. The toggle defaults to off
+and resets when you cancel. Guest saves on other browsers are unaffected.
+
+This replaces the account's cloud save with an empty starting state and clears the account save
+and backup on the current device. It preserves the username, GitHub identity,
+device settings, and (unless the toggle is enabled) the independent guest save.
+An internet connection is required; an unconfirmed reset shows an error and can
+be retried.
+
+Migration `20260920142508_account_progress_reset.sql` is applied to the hosted
+project. It adds the authenticated `pfh_reset_progress` RPC and a monotonically
+increasing `reset_version`. Sync requests include the version they last received;
+stale devices cannot overwrite a reset even with newer timestamps. Other devices
+discard pre-reset progress and backups when they next sync. Older app builds
+cannot upload again after a reset until upgraded. A minimal empty save and version
+remain in the database to prevent erased data from being recreated automatically.
+
+Reset verification: 147 unit tests, all 13 account browser tests, the disposable
+PostgreSQL tests, and the production build passed. Hosted transactional checks of
+reset, stale-client rejection, idempotence, and access restrictions passed with
+all fixtures rolled back. No real player progress was reset during setup.
+Guest-toggle verification: all 21 progress-store tests, all 14 account browser
+tests, and the production build passed, including sign-out, reload, cancellation,
+keyboard use, failed resets, and blocked browser storage.
+The security advisor found no new database issues; its existing
+[leaked-password protection warning](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+is unchanged.
+
+### Normal synchronization
 
 - The original `please-fix-human:v4` save remains the guest save. Each account uses
   `please-fix-human:v4:account:<user-id>`. Signing out restores the guest save;
