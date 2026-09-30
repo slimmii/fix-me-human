@@ -83,6 +83,7 @@ try {
       .map((name) => `supabase/migrations/${name}`),
     "supabase/tests/account_policies.sql",
     "supabase/tests/account_reset.sql",
+    "supabase/tests/workstation_ids.sql",
     "supabase/tests/bug_hunts.sql",
   ])
     sql(readFileSync(path, "utf8"));
@@ -157,8 +158,40 @@ try {
     ).trim() !== "reset"
   )
     throw new Error("Concurrent stale upload undid an account reset.");
+
+  const fourth = "44444444-4444-4444-8444-444444444444";
+  const fifth = "55555555-5555-4555-8555-555555555555";
+  sql(
+    `insert into auth.users(id) values ('${fourth}'), ('${fifth}');` +
+      asUser(
+        fourth,
+        "insert into public.pfh_profiles(user_id,username) values(auth.uid(),'workstation_four')",
+      ) +
+      asUser(
+        fifth,
+        "insert into public.pfh_profiles(user_id,username) values(auth.uid(),'workstation_five')",
+      ),
+  );
+  const allocations = await Promise.all(
+    [fourth, fifth].map((id) =>
+      concurrentSql(
+        asUser(
+          id,
+          `select * from public.pfh_sync_progress('{"version":4,"workstationId":"A–001"}', now(), 0)`,
+        ),
+      ),
+    ),
+  );
+  if (allocations.some((result) => result.code !== 0))
+    throw new Error(JSON.stringify(allocations));
+  if (
+    sql(
+      `select count(distinct workstation_id) from public.pfh_progress where user_id in ('${fourth}', '${fifth}') and state->>'workstationId'=workstation_id;`,
+    ).trim() !== "2"
+  )
+    throw new Error("Concurrent workstation allocations were not unique.");
   console.log(
-    "Passed: migrations, RLS, constraints, account deletion, username races, save ordering, reset idempotence, concurrent reset/stale-upload protection, bug-hunt publication and revisions.",
+    "Passed: migrations, RLS, constraints, account deletion, username races, save ordering, reset idempotence, concurrent reset/stale-upload protection, concurrent unique workstation allocation, bug-hunt publication and revisions.",
   );
 } finally {
   if (started) docker(["stop", name]);

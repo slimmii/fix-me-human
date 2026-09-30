@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { decodeSnapshot, type ProgressRemote } from "./progress-store";
+import { decodeWorkstationId } from "../game/workstation";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -35,9 +36,20 @@ function fromRow(row: {
   state: unknown;
   modified_at: string;
   reset_version?: number;
+  workstation_id?: unknown;
 }) {
+  const workstationId = decodeWorkstationId(row.workstation_id);
+  if (row.workstation_id !== undefined && !workstationId)
+    throw new Error("This cloud save has an invalid workstation assignment.");
+  const state =
+    workstationId &&
+    row.state &&
+    typeof row.state === "object" &&
+    !Array.isArray(row.state)
+      ? { ...row.state, workstationId }
+      : row.state;
   const value = decodeSnapshot({
-    save: row.state,
+    save: state,
     modifiedAt: Date.parse(row.modified_at),
     resetVersion: row.reset_version ?? 0,
   });
@@ -59,7 +71,7 @@ export function progressRemote(client: SupabaseClient): ProgressRemote {
       const bearer = await authorization(userId);
       const { data, error } = await client
         .from("pfh_progress")
-        .select("state, modified_at, reset_version")
+        .select("state, modified_at, reset_version, workstation_id")
         .eq("user_id", userId)
         .setHeader("Authorization", bearer)
         .abortSignal(AbortSignal.timeout(10_000))

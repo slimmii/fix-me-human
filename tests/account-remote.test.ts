@@ -54,3 +54,41 @@ it("binds an in-flight upload to its original owner's token", async () => {
   expect(account).toBe("bob");
   expect(headers.get("Authorization")).toBe("Bearer alice-token");
 });
+
+it("uses the database workstation column as the authoritative assignment", async () => {
+  const value = snapshot({ ...fresh(), workstationId: "A–001" }, 1000);
+  const request = {
+    select: vi.fn(() => request),
+    eq: vi.fn(() => request),
+    setHeader: vi.fn(() => request),
+    abortSignal: vi.fn(() => request),
+    maybeSingle: vi.fn(() => request),
+    retry: async () => ({
+      data: {
+        state: value.save,
+        workstation_id: "Z–999",
+        modified_at: new Date(1000).toISOString(),
+        reset_version: 0,
+      },
+      error: null,
+    }),
+  };
+  const client = {
+    auth: {
+      getSession: async () => ({
+        data: {
+          session: { user: { id: "alice" }, access_token: "alice-token" },
+        },
+        error: null,
+      }),
+    },
+    from: vi.fn(() => request),
+  } as unknown as SupabaseClient;
+
+  const result = await progressRemote(client).read("alice");
+
+  expect(request.select).toHaveBeenCalledWith(
+    "state, modified_at, reset_version, workstation_id",
+  );
+  expect(result?.save.workstationId).toBe("Z–999");
+});

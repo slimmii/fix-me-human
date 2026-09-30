@@ -128,6 +128,10 @@ is unchanged.
   automatic merge feature. Storage errors still permit session-only play.
 - Usernames are normalized to lowercase and must match `[a-z0-9_]{3,20}`. The
   database owns uniqueness. Usernames cannot be renamed in this release.
+- Workstation identifiers keep the random `A–001`–`Z–999` format, but allocation
+  is owned by the database and protected by a global unique constraint. Existing
+  progress is backfilled safely; duplicate or invalid legacy assignments are
+  reallocated during the migration.
 - Authenticated users can read only their own profile/save and insert their own
   profile. All progress writes go through the atomic RPC. Anonymous access is
   denied. Deleting an Auth user cascades to their profile and cloud progress.
